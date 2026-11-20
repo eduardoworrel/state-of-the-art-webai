@@ -146,20 +146,17 @@
     var el = document.createElement("div"); el.className = "toast"; el.setAttribute("role", "status"); el.textContent = msg; document.body.appendChild(el);
     setTimeout(function () { el.remove(); }, 1800);
   }
-  function copyText(text, msg) {
-    function done() { toast(msg); }
+  function copyText(text, msg, then) {
+    function done() { if (msg) toast(msg); if (then) then(); }
     if (navigator.clipboard && window.isSecureContext) { navigator.clipboard.writeText(text).then(done, fallback); } else { fallback(); }
     function fallback() {
       var ta = document.createElement("textarea"); ta.value = text; ta.style.cssText = "position:fixed;opacity:0"; document.body.appendChild(ta); ta.select();
       try { document.execCommand("copy"); done(); } catch (e) {} ta.remove();
     }
   }
-  function pageUrl(chip) { return SITE.base + "?lang=" + lang + (chip ? "#" + chip : ""); }
+  function pageUrl() { return SITE.base + "?lang=" + lang; }
   function enc(s) { return encodeURIComponent(s); }
-  function issueUrl(chip) {
-    var body = (chip ? "Chip: " + chip + "\n" : "") + "Page: " + pageUrl(chip) + "\n\n";
-    return "https://github.com/" + SITE.repo + "/issues/new?title=" + enc(chip ? "[" + chip + "] " : "") + "&body=" + enc(body);
-  }
+  function issueUrl() { return "https://github.com/" + SITE.repo + "/issues/new?body=" + enc("Page: " + pageUrl() + "\n\n"); }
   function refreshLinks() {
     var url = pageUrl(), title = t("site.title"), set = function (sel, fn) { document.querySelectorAll(sel).forEach(fn); };
     set("[data-share]", function (a) {
@@ -169,21 +166,26 @@
         : "mailto:?subject=" + enc(title) + "&body=" + enc(t("site.tagline") + "\n\n" + url);
     });
     set("[data-dl]", function (a) { var p = a.getAttribute("data-dl").split("-"); a.href = SITE.base + "figure-" + lang + (p[1] === "dark" ? "-dark" : "") + "." + p[0]; a.setAttribute("download", "state-of-the-art-webai-" + lang + "-" + p[1] + "." + p[0]); });
-    set("[data-suggest]", function (a) { a.href = issueUrl(a.getAttribute("data-suggest")); });
+    set("[data-suggest]", function (a) { a.href = issueUrl(); });
     set("[data-edit]", function (a) { a.href = "https://github.com/" + SITE.repo + "/edit/" + SITE.branch + "/data/layers.yml"; });
     var nat = document.querySelector('[data-act="native"]'); if (nat) nat.hidden = !navigator.share;
   }
-  function fillSnippets() {
-    var origin = new URL(SITE.base).origin, theme = "auto", fig = SITE.base + "figure-" + lang;
-    var s = {
+  function curTheme() { var th = root.getAttribute("data-theme"); return th || (window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"); }
+  function snippets() {
+    var origin = new URL(SITE.base).origin, theme = "auto", fig = SITE.base + "figure-" + lang + (curTheme() === "dark" ? "-dark" : "");   // language and theme follow the page
+    return {
       iframe: '<iframe id="soa-map" src="' + SITE.base + "embed/?lang=" + lang + "&theme=" + theme + '" title="' + t("site.title") + '" style="width:100%;border:0;min-height:320px" loading="lazy"></iframe>\n' +
         '<script>\naddEventListener("message", function (e) {\n  var f = document.getElementById("soa-map");\n  if (e.origin !== "' + origin + '" || e.source !== f.contentWindow) return;\n' +
         '  if (e.data && e.data.type === "soa-height") f.style.height = Math.ceil(e.data.height) + "px";\n});\n<\/script>',
       component: '<script src="' + SITE.base + 'embed.js" async><\/script>\n<state-of-the-art-webai lang="' + lang + '" theme="' + theme + '"></state-of-the-art-webai>',
-      image: '<a href="' + pageUrl() + '"><img src="' + fig + '.png" alt="' + t("site.title") + '" style="max-width:100%"></a>\n<!-- ' + t("ui.embed.credit") + " -->\nSVG: " + fig + ".svg   |   dark: " + fig + "-dark.png, " + fig + "-dark.svg",
+      image: '<a href="' + pageUrl() + '"><img src="' + fig + '.png" alt="' + t("site.title") + '" style="max-width:100%"></a>\n<!-- ' + t("ui.embed.credit") + " SVG: " + fig + ".svg -->",
       badge: "[![" + t("site.title") + "](" + SITE.base + "badge.svg)](" + SITE.base + ")"
     };
-    document.querySelectorAll("code[data-snippet]").forEach(function (c) { c.textContent = s[c.getAttribute("data-snippet")]; });
+  }
+  function fillSnippets() {
+    var s = snippets();
+    document.querySelectorAll("code[data-preview]").forEach(function (c) { c.textContent = s[c.getAttribute("data-preview")].split("\n")[0]; });   // one truncated line; the full code goes to the clipboard
+    var how = document.querySelector("a[data-how]"); if (how) how.href = "https://github.com/" + SITE.repo + (lang === "pt" ? "/blob/" + SITE.branch + "/README.pt.md#a-página" : "#the-page");
   }
   function openChipFromHash() {
     var id = decodeURIComponent(location.hash.slice(1)), b = id && document.querySelector('button.chip[data-id="' + id.replace(/"/g, "") + '"]');
@@ -196,11 +198,18 @@
     if (act) {
       var kind = act.getAttribute("data-act");
       if (kind === "native") navigator.share({ title: t("site.title"), text: t("site.tagline"), url: pageUrl() }).catch(function () {});
-      else copyText(pageUrl(kind === "copy-chip" ? act.getAttribute("data-chip") : ""), t("ui.share.copied"));
+      else copyText(pageUrl(), t("ui.share.copied"));
       close(false); return;
     }
     var cs = e.target.closest && e.target.closest("[data-copy-snippet]");
-    if (cs) { copyText(document.querySelector('code[data-snippet="' + cs.getAttribute("data-copy-snippet") + '"]').textContent, t("ui.embed.copied")); return; }
+    if (cs) {
+      var label = cs.querySelector("span"), live = document.getElementById("emb-live");
+      copyText(snippets()[cs.getAttribute("data-copy-snippet")], null, function () {
+        label.textContent = t("ui.embed.copied"); cs.classList.add("done"); if (live) live.textContent = t("ui.embed.copied") + ": " + t("ui.embed.t." + cs.getAttribute("data-copy-snippet"));
+        setTimeout(function () { label.textContent = t("ui.embed.copy"); cs.classList.remove("done"); if (live) live.textContent = ""; }, 1500);
+      });
+      return;
+    }
     if (e.target.closest && e.target.closest("[data-close-pop]")) { close(true); return; }
     var btn = e.target.closest && e.target.closest("button[aria-haspopup][aria-controls]");
     if (btn) {

@@ -94,13 +94,10 @@ def popover(c, tx, pid):
             label = escape(tx[f"srcgroup.{g}"])
             body += (f'<div role="group" aria-label="{label}" data-al="srcgroup.{g}"><div class="pg" aria-hidden="true" data-t="srcgroup.{g}">{label}</div>'
                      f'{"".join(menu_item(s_, tx) for s_ in items)}</div>')
-    actions = (f'<div role="group" aria-label="{escape(tx["ui.actions"])}" data-al="ui.actions" class="pop-actions"><div class="pg" aria-hidden="true" data-t="ui.actions">{escape(tx["ui.actions"])}</div>'
-               f'<button type="button" role="menuitem" tabindex="-1" data-act="copy-chip" data-chip="{cid}"><span data-t="ui.chip.copy">{escape(tx["ui.chip.copy"])}</span></button>'
-               f'<a role="menuitem" tabindex="-1" data-suggest="{cid}" href="#" target="_blank" rel="noopener noreferrer"><span data-t="ui.suggest.chip">{escape(tx["ui.suggest.chip"])}</span></a></div>')
     label = escape(tx["ui.menu"].replace("{name}", name))
     lvl = f' data-alert="{a["level"]}"' if a else ""
     return (f'<div class="pop" id="{pid}" data-menu="{cid}"{lvl} hidden>{head}{alert}'
-            f'<div role="menu" id="menu-{cid}" aria-label="{label}" data-menu-label="{cid}">{evidence}{body}{actions}</div></div>')
+            f'<div role="menu" id="menu-{cid}" aria-label="{label}" data-menu-label="{cid}">{evidence}{body}</div></div>')
 
 
 def chip(c, tx):
@@ -176,14 +173,16 @@ def menus(tx):
     download = f'<div class="pop pop-sm" id="pop-download" hidden><div role="menu" id="menu-download" aria-label="{t_("ui.download")}" data-al="ui.download">{dl}</div></div>'
     suggest = (f'<div class="pop pop-sm" id="pop-suggest" hidden><div role="menu" id="menu-suggest" aria-label="{t_("ui.suggest")}" data-al="ui.suggest">'
                + item_a('data-suggest="" href="#"', "ui.suggest.issue") + item_a('data-edit="" href="#"', "ui.suggest.edit") + "</div></div>")
-    def block(key, kind):
-        return (f'<section class="emb"><h3 data-t="ui.embed.{key}">{t_("ui.embed." + key)}</h3><pre><code data-snippet="{kind}"></code></pre>'
-                f'<button type="button" class="btn sm" data-copy-snippet="{kind}"><span data-t="ui.embed.copy">{t_("ui.embed.copy")}</span></button></section>')
+    def row(kind):
+        return (f'<div class="emb-row"><div class="emb-txt"><b data-t="ui.embed.t.{kind}">{t_("ui.embed.t." + kind)}</b>'
+                f'<p data-t="ui.embed.d.{kind}">{t_("ui.embed.d." + kind)}</p><code class="pv" data-preview="{kind}"></code></div>'
+                f'<button type="button" class="btn copy" data-copy-snippet="{kind}"><span data-t="ui.embed.copy">{t_("ui.embed.copy")}</span></button></div>')
     embed = (f'<div class="pop pop-embed" id="pop-embed" role="dialog" aria-modal="false" aria-labelledby="embed-title" hidden>'
              f'<div class="emb-head"><h2 id="embed-title" data-t="ui.embed.title">{t_("ui.embed.title")}</h2>'
-             f'<button type="button" class="btn sm" data-close-pop><span data-t="ui.embed.close">{t_("ui.embed.close")}</span></button></div>'
-             + block("iframe", "iframe") + block("component", "component") + block("image", "image") + block("badge", "badge")
-             + f'<p class="emb-credit" data-t="ui.embed.credit">{t_("ui.embed.credit")}</p></div>')
+             f'<button type="button" class="btn sm" data-close-pop aria-label="{t_("ui.embed.close")}" data-al="ui.embed.close"><span data-t="ui.embed.close">{t_("ui.embed.close")}</span></button></div>'
+             f'<p class="emb-help"><span data-t="ui.embed.help">{t_("ui.embed.help")}</span> <a href="https://github.com/{SITE["repo"]}#the-page" target="_blank" rel="noopener noreferrer" data-how><span data-t="ui.embed.how">{t_("ui.embed.how")}</span></a></p>'
+             + row("iframe") + row("component") + row("image") + row("badge")
+             + '<div class="sr" role="status" aria-live="polite" id="emb-live"></div></div>')
     return share + download + suggest + embed
 
 
