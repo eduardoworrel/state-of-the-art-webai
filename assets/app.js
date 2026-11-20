@@ -247,7 +247,7 @@
   function applySize(s) {
     root.classList.add("sized"); root.setAttribute("data-size", s);
     document.querySelectorAll("[data-size-choice]").forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.sizeChoice === s)); });
-    arrange();
+    state.sz = null; arrange(false);
   }
   document.querySelectorAll("[data-size-choice]").forEach(function (b) {
     b.addEventListener("click", function () {
@@ -256,8 +256,6 @@
       applySize(b.dataset.sizeChoice);
     });
   });
-  var resizeTimer = null;
-  window.addEventListener("resize", function () { clearTimeout(resizeTimer); resizeTimer = setTimeout(arrange, 120); });
 
   /* ---------- embed: tell the parent page how tall we are (the parent validates the origin; so do we) ---------- */
   var embedded = root.classList.contains("embed") && window.parent !== window;
@@ -325,6 +323,7 @@
      with which the whole map fits without scrolling. The cards are re-arranged (1 to 5 columns, stacked or side by side) and stretch to fill
      the width and the height; if nothing fits at the smallest font the page scrolls instead of shrinking the text. ---------- */
   var cards = null, CARD_W = [1.0, 1.25, 1.9, 1.15, 0.95];   // how wide each card likes to be, relative to the others
+  var U_MIN = 5, U_NOTICE = 9, U_MAX = 20, state = { sz: null, u: 13 };      // chip font limits (px) and the last choice (for hysteresis)
   function compositions(n, k) {                                // every way to cut n consecutive cards into k columns
     var out = [];
     (function rec(left, parts, cur) {
@@ -333,58 +332,116 @@
     })(n, k, []);
     return out;
   }
-  var PRESETS = [[1, 1, 1, 1, 1], [1, 1.45, 1, 1, 1], [1, 1, 1.35, 1, 1], [1, 1.3, 1.2, 1, 1], [1.2, 1.3, 1, 1, 1]];   // widths to try for the cards
-  function setColumns(sizes, weights, preset) {
+  function setColumns(sizes, weights) {
     var el = document.querySelector(".board .cols"), at = 0;
     while (el.children.length < sizes.length) { var c = document.createElement("div"); c.className = "col"; el.appendChild(c); }
     var w = [];
     sizes.forEach(function (n, ci) {
       var m = 0;
-      for (var j = 0; j < n; j++) { el.children[ci].appendChild(cards[at]); m = Math.max(m, CARD_W[at] * (preset ? preset[at] : 1)); at++; }
+      for (var j = 0; j < n; j++) { el.children[ci].appendChild(cards[at]); m = Math.max(m, CARD_W[at]); at++; }
       w.push(m);
     });
     while (el.children.length > sizes.length) el.removeChild(el.lastChild);
     el.classList.add("js");
     el.style.gridTemplateColumns = (weights || w).map(function (x) { return "minmax(0," + x + "fr)"; }).join(" ");
   }
-  function arrange() {
+  function heightOf(board, sz, u) { board.style.setProperty("--u", u + "px"); setColumns(sz); return board.offsetHeight; }
+  function maxU(board, k) { var W = board.clientWidth; return W / (k * 24 + (k - 1) * 1.9); }          // the narrowest a column may get is 24 units
+  function candidates(board, u, phone) {
+    var kmax = phone ? 1 : Math.max(1, Math.min(5, Math.floor((board.clientWidth + u * 1.9) / (u * 24 + u * 1.9))));
+    var out = [];
+    for (var k = 1; k <= kmax; k++) out = out.concat(compositions(5, k));
+    return out;
+  }
+  function sameSz(a, b) { return a && b && a.join("+") === b.join("+"); }
+  var STEP = 0.975, STEP_ALL = 0.94;   // font steps of 2.5% between tries: continuous enough, and a layout measure is cheap
+  // quick: this arrangement only. Walk the font up from where it was while it fits, or down until it does.
+  function fitOne(board, sz, avail, u) {
+    var cap = Math.min(U_MAX, maxU(board, sz.length)); u = Math.min(cap, Math.max(U_MIN, u));
+    if (heightOf(board, sz, u) <= avail + 1) { for (var i = 0; i < 12 && u / STEP <= cap; i++) { var up = u / STEP; if (heightOf(board, sz, up) > avail + 1) break; u = up; } return u; }
+    while (u > U_MIN) { u = Math.max(U_MIN, u * STEP); if (heightOf(board, sz, u) <= avail + 1) return u; }
+    return 0;
+  }
+  // full: every arrangement. From the largest font that could possibly fit, step down until some arrangement fits; that is the largest scale.
+  function fitAll(board, avail) {
+    var u0 = state.u, hmin = Infinity;
+    candidates(board, u0, false).forEach(function (sz) { hmin = Math.min(hmin, heightOf(board, sz, u0)); });
+    var u = Math.min(U_MAX, u0 * Math.sqrt(avail / hmin) * 1.25);
+    for (; u >= U_MIN; u *= STEP_ALL) {
+      var fit = null;
+      candidates(board, u, false).forEach(function (sz) {
+        if (u > maxU(board, sz.length)) return;
+        var h = heightOf(board, sz, u);
+        if (h <= avail + 1 && (!fit || h > fit.h)) fit = { sz: sz, h: h };          // of those that fit, the one that needs the least stretching
+      });
+      if (fit) {
+        if (state.sz && !sameSz(fit.sz, state.sz)) {                                  // hysteresis: keep the current arrangement if it fits at a font up to 4% smaller
+          for (var v = u; v >= u * 0.95; v *= STEP) { if (v <= maxU(board, state.sz.length) && heightOf(board, state.sz, v) <= avail + 1) return { sz: state.sz, u: v }; }
+        }
+        var finer = fitOne(board, fit.sz, avail, u);                                  // the coarse search found the arrangement; walk its font up in small steps
+        return { sz: fit.sz, u: finer > 0 ? Math.max(u, finer) : u };
+      }
+    }
+    return null;
+  }
+  function geometry(board, embed) {
+    var foot = document.querySelector(".foot"), top = board.getBoundingClientRect().top + window.pageYOffset;
+    var below = embed ? 0 : (foot ? foot.offsetHeight + 12 : 0) + parseFloat(getComputedStyle(document.querySelector(".page")).paddingBottom) + 2;
+    return { avail: embed ? Infinity : window.innerHeight - top - below };
+  }
+  /* Fit to screen (the default): the largest scale at which some arrangement fits the available rectangle without scrolling. Every arrangement is
+     measured, the best few are solved for their largest font, the biggest wins (the previous one is kept unless the new one is clearly better:
+     hysteresis). `quick` re-solves only the current arrangement (cheap, run on every frame while the window is dragged); the full search runs
+     when the window stops. Normal: a fixed 13px font. Large: a bigger font. Both reflow and may scroll. */
+  function arrange(quick) {
     var board = document.querySelector(".board");
     if (!board) return;
     var el = board.querySelector(".cols");
     cards = cards || Array.prototype.slice.call(el.querySelectorAll(".card")).sort(function (a, b) { return a.dataset.n - b.dataset.n; });
     if (root.classList.contains("export")) { setColumns([2, 1, 2], [1, 1.43, 1]); drawFlow(); return; }   // the static figure keeps the classic layout
-    var vw = window.innerWidth, mode = root.getAttribute("data-size") || "normal", embed = root.classList.contains("embed");
-    var base = Math.min(18, Math.max(12, 13 + Math.min(vw - 1440, 480) * 0.00104 + Math.max(vw - 1920, 0) * 0.0035)), phone = vw <= 700, uMax, uMin;   // 13px at 1440, 13.5 at 1920, growing after
-    
-    if (phone) uMax = uMin = 14;
-    else if (mode === "large") uMax = uMin = Math.min(22, base * 1.18);
-    else if (mode === "fit") { uMax = base; uMin = 12; }
-    else uMax = uMin = base;
+    var vw = window.innerWidth, mode = root.getAttribute("data-size") || "fit", embed = root.classList.contains("embed"), phone = vw <= 700;
     board.style.minHeight = "";
-    var top = board.getBoundingClientRect().top + window.pageYOffset, avail = embed ? Infinity : window.innerHeight - top - 20, u = uMax, pick = null, fits = false;
-    for (;;) {
-      board.style.setProperty("--u", u + "px");
-      var W = board.clientWidth, gc = u * 1.9, kmax = phone ? 1 : Math.max(1, Math.min(5, Math.floor((W + gc) / (u * 24 + gc)))), fit = null, small = null;
-      for (var k = 1; k <= kmax; k++) {
-        compositions(5, k).forEach(function (sz) {
-          setColumns(sz);
-          var h = board.offsetHeight, cand = { sz: sz, h: h };
-          if (h <= avail && (!fit || h > fit.h)) fit = cand;            // of those that fit, the one that needs the least stretching
-          if (!small || h < small.h) small = cand;                      // otherwise the shortest
-        });
+    var t0 = performance.now(), notice = false, pick, u, fits = false, g = geometry(board, embed);
+    if (phone || embed || mode !== "fit") {
+      u = phone ? 14 : embed ? Math.min(18, Math.max(12, 13 + Math.min(vw - 1440, 480) * 0.00104)) : mode === "large" ? Math.min(U_MAX, Math.max(15, 15 + (vw - 1440) * 0.004)) : 13;
+      var small = null;
+      candidates(board, u, phone).forEach(function (sz) { var h = heightOf(board, sz, u); if (!small || h < small.h) small = { sz: sz, h: h }; });
+      pick = small.sz;
+    } else {
+      var best = null;
+      if (quick && state.sz) { var s = fitOne(board, state.sz, g.avail, state.u); if (s > 0) best = { sz: state.sz, u: s }; }
+      if (!best) best = fitAll(board, g.avail);
+      if (!best) {                                                      // nothing fits even at the smallest font: the shortest, and scroll
+        u = U_MIN; var sm = null;
+        candidates(board, u, false).forEach(function (sz) { var h = heightOf(board, sz, u); if (!sm || h < sm.h) sm = { sz: sz, h: h }; });
+        best = { sz: sm.sz, u: U_MIN }; notice = true;
       }
-      if (embed) { pick = small; break; }
-      if (fit) { pick = fit; fits = true; break; }
-      if (u - 0.5 >= uMin) { u -= 0.5; continue; }
-      pick = small; break;
+      pick = best.sz; u = Math.max(U_MIN, best.u); fits = !notice;
     }
-    setColumns(pick.sz, null, pick.pre);
-    if (fits) board.style.minHeight = avail + "px";                    // fill the room: the cards stretch evenly
+    state.sz = pick; state.u = u;
+    heightOf(board, pick, u);
+    if (fits) board.style.minHeight = Math.max(0, g.avail) + "px";    // fill the room: the cards stretch evenly
+    var sw = document.querySelector(".small-window"); if (sw) sw.hidden = !(notice || (!phone && !embed && mode === "fit" && u < U_NOTICE));
     drawFlow(); postHeight();
     var chip = board.querySelector(".chip"), se = document.scrollingElement;
-    document.body.setAttribute("data-fit", "unit " + u + "px; chip " + (chip ? getComputedStyle(chip).fontSize : "?") + "; columns " + pick.sz.join("+") + "; board " + board.offsetWidth + "x" + board.offsetHeight +
-      "; window " + vw + "x" + window.innerHeight + "; board bottom at " + Math.round(board.getBoundingClientRect().bottom + window.pageYOffset) + " of " + window.innerHeight + "; fits " + fits + "; page scrolls vertically " + (se.scrollHeight > se.clientHeight) + ", horizontally " + (se.scrollWidth > se.clientWidth));
+    document.body.setAttribute("data-fit", "unit " + (Math.round(u * 100) / 100) + "px; chip " + (chip ? getComputedStyle(chip).fontSize : "?") + "; columns " + pick.join("+") + "; board " + board.offsetWidth + "x" + board.offsetHeight +
+      "; window " + vw + "x" + window.innerHeight + "; board bottom at " + Math.round(board.getBoundingClientRect().bottom + window.pageYOffset) + " of " + window.innerHeight + "; fits " + fits + "; " + (quick ? "quick" : "full") + " fit took " + Math.round(performance.now() - t0) + " ms; page scrolls vertically " + (se.scrollHeight > se.clientHeight) + ", horizontally " + (se.scrollWidth > se.clientWidth));
   }
+  // follow the window continuously: resize, the visual viewport (zoom), and a fixed sentinel that is as big as the viewport
+  var frame = 0, idle = null;
+  function schedule() {
+    if (!frame) frame = requestAnimationFrame(function () { frame = 0; arrange(true); });
+    clearTimeout(idle); idle = setTimeout(function () { arrange(false); }, 140);
+  }
+
+  window.addEventListener("resize", schedule);
+  if (window.visualViewport) window.visualViewport.addEventListener("resize", schedule);
+  window.addEventListener("orientationchange", schedule);
+  (function () {
+    var s = document.createElement("div"); s.setAttribute("aria-hidden", "true"); s.style.cssText = "position:fixed;inset:0;visibility:hidden;pointer-events:none;z-index:-1";
+    document.body.appendChild(s);
+    if (window.ResizeObserver) new ResizeObserver(schedule).observe(s);
+  })();
   function applyMotion() { root.classList.toggle("motion", motionOn()); drawFlow(); }
   if (reduce && reduce.addEventListener) reduce.addEventListener("change", applyMotion);
   if (window.ResizeObserver) { var ro = new ResizeObserver(function () { requestAnimationFrame(function () { drawFlow(); postHeight(); }); }); ro.observe(document.querySelector(".board")); }

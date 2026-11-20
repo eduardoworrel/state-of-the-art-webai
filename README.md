@@ -21,6 +21,7 @@ It is an awesome list and a landscape in one picture. Every chip is a technology
 | `export.py` | Exports PNG and SVG per language and theme with headless Chrome. |
 | `site.toml` | The public address (`base_url`) and the GitHub repository, used by the generated links. |
 | `scripts/check.py` | Validates the data and the translations against the spec. CI runs it. |
+| `scripts/test_resize.py` | Acceptance test: resizes the window and checks that the map follows it and does not scroll. |
 | `scripts/linkcheck.py` | Opens every link and reports dead or moved ones (network; not in CI). |
 
 ```sh
@@ -37,7 +38,7 @@ Add a chip, fix a source, or translate the whole map. See [CONTRIBUTING.md](CONT
 
 ## The page
 
-- **Size.** The map adapts to the window instead of shrinking: the chip text stays at 13 to 14 px (never below 12 px) and the five cards are re-arranged in 1 to 5 columns, stacked or side by side, to use the width and the height. *Fit to screen* looks for the biggest font with which the whole map fits without scrolling (it does at 1920×1080 and larger; on lower windows the page scrolls rather than shrink the text), *Normal* uses the target font, *Large* a bigger one. Remembered in the browser; `?size=fit|normal|large`. Phones get one column.
+- **Size.** The map follows the window continuously: drag the window edge and it re-fits, with no reload. *Fit to screen* (the default) finds the largest scale at which some arrangement of the five cards (1 to 5 columns, stacked or side by side) fits the free width and height without scrolling, and applies it to the font, chips, spacing, icons and the dashed line together; the cards stretch to fill the rectangle. Below about 9 px it shows "Small window: scroll, or use Normal" (the smallest scale is 5 px, then the page scrolls). *Normal* is a fixed 13 px font with reflow; *Large* is a bigger font. Remembered in the browser; `?size=fit|normal|large`. Phones get one column. `scripts/test_resize.py` drives Chrome through the DevTools Protocol, resizes the window ten times and checks that the scale follows and that nothing scrolls.
 - **Share.** Copy the link or share by LinkedIn, X or e-mail. A link ending in `#chip-id` (for example `#olive`) opens that chip's sources on load.
 - **Embed.** The *Embed* panel has ready-to-copy snippets: an `<iframe>` whose height adjusts itself (`docs/embed/`, with `?lang=` and `?theme=`), a `<script src=".../embed.js">` that registers the web component `<state-of-the-art-webai lang="pt" theme="auto">` (always the current map; about 2 KB, no dependencies), the static figure (PNG and SVG, per language and theme, CC BY 4.0: keep the credit) and a Markdown badge. The panel lists the four types, each with a one-line explanation and a Copy button (the code goes to the clipboard, in the page's current language and theme). `docs/embed-example.html` uses the first two; try it with `python3 -m http.server` inside `docs/`.
 - **Download.** PNG and SVG of the figure, per language and theme. (The SVG holds the board as HTML inside a `foreignObject`: it opens in any modern browser and in `<img>`; it is not a path drawing.)

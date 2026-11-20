@@ -20,6 +20,7 @@ Um mapa de tudo o que existe entre um modelo e uma pessoa quando o modelo roda n
 | `export.py` | Exporta PNG e SVG por idioma e tema com Chrome headless. |
 | `site.toml` | O endereço público (`base_url`) e o repositório do GitHub, usados nos links gerados. |
 | `scripts/check.py` | Valida os dados e as traduções contra a especificação. O CI roda. |
+| `scripts/test_resize.py` | Teste de aceitação: redimensiona a janela e confere que o mapa acompanha e não rola. |
 | `scripts/linkcheck.py` | Abre todos os links e aponta os mortos ou movidos (precisa de rede; fora do CI). |
 
 ```sh
@@ -34,7 +35,7 @@ Adicione um chip, corrija uma fonte ou traduza o mapa inteiro. Veja o [CONTRIBUT
 
 ## A página
 
-- **Tamanho.** O mapa se adapta à janela em vez de encolher: o texto dos chips fica entre 13 e 14 px (nunca abaixo de 12 px) e os cinco cartões se reorganizam em 1 a 5 colunas, empilhados ou lado a lado, para usar a largura e a altura. *Ajustar à tela* procura a maior fonte com a qual o mapa inteiro cabe sem rolar (cabe em 1920×1080 e maiores; em janelas mais baixas a página rola em vez de diminuir o texto), *Normal* usa a fonte-alvo e *Grande* uma maior. Fica lembrado no navegador; `?size=fit|normal|large`. No celular, uma coluna.
+- **Tamanho.** O mapa acompanha a janela de forma contínua: arraste a borda e ele se reajusta, sem recarregar. *Ajustar à tela* (o padrão) acha a maior escala com a qual alguma disposição dos cinco cartões (1 a 5 colunas, empilhados ou lado a lado) cabe na largura e na altura livres sem rolar, e a aplica junto à fonte, aos chips, aos espaçamentos, aos ícones e à linha tracejada; os cartões esticam para preencher o retângulo. Abaixo de cerca de 9 px aparece "Janela pequena: role ou use Normal" (a escala mínima é 5 px; depois disso a página rola). *Normal* é uma fonte fixa de 13 px com reflow; *Grande* usa uma fonte maior. Fica lembrado no navegador; `?size=fit|normal|large`. No celular, uma coluna. O `scripts/test_resize.py` dirige o Chrome pelo DevTools Protocol, redimensiona a janela dez vezes e confere que a escala acompanha e que nada rola.
 - **Compartilhar.** Copiar o link ou compartilhar por LinkedIn, X ou e-mail. Um link terminado em `#id-do-chip` (por exemplo `#olive`) abre as fontes daquele chip ao carregar; o menu de cada chip tem "Copiar link deste chip".
 - **Integrar.** O painel *Integrar* traz trechos prontos para copiar: um `<iframe>` que ajusta a própria altura (`docs/embed/`, com `?lang=` e `?theme=`), um `<script src=".../embed.js">` que registra o web component `<state-of-the-art-webai lang="pt" theme="auto">` (sempre o mapa atual; cerca de 2 KB, sem dependências), a figura estática (PNG e SVG, por idioma e tema, CC BY 4.0: mantenha o crédito) e um selo em Markdown. O painel lista os quatro tipos, cada um com uma frase e um botão Copiar (o código vai para a área de transferência, no idioma e no tema atuais da página). O `docs/embed-example.html` usa os dois primeiros; teste com `python3 -m http.server` dentro de `docs/`.
 - **Baixar.** PNG e SVG da figura, por idioma e tema. (O SVG guarda o quadro como HTML dentro de um `foreignObject`: abre em qualquer navegador moderno e em `<img>`; não é um desenho de caminhos.)

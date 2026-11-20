@@ -106,7 +106,7 @@ The public address is the one constant `base_url` in `site.toml` (keep the trail
 
 ## Layout
 
-The map adapts to the window (`assets/app.js`, function `arrange()`): it picks the chip font and how the five cards are arranged in columns. Change the layout rules there, and the spacing in `assets/style.css`; do not add a fixed-size scale, since the point is that the text never shrinks below 12 px.
+The map follows the window continuously (`assets/app.js`, function `arrange()`): on every resize it measures the arrangements of the five cards and picks the largest scale that fits the free rectangle (a quick re-fit of the current arrangement on each frame while dragging, a full search when the window stops). Change the layout rules there, and the spacing in `assets/style.css`; everything is in `--u` units, so the scale moves font, chips, spacing, icons and the dashed line together. After a layout change run `python3 scripts/test_resize.py` (needs Chrome).
 
 ## Motion
 

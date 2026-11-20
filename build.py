@@ -206,7 +206,7 @@ def render(embed=False):
     buttons = "".join(f'<button type="button" data-lang="{k}" aria-pressed="{str(k == DEFAULT).lower()}">{escape(v["lang.name"])}</button>' for k, v in langs.items())
     themes = "".join(f'<button type="button" data-theme-choice="{k}" aria-pressed="{str(k == "auto").lower()}" aria-label="{escape(tx["ui.theme." + k])}" data-al="ui.theme.{k}" '
                      f'title="{escape(tx["ui.theme." + k])}" data-tl="ui.theme.{k}">{THEME_ICONS[k]}</button>' for k in ("auto", "light", "dark"))
-    sizes = "".join(f'<button type="button" data-size-choice="{k}" aria-pressed="{str(k == "normal").lower()}" aria-label="{escape(tx["ui.size." + k])}" data-al="ui.size.{k}" '
+    sizes = "".join(f'<button type="button" data-size-choice="{k}" aria-pressed="{str(k == "fit").lower()}" aria-label="{escape(tx["ui.size." + k])}" data-al="ui.size.{k}" '
                     f'title="{escape(tx["ui.size." + k])}" data-tl="ui.size.{k}"><span data-t="ui.size.{k}.short">{escape(tx["ui.size." + k + ".short"])}</span></button>' for k in ("fit", "normal", "large"))
     board = (f'<div class="board" role="group" aria-label="{escape(tx["site.title"])}">'
              f'<span class="tag-end" id="tag-model" data-t="label.model">{escape(tx["label.model"])}</span><span class="tag-end" id="tag-person" data-t="label.person">{escape(tx["label.person"])}</span>'
@@ -226,7 +226,7 @@ def render(embed=False):
                   f'<div class="tools"><div class="tools-row"><div class="seg sizes" role="group" aria-label="{escape(tx["ui.size"])}" data-al="ui.size">{sizes}</div>'
                   f'<div class="seg themes" role="group" aria-label="{escape(tx["ui.theme"])}" data-al="ui.theme">{themes}</div>'
                   f'<div class="seg langs" role="group" aria-label="{escape(tx["ui.language"])}" data-al="ui.language">{buttons}</div></div>'
-                  f'{actions_bar(tx, reviewed)}</div></header>')
+                  f'{actions_bar(tx, reviewed)}<span class="small-window" role="status" hidden data-t="ui.small">{escape(tx["ui.small"])}</span></div></header>')
         footer = (f'<footer class="foot"><p data-t="ui.legend">{escape(tx["ui.legend"])}</p>'
                   f'<p><span data-t="ui.reviewed">{escape(tx["ui.reviewed"])}</span>: {reviewed}</p><p data-t="ui.license">{escape(tx["ui.license"])}</p></footer>')
     return f"""<!doctype html>
@@ -241,7 +241,7 @@ def render(embed=False):
 (function () {{ try {{ var q = new URLSearchParams(location.search), r = document.documentElement;
   var th = q.get("theme") || localStorage.getItem("webai-theme"); if (th === "light" || th === "dark") r.setAttribute("data-theme", th);
   if (!q.get("export")) {{ var z = q.get("size") || (q.get("fit") === "0" ? "large" : localStorage.getItem("webai-size"));
-    r.classList.add("sized"); r.setAttribute("data-size", z === "fit" || z === "large" ? z : "normal"); }} }} catch (e) {{ document.documentElement.classList.add("sized"); document.documentElement.setAttribute("data-size", "normal"); }} }})();
+    r.classList.add("sized"); r.setAttribute("data-size", z === "normal" || z === "large" ? z : "fit"); }} }} catch (e) {{ document.documentElement.classList.add("sized"); document.documentElement.setAttribute("data-size", "fit"); }} }})();
 </script>
 <style>
 {css}
