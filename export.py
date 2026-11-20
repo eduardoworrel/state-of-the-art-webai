@@ -1,11 +1,15 @@
 #!/usr/bin/env python3
-"""Exports the board as a PNG per language with headless Chrome: docs/figure-<lang>.png
+"""Exports the figure with headless Chrome, per language and theme: docs/figure-<lang>[-dark].png and .svg
 
-    python3 export.py                # all languages, 1600 px wide, 2x
-    python3 export.py --width 390    # phone width (writes docs/figure-<lang>-<width>.png)
+    python3 export.py                # all languages, light and dark; PNG at 2x and SVG
+    python3 export.py --no-svg       # PNG only
     CHROME=/path/to/chrome python3 export.py
+
+The figure is the board at its classic size (3 columns, 1552 px wide), without animation. The SVG holds the same board as HTML inside a
+<foreignObject>: it opens in any modern browser and works in <img>, it is not a path drawing.
 """
 import argparse
+import html
 import os
 import re
 import shutil
@@ -19,6 +23,7 @@ sys.path.insert(0, str(ROOT / "scripts"))
 import miniyaml  # noqa: E402
 
 CANDIDATES = ["/Applications/Google Chrome.app/Contents/MacOS/Google Chrome", "google-chrome", "google-chrome-stable", "chromium", "chromium-browser", "chrome"]
+BG = {"light": "#f0ede6", "dark": "#151412"}
 
 
 def find_chrome():
@@ -31,26 +36,45 @@ def find_chrome():
 def run(chrome, args):
     with tempfile.TemporaryDirectory() as tmp:
         return subprocess.run([chrome, "--headless=new", "--disable-gpu", "--hide-scrollbars", f"--user-data-dir={tmp}/u", *args],
-                              check=True, capture_output=True, text=True, timeout=120).stdout
+                              check=True, capture_output=True, text=True, timeout=180).stdout
+
+
+def svg_figure(chrome, page, lang, theme, title):
+    out = run(chrome, ["--window-size=1700,1000", "--virtual-time-budget=3000", "--dump-dom", f"{page}?lang={lang}&export=1&theme={theme}&xhtml=1"])
+    m = re.search(r"<textarea id=\"xhtml\" data-w=\"(\d+)\" data-h=\"(\d+)\">(.*?)</textarea>", out, re.S)
+    if not m:
+        sys.exit("could not read the board from the page")
+    bw, bh, board = int(m.group(1)), int(m.group(2)), html.unescape(m.group(3))
+    pad = 20
+    W, H = bw + 2 * pad, bh + 2 * pad
+    css = (ROOT / "assets" / "style.css").read_text(encoding="utf-8").replace("]]>", "]]&gt;")
+    board = board.replace("<div ", f'<div style="--u:14.4px;width:{bw}px" ', 1) if False else board
+    return (f'<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}" viewBox="0 0 {W} {H}" data-theme="{theme}" role="img" aria-label="{html.escape(title)}">'
+            f'<title>{html.escape(title)}</title><style><![CDATA[{css}\n.svgroot {{ font-family: var(--font); color: var(--ink); line-height: 1.4; }}\n.svgroot .board {{ --u: 14.4px; width: {bw}px; margin: 0; }}]]></style>'
+            f'<rect width="{W}" height="{H}" fill="{BG[theme]}"/><foreignObject x="{pad}" y="{pad}" width="{bw}" height="{bh}">'
+            f'<div xmlns="http://www.w3.org/1999/xhtml" class="svgroot">{board}</div></foreignObject></svg>\n')
 
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--width", type=int, default=1600)
     ap.add_argument("--scale", type=float, default=2)
-    ap.add_argument("--theme", default="light")
+    ap.add_argument("--no-svg", action="store_true")
     a = ap.parse_args()
     chrome = find_chrome()
     page = (ROOT / "docs" / "index.html").as_uri()
     for lang in sorted(p.stem for p in (ROOT / "i18n").glob("*.yml")):
-        url = f"{page}?lang={lang}&export=1&theme={a.theme}"
-        dom = run(chrome, [f"--window-size={a.width},1000", "--virtual-time-budget=3000", "--dump-dom", url])
-        m = re.search(r'data-board-h="(\d+)"', dom)
-        h = int(m.group(1)) + 8 if m else 1000
-        name = f"figure-{lang}" + ("" if a.width == 1600 else f"-{a.width}") + ("" if a.theme == "light" else f"-{a.theme}") + ".png"
-        out = ROOT / "docs" / name
-        run(chrome, [f"--window-size={a.width},{h}", f"--force-device-scale-factor={a.scale}", "--virtual-time-budget=3000", f"--screenshot={out}", url])
-        print("wrote", out.relative_to(ROOT), f"{a.width}x{h}")
+        title = miniyaml.load(ROOT / "i18n" / f"{lang}.yml")["site.title"]
+        for theme in ("light", "dark"):
+            url = f"{page}?lang={lang}&export=1&theme={theme}"
+            dom = run(chrome, ["--window-size=1600,1000", "--virtual-time-budget=3000", "--dump-dom", url])
+            m = re.search(r'data-board-h="(\d+)"', dom)
+            h = int(m.group(1)) + 8 if m else 1000
+            stem = f"figure-{lang}" + ("" if theme == "light" else "-dark")
+            run(chrome, [f"--window-size=1600,{h}", f"--force-device-scale-factor={a.scale}", "--virtual-time-budget=3000", f"--screenshot={ROOT / 'docs' / (stem + '.png')}", url])
+            print("wrote", f"docs/{stem}.png", f"1600x{h}")
+            if not a.no_svg:
+                (ROOT / "docs" / f"{stem}.svg").write_text(svg_figure(chrome, page, lang, theme, title), encoding="utf-8")
+                print("wrote", f"docs/{stem}.svg")
 
 
 if __name__ == "__main__":

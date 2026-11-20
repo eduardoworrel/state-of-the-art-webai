@@ -1,0 +1,7 @@
+# Site configuration: the ONE place where the public address lives.
+# build.py uses it for the share links, the embed snippets, the canonical link, the sitemap and the GitHub links.
+# To move the site, change base_url (keep the trailing slash) and run python3 build.py.
+
+base_url = "https://webai.blog.br/state-of-the-art/"
+repo = "eduardoworrel/state-of-the-art-webai"
+branch = "main"

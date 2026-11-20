@@ -6,7 +6,7 @@ Um mapa de tudo o que existe entre um modelo e uma pessoa quando o modelo roda n
 
 ![As cinco camadas do WebAI](docs/figure-pt.png)
 
-**Página:** `docs/index.html` (ajustada à janela; `?fit=0` para o tamanho cheio; estática; troque o idioma pelos botões ou `?lang=pt`, e o tema pelos botões de sol e lua). [English](README.md).
+**Página:** `docs/index.html` (adapta-se à janela; estática; troque o idioma pelos botões ou `?lang=pt`, e o tema pelos botões de sol e lua). [English](README.md).
 
 ## Como funciona
 
@@ -17,7 +17,8 @@ Um mapa de tudo o que existe entre um modelo e uma pessoa quando o modelo roda n
 | `i18n/en.yml`, `i18n/pt.yml` | Um texto por id. O inglês é o idioma de referência. |
 | `schema/` | JSON Schemas dos dois tipos de arquivo. |
 | `build.py` | Gera `docs/index.html` e atualiza a lista abaixo. |
-| `export.py` | Exporta um PNG por idioma com Chrome headless. |
+| `export.py` | Exporta PNG e SVG por idioma e tema com Chrome headless. |
+| `site.toml` | O endereço público (`base_url`) e o repositório do GitHub, usados nos links gerados. |
 | `scripts/check.py` | Valida os dados e as traduções contra a especificação. O CI roda. |
 | `scripts/linkcheck.py` | Abre todos os links e aponta os mortos ou movidos (precisa de rede; fora do CI). |
 
@@ -30,6 +31,15 @@ python3 export.py          # docs/figure-<idioma>.png (precisa de Chrome ou Chro
 ## Contribuir
 
 Adicione um chip, corrija uma fonte ou traduza o mapa inteiro. Veja o [CONTRIBUTING.md](CONTRIBUTING.md) (em inglês). Em resumo: nenhum chip com menos de duas fontes, e todo texto fica em `i18n/`. Para um idioma novo, copie `i18n/en.yml` para `i18n/<idioma>.yml` e traduza os valores; `python3 scripts/check.py` lista o que falta.
+
+## A página
+
+- **Tamanho.** O mapa se adapta à janela em vez de encolher: o texto dos chips fica entre 13 e 14 px (nunca abaixo de 12 px) e os cinco cartões se reorganizam em 1 a 5 colunas, empilhados ou lado a lado, para usar a largura e a altura. *Ajustar à tela* procura a maior fonte com a qual o mapa inteiro cabe sem rolar (cabe em 1920×1080 e maiores; em janelas mais baixas a página rola em vez de diminuir o texto), *Normal* usa a fonte-alvo e *Grande* uma maior. Fica lembrado no navegador; `?size=fit|normal|large`. No celular, uma coluna.
+- **Compartilhar.** Copiar o link ou compartilhar por LinkedIn, X ou e-mail. Um link terminado em `#id-do-chip` (por exemplo `#olive`) abre as fontes daquele chip ao carregar; o menu de cada chip tem "Copiar link deste chip".
+- **Integrar.** O painel *Integrar* traz trechos prontos para copiar: um `<iframe>` que ajusta a própria altura (`docs/embed/`, com `?lang=` e `?theme=`), um `<script src=".../embed.js">` que registra o web component `<state-of-the-art-webai lang="pt" theme="auto">` (sempre o mapa atual; cerca de 2 KB, sem dependências), a figura estática (PNG e SVG, por idioma e tema, CC BY 4.0: mantenha o crédito) e um selo em Markdown. O `docs/embed-example.html` usa os dois primeiros; teste com `python3 -m http.server` dentro de `docs/`.
+- **Baixar.** PNG e SVG da figura, por idioma e tema. (O SVG guarda o quadro como HTML dentro de um `foreignObject`: abre em qualquer navegador moderno e em `<img>`; não é um desenho de caminhos.)
+- **Sugerir ou corrigir.** Abre uma issue no GitHub (com o id do chip preenchido a partir do menu de um chip) ou o arquivo de dados para editar como pull request.
+- Tudo é estático: sem rastreamento, sem cookies, sem biblioteca. O endereço público fica num só lugar, `site.toml` (`base_url`); os links de compartilhar, os trechos de integração, o link canônico e o `docs/sitemap.xml` saem dele. `?fit=0` equivale a `?size=large`.
 
 ## Movimento
 

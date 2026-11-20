@@ -307,7 +307,8 @@ A chip leaves when its source is gone and no other source says it, when it is re
 | Output | Command | Rule |
 |---|---|---|
 | `docs/index.html` | `python3 build.py` | One static page with all languages inside. Every chip opens a menu with its sources. `?lang=`, `?theme=light|dark`, `?fit=0` (full width) and `?export=1` (board only) are supported. |
-| `docs/figure-<lang>.png` | `python3 export.py` | Full-width board, headless Chrome. |
+| `docs/figure-<lang>[-dark].png`, `.svg` | `python3 export.py` | The board at its classic size, headless Chrome; the SVG holds it as HTML in a `foreignObject`. |
+| `docs/embed/index.html`, `docs/embed.js`, `docs/embed-example.html`, `docs/badge.svg`, `docs/sitemap.xml` | `python3 build.py` | Embedding (iframe with auto height by `postMessage`, validated on both sides; web component), the badge and the sitemap. The address comes from `site.toml`. |
 | awesome list | `python3 build.py` (or `python3 scripts/awesome.py`) | Written between `<!-- awesome:start -->` and `<!-- awesome:end -->` in `README.md` (en) and `README.pt.md` (pt). Never edit between the markers. |
 
 The awesome list has one section per layer and, inside it, one block per group (and per panel). A chip is one line, `- **name** · *state* — description`, followed by its links: ungrouped links first and then one line per source group, `  - Docs: [title](url), [title](url)`. The where items follow the groups of their layer, one link each. The header line carries the counts and the most recent review date.
@@ -320,7 +321,7 @@ CI runs `python3 scripts/check.py`, then `python3 build.py`, and fails if `docs/
 - **Preview.** With a mouse (or keyboard focus) a chip shows a short preview: name, status, the one-line description, review date, number of sources and, if there is one, the alert (title, detail, day observed). It never takes the pointer (it does not hide the neighbouring chip from the mouse), opens under the chip or above it when there is no room, and stays inside the screen. The menu opened by click or tap has the same head and alert, then the evidence and the sources; when it does not fit it scrolls inside and never covers its own chip.
 - **Themes.** Automatic (follows the system), light or dark. The choice is remembered in `localStorage` (the page works without it).
 - **Motion.** Decoration only. The model line and the "Where it runs" icons may move; no information depends on it. Off with `prefers-reduced-motion`, `?motion=0` and in the PNG export (`?export=1`).
-- **Demo scale.** `docs/index.html` scales the whole board by one variable so that it takes about 60% of the window width and the five layers fit the window height without scrolling (from 1081 px wide; below that, and on phones, the one-column layout). The board keeps a fixed size ratio, so the layout never changes, only the scale; below a floor of 7 px per unit the scale stops and the page scrolls. Menus and previews keep a fixed, readable size at any scale. `?fit=0` and the PNG export keep the full-size layout.
+- **Size.** `docs/index.html` adapts to the window rather than scaling: it chooses the chip font (target about 13 px at 1440 wide, 13.5 at 1920, growing after; never below 12 px) and arranges the five cards in 1 to 5 columns so that the map uses the width and the height. Three sizes: Normal (target font), Large (bigger font), Fit to screen (the biggest font with which the whole map fits without scrolling; when nothing fits at 12 px the page scrolls). Menus and previews keep a fixed readable size. Phones (700 px or less) get one column. The PNG and SVG exports keep the classic three-column figure.
 
 ## Decisions waiting for approval (0.4)
 
@@ -337,3 +338,4 @@ CI runs `python3 scripts/check.py`, then `python3 build.py`, and fails if `docs/
 - **0.4** (2026-11-20): optional `featured` on a chip (off the figure, in the README "Also exists" list); `quant-tools` and `export-tools` groups; quoted words inside an alert text are not treated as our conclusion. Migration: `spec: "0.4"`.
 - **0.4** (2026-11-20, addendum): decorative motion (SVG model line, `?motion=0`, reduced motion respected); no data change.
 - **0.4** (2026-11-20, addendum): demo scale-to-fit; the Run layer's Runtime group moved to its own row (`row: 2`, Cache `row: 3`) and KV cache to the first column; no rule change.
+- **0.4** (2026-11-20, addendum): the page adapts instead of scaling; Size control (Fit to screen, Normal, Large); Share, Embed, Download, Suggest or correct; `#chip-id` deep links; `site.toml`; `docs/embed/`, `embed.js`, `badge.svg`, `sitemap.xml`; SVG and dark PNG exports. No data rule changed.

@@ -100,6 +100,14 @@ Groups use `col` (0 or 1 in a card, 0 to 2 in the limits panel) or `row` (in the
 
 Keep texts short: chips and group labels have little room. Test with `?lang=<code>` and look for chips that wrap.
 
+## Where the site lives
+
+The public address is the one constant `base_url` in `site.toml` (keep the trailing slash). Change it there and run `python3 build.py`: the share links, the embed snippets, the canonical link and `docs/sitemap.xml` follow. `repo` is the GitHub repository that the "Suggest or correct" links open. Run `python3 export.py` too when the data changes, so the PNG and SVG figures match. The embed web component takes its address from its own script URL, so it needs no setting.
+
+## Layout
+
+The map adapts to the window (`assets/app.js`, function `arrange()`): it picks the chip font and how the five cards are arranged in columns. Change the layout rules there, and the spacing in `assets/style.css`; do not add a fixed-size scale, since the point is that the text never shrinks below 12 px.
+
 ## Motion
 
 The page has small motions (the model line, the dot on it, the "Where it runs" items and their icons). They are decoration only: never put information in a motion, and a new icon must look right and say the same when still. Motion is driven by the `motion` class that `assets/app.js` sets on `<html>`, only when the system does not ask for reduced motion, `?motion=0` is absent and the page is not exported. To add a motion to an icon, tag the part with a class (for example `m-led1`) and write the keyframes under `html.motion` in `assets/style.css`; nothing else.

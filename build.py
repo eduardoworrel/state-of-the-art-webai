@@ -4,7 +4,9 @@
     python3 build.py
 """
 import json
+import re
 import sys
+import tomllib
 from html import escape
 from pathlib import Path
 from urllib.parse import urlparse
@@ -15,6 +17,9 @@ import awesome  # noqa: E402
 import miniyaml  # noqa: E402
 
 DEFAULT = "en"
+SITE = tomllib.loads((ROOT / "site.toml").read_text(encoding="utf-8"))
+BASE = SITE["base_url"]
+assert BASE.endswith("/"), "base_url in site.toml must end with a slash"
 SRC_ORDER = ["docs", "spec", "code", "papers", "blog", "status"]
 CARET = '<svg class="caret" viewBox="0 0 10 6" aria-hidden="true" focusable="false"><path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>'
 THEME_ICONS = {
@@ -89,10 +94,13 @@ def popover(c, tx, pid):
             label = escape(tx[f"srcgroup.{g}"])
             body += (f'<div role="group" aria-label="{label}" data-al="srcgroup.{g}"><div class="pg" aria-hidden="true" data-t="srcgroup.{g}">{label}</div>'
                      f'{"".join(menu_item(s_, tx) for s_ in items)}</div>')
+    actions = (f'<div role="group" aria-label="{escape(tx["ui.actions"])}" data-al="ui.actions" class="pop-actions"><div class="pg" aria-hidden="true" data-t="ui.actions">{escape(tx["ui.actions"])}</div>'
+               f'<button type="button" role="menuitem" tabindex="-1" data-act="copy-chip" data-chip="{cid}"><span data-t="ui.chip.copy">{escape(tx["ui.chip.copy"])}</span></button>'
+               f'<a role="menuitem" tabindex="-1" data-suggest="{cid}" href="#" target="_blank" rel="noopener noreferrer"><span data-t="ui.suggest.chip">{escape(tx["ui.suggest.chip"])}</span></a></div>')
     label = escape(tx["ui.menu"].replace("{name}", name))
     lvl = f' data-alert="{a["level"]}"' if a else ""
     return (f'<div class="pop" id="{pid}" data-menu="{cid}"{lvl} hidden>{head}{alert}'
-            f'<div role="menu" id="menu-{cid}" aria-label="{label}" data-menu-label="{cid}">{evidence}{body}</div></div>')
+            f'<div role="menu" id="menu-{cid}" aria-label="{label}" data-menu-label="{cid}">{evidence}{body}{actions}</div></div>')
 
 
 def chip(c, tx):
@@ -141,27 +149,55 @@ def where(items, tx):
 
 def card(L, tx):
     i = L["id"]
+    body = f'<div class="groups">{"".join(group(g, tx) for g in L["groups"])}</div>'
     if L["layout"] == "rows":
-        rows = {}
-        for g in L["groups"]:
-            rows.setdefault(g["row"], []).append(g)
-        body = "".join(f'<div class="grow n{len(gs)}">{"".join(group(g, tx) for g in gs)}</div>' for _, gs in sorted(rows.items()))
         if L.get("where"):
             body += where(L["where"], tx)
         if L.get("panel"):
             p = L["panel"]
             body += (f'<section class="panel"><div class="panel-h"><h3 data-t="panel.{p["id"]}">{escape(tx[f"panel.{p["id"]}"])}</h3>'
-                     f'<span class="icon">{icon(p["icon"])}</span></div>{columns(p["groups"], tx, 3, "cols3")}</section>')
-    else:
-        body = columns(L["groups"], tx, 2, "cols2")
+                     f'<span class="icon">{icon(p["icon"])}</span></div><div class="groups">{"".join(group(g, tx) for g in p["groups"])}</div></section>')
     n_chips = sum(len(shown(g)) for g in L["groups"] + (L.get("panel") or {}).get("groups", []))
-    return (f'<article class="card" id="layer-{i}" style="flex-grow:{n_chips + 8}"><span class="badge">{L["n"]}</span>'
+    return (f'<article class="card" id="layer-{i}" data-n="{L["n"]}" style="flex-grow:{n_chips + 8}"><span class="badge">{L["n"]}</span>'
             f'<div class="card-h"><h2 data-t="layer.{i}">{escape(tx[f"layer.{i}"])}</h2><span class="icon">{icon(L["icon"])}</span></div>'
             f'<div class="body">{body}</div>'
             f'<div class="decision" data-t="decision.{i}">{escape(tx[f"decision.{i}"])}</div></article>')
 
 
-def main():
+def menus(tx):
+    t_ = lambda k: escape(tx[k])
+    def item_a(attr, key, extra=""):
+        return f'<a role="menuitem" tabindex="-1" {attr} target="_blank" rel="noopener noreferrer" {extra}><span data-t="{key}">{t_(key)}</span></a>'
+    share = (f'<div class="pop pop-sm" id="pop-share" hidden><div role="menu" id="menu-share" aria-label="{t_("ui.share")}" data-al="ui.share">'
+             f'<button type="button" role="menuitem" tabindex="-1" data-act="native" hidden><span data-t="ui.share.native">{t_("ui.share.native")}</span></button>'
+             f'<button type="button" role="menuitem" tabindex="-1" data-act="copy"><span data-t="ui.share.copy">{t_("ui.share.copy")}</span></button>'
+             + item_a('data-share="linkedin" href="#"', "ui.share.linkedin") + item_a('data-share="x" href="#"', "ui.share.x") + item_a('data-share="email" href="#"', "ui.share.email") + "</div></div>")
+    dl = "".join(f'<a role="menuitem" tabindex="-1" data-dl="{fmt}-{th}" href="#" download>{fmt.upper()} · <span data-t="ui.theme.{th}">{t_("ui.theme." + th)}</span></a>' for fmt in ("png", "svg") for th in ("light", "dark"))
+    download = f'<div class="pop pop-sm" id="pop-download" hidden><div role="menu" id="menu-download" aria-label="{t_("ui.download")}" data-al="ui.download">{dl}</div></div>'
+    suggest = (f'<div class="pop pop-sm" id="pop-suggest" hidden><div role="menu" id="menu-suggest" aria-label="{t_("ui.suggest")}" data-al="ui.suggest">'
+               + item_a('data-suggest="" href="#"', "ui.suggest.issue") + item_a('data-edit="" href="#"', "ui.suggest.edit") + "</div></div>")
+    def block(key, kind):
+        return (f'<section class="emb"><h3 data-t="ui.embed.{key}">{t_("ui.embed." + key)}</h3><pre><code data-snippet="{kind}"></code></pre>'
+                f'<button type="button" class="btn sm" data-copy-snippet="{kind}"><span data-t="ui.embed.copy">{t_("ui.embed.copy")}</span></button></section>')
+    embed = (f'<div class="pop pop-embed" id="pop-embed" role="dialog" aria-modal="false" aria-labelledby="embed-title" hidden>'
+             f'<div class="emb-head"><h2 id="embed-title" data-t="ui.embed.title">{t_("ui.embed.title")}</h2>'
+             f'<button type="button" class="btn sm" data-close-pop><span data-t="ui.embed.close">{t_("ui.embed.close")}</span></button></div>'
+             + block("iframe", "iframe") + block("component", "component") + block("image", "image") + block("badge", "badge")
+             + f'<p class="emb-credit" data-t="ui.embed.credit">{t_("ui.embed.credit")}</p></div>')
+    return share + download + suggest + embed
+
+
+def actions_bar(tx, reviewed):
+    t_ = lambda k: escape(tx[k])
+    def mbtn(key, pop, extra=""):
+        return (f'<button type="button" class="btn" aria-haspopup="menu" aria-expanded="false" aria-controls="menu-{pop}" data-menu-btn="{pop}" {extra}>'
+                f'<span data-t="ui.{key}">{t_("ui." + key)}</span>{CARET}</button>')
+    embed = (f'<button type="button" class="btn" aria-haspopup="dialog" aria-expanded="false" aria-controls="pop-embed" data-menu-btn="embed"><span data-t="ui.embed">{t_("ui.embed")}</span></button>')
+    return (f'<div class="actions" role="group" aria-label="{t_("ui.actions")}" data-al="ui.actions">{mbtn("share", "share")}{embed}{mbtn("download", "download")}{mbtn("suggest", "suggest")}'
+            f'<span class="reviewed"><span data-t="ui.reviewed.short">{t_("ui.reviewed.short")}</span> <time datetime="{reviewed}">{reviewed}</time></span></div>')
+
+
+def render(embed=False):
     langs = load_langs()
     tx = langs[DEFAULT]
     layers = miniyaml.load(ROOT / "data" / "layers.yml")["layers"]
@@ -171,52 +207,85 @@ def main():
     buttons = "".join(f'<button type="button" data-lang="{k}" aria-pressed="{str(k == DEFAULT).lower()}">{escape(v["lang.name"])}</button>' for k, v in langs.items())
     themes = "".join(f'<button type="button" data-theme-choice="{k}" aria-pressed="{str(k == "auto").lower()}" aria-label="{escape(tx["ui.theme." + k])}" data-al="ui.theme.{k}" '
                      f'title="{escape(tx["ui.theme." + k])}" data-tl="ui.theme.{k}">{THEME_ICONS[k]}</button>' for k in ("auto", "light", "dark"))
+    sizes = "".join(f'<button type="button" data-size-choice="{k}" aria-pressed="{str(k == "normal").lower()}" aria-label="{escape(tx["ui.size." + k])}" data-al="ui.size.{k}" '
+                    f'title="{escape(tx["ui.size." + k])}" data-tl="ui.size.{k}"><span data-t="ui.size.{k}.short">{escape(tx["ui.size." + k + ".short"])}</span></button>' for k in ("fit", "normal", "large"))
     board = (f'<div class="board" role="group" aria-label="{escape(tx["site.title"])}">'
-             f'<div class="turn t1"><span class="tag-end" data-t="label.model">{escape(tx["label.model"])}</span></div><div class="turn t2"></div><div class="turn t3"></div>'
-             f'<div class="col left">{cols["left"]}</div><div class="col center">{cols["center"]}</div><div class="col right">{cols["right"]}</div>'
-             f'<div class="turn b1"></div><div class="turn b2"></div><div class="turn b3"><span class="tag-end" data-t="label.person">{escape(tx["label.person"])}</span></div></div>')
-    html = f"""<!doctype html>
-<html lang="{DEFAULT}">
+             f'<span class="tag-end" id="tag-model" data-t="label.model">{escape(tx["label.model"])}</span><span class="tag-end" id="tag-person" data-t="label.person">{escape(tx["label.person"])}</span>'
+             f'<div class="cols"><div class="col">{cols["left"]}</div><div class="col">{cols["center"]}</div><div class="col">{cols["right"]}</div></div></div>')
+    css = (ROOT / "assets" / "style.css").read_text(encoding="utf-8")
+    site = {"base": BASE, "repo": SITE["repo"], "branch": SITE.get("branch", "main"), "reviewed": reviewed}
+    alt = "".join(f'<link rel="alternate" hreflang="{k}" href="{BASE}?lang={k}">' for k in langs)
+    if embed:
+        head_extra = '<meta name="robots" content="noindex">'
+        header = footer = ""
+        html_attr = ' class="embed"'
+    else:
+        html_attr = ""
+        head_extra = (f'<link rel="canonical" href="{BASE}">{alt}<meta property="og:type" content="website"><meta property="og:title" content="{escape(tx["site.title"])}">'
+                      f'<meta property="og:description" content="{escape(tx["site.tagline"])}"><meta property="og:url" content="{BASE}"><meta property="og:image" content="{BASE}figure-en.png">')
+        header = (f'<header class="top"><div class="intro"><h1 data-t="site.title">{escape(tx["site.title"])}</h1><p data-t="site.tagline">{escape(tx["site.tagline"])}</p></div>'
+                  f'<div class="tools"><div class="tools-row"><div class="seg sizes" role="group" aria-label="{escape(tx["ui.size"])}" data-al="ui.size">{sizes}</div>'
+                  f'<div class="seg themes" role="group" aria-label="{escape(tx["ui.theme"])}" data-al="ui.theme">{themes}</div>'
+                  f'<div class="seg langs" role="group" aria-label="{escape(tx["ui.language"])}" data-al="ui.language">{buttons}</div></div>'
+                  f'{actions_bar(tx, reviewed)}</div></header>')
+        footer = (f'<footer class="foot"><p data-t="ui.legend">{escape(tx["ui.legend"])}</p>'
+                  f'<p><span data-t="ui.reviewed">{escape(tx["ui.reviewed"])}</span>: {reviewed}</p><p data-t="ui.license">{escape(tx["ui.license"])}</p></footer>')
+    return f"""<!doctype html>
+<html lang="{DEFAULT}"{html_attr}>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{escape(tx["site.title"])}</title>
 <meta name="description" content="{escape(tx["site.tagline"])}">
+{head_extra}
 <script>
 (function () {{ try {{ var q = new URLSearchParams(location.search), r = document.documentElement;
   var th = q.get("theme") || localStorage.getItem("webai-theme"); if (th === "light" || th === "dark") r.setAttribute("data-theme", th);
-  if (!q.get("export") && q.get("fit") !== "0") r.classList.add("fit"); }} catch (e) {{}} }})();
+  if (!q.get("export")) {{ var z = q.get("size") || (q.get("fit") === "0" ? "large" : localStorage.getItem("webai-size"));
+    r.classList.add("sized"); r.setAttribute("data-size", z === "fit" || z === "large" ? z : "normal"); }} }} catch (e) {{ document.documentElement.classList.add("sized"); document.documentElement.setAttribute("data-size", "normal"); }} }})();
 </script>
 <style>
-{(ROOT / "assets" / "style.css").read_text(encoding="utf-8")}
+{css}
 </style>
 </head>
 <body>
 <div class="page">
-<header class="top">
-<div><h1 data-t="site.title">{escape(tx["site.title"])}</h1><p data-t="site.tagline">{escape(tx["site.tagline"])}</p></div>
-<div class="tools"><div class="seg themes" role="group" aria-label="{escape(tx["ui.theme"])}" data-al="ui.theme">{themes}</div>
-<div class="seg langs" role="group" aria-label="{escape(tx["ui.language"])}" data-al="ui.language">{buttons}</div></div>
-</header>
+{header}
 {board}
-<footer class="foot">
-<p data-t="ui.legend">{escape(tx["ui.legend"])}</p>
-<p><span data-t="ui.reviewed">{escape(tx["ui.reviewed"])}</span>: {reviewed}</p>
-<p data-t="ui.license">{escape(tx["ui.license"])}</p>
-</footer>
+{footer}
 </div>
+{'' if embed else menus(tx)}
 <div id="tip" role="tooltip" hidden></div>
-<script>window.__I18N__ = {json.dumps(langs, ensure_ascii=False)};</script>
+<script>window.__I18N__ = {json.dumps(langs, ensure_ascii=False)}; window.__SITE__ = {json.dumps(site)};</script>
 <script>
 {(ROOT / "assets" / "app.js").read_text(encoding="utf-8")}
 </script>
 </body>
 </html>
-"""
+""", langs, reviewed
+
+
+def badge_svg():
+    return ('<svg xmlns="http://www.w3.org/2000/svg" width="236" height="28" role="img" aria-label="State of the Art of WebAI">'
+            '<title>State of the Art of WebAI</title><rect width="236" height="28" rx="6" fill="#1b1a18"/><rect x="0" width="68" height="28" rx="6" fill="#c4622d"/><rect x="40" width="28" height="28" fill="#c4622d"/>'
+            '<g font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif" font-size="12" font-weight="700" fill="#fff"><text x="12" y="18">WebAI</text>'
+            '<text x="80" y="18" font-weight="600">State of the Art of WebAI</text></g></svg>\n')
+
+
+def main():
+    html, langs, reviewed = render(False)
     out = ROOT / "docs" / "index.html"
     out.parent.mkdir(exist_ok=True)
     out.write_text(html, encoding="utf-8")
-    print(f"wrote {out.relative_to(ROOT)} ({len(html) // 1024} KB, languages: {', '.join(langs)})")
+    (ROOT / "docs" / "embed").mkdir(exist_ok=True)
+    (ROOT / "docs" / "embed" / "index.html").write_text(render(True)[0], encoding="utf-8")
+    (ROOT / "docs" / "embed.js").write_text((ROOT / "assets" / "embed.js").read_text(encoding="utf-8"), encoding="utf-8")
+    (ROOT / "docs" / "badge.svg").write_text(badge_svg(), encoding="utf-8")
+    (ROOT / "docs" / "embed-example.html").write_text((ROOT / "assets" / "embed-example.html").read_text(encoding="utf-8"), encoding="utf-8")
+    urls = [BASE] + [f"{BASE}?lang={k}" for k in langs] + [f"{BASE}embed/"]
+    (ROOT / "docs" / "sitemap.xml").write_text('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+        + "".join(f"  <url><loc>{u.replace('&', '&amp;')}</loc><lastmod>{reviewed}</lastmod></url>\n" for u in urls) + "</urlset>\n", encoding="utf-8")
+    print(f"wrote {out.relative_to(ROOT)} ({len(html) // 1024} KB, languages: {', '.join(langs)}), docs/embed/index.html, docs/embed.js, docs/badge.svg, docs/sitemap.xml; base {BASE}")
     awesome.update()
 
 

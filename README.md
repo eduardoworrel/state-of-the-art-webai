@@ -6,7 +6,7 @@ It is an awesome list and a landscape in one picture. Every chip is a technology
 
 ![The five layers of WebAI](docs/figure-en.png)
 
-**Live page:** `docs/index.html` (scaled to fit the window; `?fit=0` for the full-size layout; static; switch language with the buttons or `?lang=pt`, theme with the sun and moon buttons). [Português](README.pt.md).
+**Live page:** `docs/index.html` (it adapts to the window; static; switch language with the buttons or `?lang=pt`, theme with the sun and moon buttons). [Português](README.pt.md).
 
 ## How it works
 
@@ -18,7 +18,8 @@ It is an awesome list and a landscape in one picture. Every chip is a technology
 | `schema/` | JSON Schemas for the two kinds of file. |
 | `assets/` | CSS, the small script, and the icons (SVG). |
 | `build.py` | Builds `docs/index.html` and refreshes the list below. |
-| `export.py` | Exports a PNG per language with headless Chrome. |
+| `export.py` | Exports PNG and SVG per language and theme with headless Chrome. |
+| `site.toml` | The public address (`base_url`) and the GitHub repository, used by the generated links. |
 | `scripts/check.py` | Validates the data and the translations against the spec. CI runs it. |
 | `scripts/linkcheck.py` | Opens every link and reports dead or moved ones (network; not in CI). |
 
@@ -33,6 +34,15 @@ Python 3.10+ is enough (PyYAML is used if installed, otherwise a tiny built-in r
 ## Contributing
 
 Add a chip, fix a source, or translate the whole map. See [CONTRIBUTING.md](CONTRIBUTING.md). The short version: no chip without a source, and every text lives in `i18n/`.
+
+## The page
+
+- **Size.** The map adapts to the window instead of shrinking: the chip text stays at 13 to 14 px (never below 12 px) and the five cards are re-arranged in 1 to 5 columns, stacked or side by side, to use the width and the height. *Fit to screen* looks for the biggest font with which the whole map fits without scrolling (it does at 1920×1080 and larger; on lower windows the page scrolls rather than shrink the text), *Normal* uses the target font, *Large* a bigger one. Remembered in the browser; `?size=fit|normal|large`. Phones get one column.
+- **Share.** Copy the link or share by LinkedIn, X or e-mail. A link ending in `#chip-id` (for example `#olive`) opens that chip's sources on load; every chip's menu has "Copy link to this chip".
+- **Embed.** The *Embed* panel has ready-to-copy snippets: an `<iframe>` whose height adjusts itself (`docs/embed/`, with `?lang=` and `?theme=`), a `<script src=".../embed.js">` that registers the web component `<state-of-the-art-webai lang="pt" theme="auto">` (always the current map; about 2 KB, no dependencies), the static figure (PNG and SVG, per language and theme, CC BY 4.0: keep the credit) and a Markdown badge. `docs/embed-example.html` uses the first two; try it with `python3 -m http.server` inside `docs/`.
+- **Download.** PNG and SVG of the figure, per language and theme. (The SVG holds the board as HTML inside a `foreignObject`: it opens in any modern browser and in `<img>`; it is not a path drawing.)
+- **Suggest or correct.** Opens a GitHub issue (with the chip id filled in from a chip's menu) or the data file to edit as a pull request.
+- Everything is static: no tracking, no cookies, no library. The public address lives in one place, `site.toml` (`base_url`); the share links, the embed snippets, the canonical link and `docs/sitemap.xml` are generated from it. `?fit=0` is the same as `?size=large`.
 
 ## Motion
 

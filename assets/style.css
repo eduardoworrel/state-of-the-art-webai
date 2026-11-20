@@ -1,4 +1,5 @@
-/* State of the Art of WebAI: board styles. Sizes use --u so the whole board scales like a picture. */
+/* State of the Art of WebAI. The board adapts to the window: app.js picks the font (--u, the chip text size) and arranges the five cards in
+   1 to 5 columns so the whole map uses the available width and height; the text never shrinks below 12px. */
 :root {
   --bg: #f0ede6; --card: #faf9f6; --edge: #d8d4c8; --ink: #1b1a18; --ink2: #55544f; --muted: #6a6964;
   --acc: #c4622d; --acc-tx: #a2461a; --soft: #f6e6dc; --paper: #ffffff; --track: #e2ded2; --sh1: #e7e3d8; --sh2: #ddd8ca; --hole: #3a3a36;
@@ -30,10 +31,10 @@ body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--f
 a { color: inherit; }
 
 /* page shell */
-.page { max-width: 1600px; margin: 0 auto; padding: 28px 24px 40px; }
-.top { display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: flex-end; justify-content: space-between; margin-bottom: 26px; }
-.top h1 { margin: 0 0 6px; font-size: clamp(22px, 3vw, 32px); letter-spacing: -0.01em; }
-.top p { margin: 0; max-width: 62ch; color: var(--ink2); font-size: 15px; }
+.page { --m: clamp(16px, 2vw, 40px); max-width: none; margin: 0 auto; padding: 14px var(--m) 18px; }
+.top { display: flex; flex-wrap: wrap; gap: 6px 24px; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+.top h1 { margin: 0 0 2px; font-size: 22px; letter-spacing: -0.01em; }
+.top p { margin: 0; max-width: 70ch; color: var(--ink2); font-size: 13px; }
 .tools { display: flex; gap: 14px; align-items: center; font-size: 14px; }
 .seg { display: inline-flex; border: 1px solid var(--edge); border-radius: 999px; overflow: hidden; background: var(--card); }
 .seg button { font: inherit; font-weight: 600; font-size: 13px; padding: 6px 14px; border: 0; background: transparent; color: var(--ink2); cursor: pointer; display: inline-flex; align-items: center; }
@@ -41,68 +42,47 @@ a { color: inherit; }
 .seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
 .seg button:focus-visible { outline: 2px solid var(--acc); outline-offset: -2px; }
 .themes button { padding: 6px 10px; } .themes svg { width: 15px; height: 15px; display: block; }
-.foot { margin-top: 28px; display: flex; flex-wrap: wrap; gap: 8px 28px; color: var(--muted); font-size: 13px; }
+.foot { margin-top: 12px; font-size: 12px;   display: flex; flex-wrap: wrap; gap: 8px 28px; color: var(--muted); }
 .foot p { margin: 0; }
 html.export .top, html.export .foot { display: none; }
 html.export .page { padding: 20px; max-width: none; }
+html.export .board { --u: 14.4px; width: 1552px; margin: 0; }
 
-/* board */
-.board {
-  position: relative;
-  --u: clamp(10px, 0.9vw, 14.4px); --gc: calc(var(--u) * 1.9); --rowv: calc(var(--u) * 4); --lw: 2.5px;
-  --lx: calc(var(--u) * 1.8); --r: calc(var(--u) * 1.5);
-  display: grid; grid-template-columns: 600fr 860fr 600fr; column-gap: var(--gc); grid-template-rows: var(--rowv) auto var(--rowv);
-  font-size: var(--u); padding-right: calc(var(--u) * 0.8);
-}
-.col { grid-row: 2; display: flex; flex-direction: column; gap: calc(var(--u) * 1.1); position: relative; }
-.col.left { grid-column: 1; } .col.center { grid-column: 2; } .col.right { grid-column: 3; }
-.col::before { content: ""; position: absolute; z-index: 1; top: calc(var(--u) * -1.1); bottom: calc(var(--u) * -1.1); left: calc(var(--lx) - var(--lw) / 2);
-  border-left: var(--lw) dashed var(--acc); pointer-events: none; }
-
-/* the model line: top and bottom turns */
-.turn { pointer-events: none; position: relative; }
-.t1 { grid-row: 1; grid-column: 1; margin-left: calc(var(--lx) - var(--lw) / 2); border-left: var(--lw) dashed var(--acc); }
-.t2 { grid-row: 1; grid-column: 2; margin: calc(var(--rowv) / 2) calc(var(--gc) / -2) 0 calc(var(--lx) - var(--lw) / 2);
-  border-left: var(--lw) dashed var(--acc); border-top: var(--lw) dashed var(--acc); border-top-left-radius: var(--r); }
-.t3 { grid-row: 1; grid-column: 3; margin: calc(var(--rowv) / 2) calc(100% - var(--lx) - var(--lw) / 2) 0 calc(var(--gc) / -2);
-  border-right: var(--lw) dashed var(--acc); border-top: var(--lw) dashed var(--acc); border-top-right-radius: var(--r); }
-.b1 { grid-row: 3; grid-column: 1; margin: 0 calc(var(--gc) / -2) calc(var(--rowv) / 2) calc(var(--lx) - var(--lw) / 2);
-  border-left: var(--lw) dashed var(--acc); border-bottom: var(--lw) dashed var(--acc); border-bottom-left-radius: var(--r); }
-.b2 { grid-row: 3; grid-column: 2; margin: 0 calc(100% - var(--lx) - var(--lw) / 2) calc(var(--rowv) / 2) calc(var(--gc) / -2);
-  border-right: var(--lw) dashed var(--acc); border-bottom: var(--lw) dashed var(--acc); border-bottom-right-radius: var(--r); }
-.b3 { grid-row: 3; grid-column: 3; margin-left: calc(var(--lx) - var(--lw) / 2); border-left: var(--lw) dashed var(--acc); }
-.tag-end { position: absolute; font-weight: 700; color: var(--acc-tx); font-size: 0.85em; }
-.t1 .tag-end { left: calc(var(--u) * 0.8); top: calc(var(--u) * 0.2); }
-.b3 .tag-end { left: calc(var(--u) * 0.8); bottom: calc(var(--u) * 0.2); }
+/* board: the cards sit in columns that app.js builds from the window's shape; the model line is one SVG path over them */
+.board { position: relative; display: flex; flex-direction: column; --u: 13px; --gc: calc(var(--u) * 1.9); --lw: 2.5px; --lx: calc(var(--u) * 1.8); --r: calc(var(--u) * 1.5);
+  font-size: var(--u); padding: calc(var(--u) * 2.4) calc(var(--u) * 0.8) calc(var(--u) * 2.4) 0; max-width: 2400px; margin: 0 auto; }
+.cols { flex: 1; display: flex; flex-direction: column; gap: calc(var(--u) * 1); }          /* without script: one column */
+.col { display: contents; }
+.cols.js { display: grid; align-items: stretch; column-gap: var(--gc); }
+.cols.js .col { display: flex; flex-direction: column; gap: calc(var(--u) * 0.9); min-width: 0; }
+.tag-end { position: absolute; z-index: 2; font-weight: 700; color: var(--acc-tx); font-size: max(10px, 0.85em); white-space: nowrap; }
 
 /* cards */
 .card { position: relative; flex: 1 1 0; display: flex; flex-direction: column; background: var(--card); border: 1px solid var(--edge);
-  border-radius: calc(var(--u) * 0.95); padding: calc(var(--u) * 1.1) calc(var(--u) * 1.3) calc(var(--u) * 1.1) calc(var(--u) * 3.6);
+  border-radius: calc(var(--u) * 0.95); padding: calc(var(--u) * 0.9) calc(var(--u) * 1.3) calc(var(--u) * 0.9) calc(var(--u) * 3.6);
   box-shadow: calc(var(--u) * 0.35) calc(var(--u) * 0.35) 0 var(--sh1), calc(var(--u) * 0.7) calc(var(--u) * 0.7) 0 var(--sh2); }
 .card::before, .card::after { content: ""; position: absolute; z-index: 3; width: calc(var(--u) * 1.5); height: calc(var(--u) * 0.8); border-radius: 50%;
   background: var(--hole); left: calc(var(--lx) - var(--u) * 0.75); }
 .card::before { top: calc(var(--u) * -0.4); } .card::after { bottom: calc(var(--u) * -0.4); }
 .badge { position: absolute; z-index: 2; left: calc(var(--lx) - var(--u) * 1.1); top: calc(var(--u) * 1.1); width: calc(var(--u) * 2.2); height: calc(var(--u) * 2.2);
   border-radius: 50%; background: var(--ink); color: var(--bg); display: grid; place-items: center; font-weight: 700; font-size: calc(var(--u) * 1.1); }
-.card-h { display: flex; align-items: center; justify-content: space-between; gap: var(--u); min-height: calc(var(--u) * 2.2); margin-bottom: calc(var(--u) * 0.9); }
+.card-h { display: flex; align-items: center; justify-content: space-between; gap: var(--u); min-height: calc(var(--u) * 2.2); margin-bottom: calc(var(--u) * 0.5); }
 .card-h h2 { margin: 0; font-size: calc(var(--u) * 1.25); letter-spacing: -0.005em; }
 .card-h .icon { display: block; height: calc(var(--u) * 3.1); width: calc(var(--u) * 6.4); flex: none; }
 .card-h .icon svg { height: 100%; width: 100%; }
-.body { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: calc(var(--u) * 1.2); padding: calc(var(--u) * 0.6) 0; }
-.decision { margin-top: calc(var(--u) * 0.9); padding-top: calc(var(--u) * 0.85); border-top: 1px solid var(--edge); display: flex; align-items: center; gap: calc(var(--u) * 0.8);
+.body { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: calc(var(--u) * 0.9); padding: calc(var(--u) * 0.3) 0; }
+.decision { margin-top: calc(var(--u) * 0.5); padding-top: calc(var(--u) * 0.65); border-top: 1px solid var(--edge); display: flex; align-items: center; gap: calc(var(--u) * 0.8);
   font-weight: 600; font-size: calc(var(--u) * 1.1); }
 .decision::before { content: ""; flex: none; width: calc(var(--u) * 0.6); height: calc(var(--u) * 0.6); background: var(--acc); transform: rotate(45deg); }
 
-/* groups and chips */
-.cols2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: calc(var(--u) * 1.2) calc(var(--u) * 1.4); align-items: start; }
-.cols3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: calc(var(--u) * 1.2) calc(var(--u) * 1.4); align-items: start; }
-.gcol { display: flex; flex-direction: column; gap: calc(var(--u) * 1.15); min-width: 0; }
-.grow { display: grid; gap: calc(var(--u) * 1.2) calc(var(--u) * 1.5); align-items: start; }
-.grow.n2 { grid-template-columns: repeat(2, minmax(0, 1fr)); } .grow.n3 { grid-template-columns: repeat(3, minmax(0, 1fr)); } .grow.n1 { grid-template-columns: minmax(0, 1fr); }
+/* groups and chips: the groups of a card flow in as many columns as fit, balanced top to bottom */
+.groups { column-width: calc(var(--u) * 14); column-gap: calc(var(--u) * 1.6); column-fill: balance; }
+.groups > .group { break-inside: avoid; margin: 0 0 calc(var(--u) * 0.85); }
+.panel .groups { column-width: calc(var(--u) * 13.5); }
 .group { min-width: 0; }
-.group h3 { margin: 0 0 calc(var(--u) * 0.6); font-size: calc(var(--u) * 0.78); letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
-.chips { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: calc(var(--u) * 0.6) calc(var(--u) * 0.45); }
-.chip { display: inline-flex; align-items: center; gap: 0.5em; padding: calc(var(--u) * 0.36) calc(var(--u) * 0.62); background: var(--paper); border: 1px solid var(--edge); max-width: 100%;
+.group h3 { margin: 0 0 calc(var(--u) * 0.45); font-size: max(10px, calc(var(--u) * 0.78)); letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
+.chips { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: calc(var(--u) * 0.42) calc(var(--u) * 0.4); }
+.chip { display: inline-flex; align-items: center; gap: 0.5em; padding: calc(var(--u) * 0.3) calc(var(--u) * 0.6); background: var(--paper); border: 1px solid var(--edge); max-width: 100%;
   border-radius: calc(var(--u) * 1.1); font-size: var(--u); line-height: 1.2; font-weight: 600; text-decoration: none; color: var(--ink); }
 .chip { font-family: inherit; cursor: pointer; text-align: left; }
 .chip:hover { border-color: var(--acc); }
@@ -113,18 +93,18 @@ html.export .page { padding: 20px; max-width: none; }
 .chip[data-status]:not([data-status="stable"]) { border-style: dashed; border-color: var(--acc); }
 .chip[data-status="stable"] em { color: var(--ink2); }
 .chips li { min-width: 0; max-width: 100%; }
-.chip em { white-space: nowrap; font-style: normal; font-size: 0.62em; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--acc-tx); }
+.chip em { white-space: nowrap; font-style: normal; font-size: max(9px, 0.62em); font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--acc-tx); }
 
 /* where it runs and limits */
-.where h3 { margin: 0 0 calc(var(--u) * 0.7); font-size: calc(var(--u) * 0.78); letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
-.where-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: calc(var(--u) * 1.2); }
+.where h3 { margin: 0 0 calc(var(--u) * 0.7); font-size: max(10px, calc(var(--u) * 0.78)); letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
+.where-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(calc(var(--u) * 7.2), 1fr)); gap: calc(var(--u) * 1.2); }
 .where-item .glyph { display: block; height: calc(var(--u) * 2.5); width: calc(var(--u) * 4); margin-bottom: calc(var(--u) * 0.5); }
 .where-item .glyph svg { height: 100%; width: auto; max-width: 100%; }
 .where-item a { font-weight: 700; font-size: calc(var(--u) * 1.05); text-decoration: none; }
 .where-item a:hover { color: var(--acc); }
-.where-item p { margin: calc(var(--u) * 0.2) 0 0; font-size: calc(var(--u) * 0.88); color: var(--ink2); line-height: 1.3; }
-.panel { background: var(--soft); border: 1.5px solid var(--acc); border-radius: calc(var(--u) * 1.1); padding: calc(var(--u) * 1) calc(var(--u) * 1.1) calc(var(--u) * 1.1); }
-.panel-h { display: flex; align-items: center; justify-content: space-between; margin-bottom: calc(var(--u) * 0.9); }
+.where-item p { margin: calc(var(--u) * 0.2) 0 0; font-size: max(11px, calc(var(--u) * 0.88)); color: var(--ink2); line-height: 1.3; }
+.panel { background: var(--soft); border: 1.5px solid var(--acc); border-radius: calc(var(--u) * 1.1); padding: calc(var(--u) * 0.8) calc(var(--u) * 1.1) calc(var(--u) * 0.6); }
+.panel-h { display: flex; align-items: center; justify-content: space-between; margin-bottom: calc(var(--u) * 0.6); }
 .panel-h h3 { margin: 0; font-size: calc(var(--u) * 1.3); letter-spacing: 0.1em; text-transform: uppercase; color: var(--acc-tx); }
 .panel-h .icon { display: block; height: calc(var(--u) * 1.6); width: calc(var(--u) * 7); }
 .panel-h .icon svg { height: 100%; width: 100%; }
@@ -138,22 +118,6 @@ html.export .page { padding: 20px; max-width: none; }
 [data-f="edge"] { fill: var(--edge); } [data-s="edge"] { stroke: var(--edge); }
 [data-f="track"] { fill: var(--track); } [data-s="track"] { stroke: var(--track); }
 [data-f="muted"] { fill: var(--muted); } [data-s="muted"] { stroke: var(--muted); }
-
-/* narrow screens: one column, the model line runs down the left edge */
-@media (max-width: 880px) {
-  .board { --u: 14px; display: flex; flex-direction: column; gap: calc(var(--u) * 1.3); position: relative; padding-right: calc(var(--u) * 0.8); }
-  .board::before { content: ""; position: absolute; z-index: 1; top: calc(var(--u) * -0.8); bottom: calc(var(--u) * -0.8); left: calc(var(--lx) - var(--lw) / 2);
-    border-left: var(--lw) dashed var(--acc); pointer-events: none; }
-  .col { display: contents; }
-  .turn { display: none; }
-  .card { flex: none; }
-  .where-grid, .grow.n3, .cols3 { grid-template-columns: 1fr 1fr; }
-  .page { padding: 20px 14px 32px; }
-}
-@media (max-width: 480px) {
-  .cols2, .where-grid, .grow.n3, .cols3 { grid-template-columns: 1fr; }
-  .card-h .icon { width: calc(var(--u) * 4.4); }
-}
 
 /* source menu, hover preview, alerts */
 .sr { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
@@ -198,34 +162,38 @@ html.export .page { padding: 20px; max-width: none; }
 .pop[data-alert] [role="group"] { border-top-color: var(--edge); }
 #tip .pop-head { padding: 5px 8px; } #tip .pop-alert { margin: 2px 0 0; padding: 5px 8px; }
 
-/* demo (docs/index.html, fit mode): the whole board is scaled by ONE variable, --fu, so that it takes about 60% of the window width and
-   fits the window height (the five layers visible without scrolling). The board keeps a fixed width/size ratio (107.5 units), so it behaves like
-   a picture: the layout never changes, only the scale. app.js measures the board's aspect and the room under the header and sets --fu.
-   Below the floor (7px per unit, set in app.js) it stops shrinking and the page scrolls. ?fit=0 and the PNG export keep the full layout.
-   Menus and previews are in px: they stay readable at any scale. */
-@media (min-width: 1081px) {
-  html.fit { --fu: clamp(8px, 0.62vw, 12px); }   /* without JS; app.js sets --fu from the window size */
-  html.fit .page { max-width: none; width: calc(var(--fu) * 107.5); padding: 14px 0 18px; margin: 0 auto; }
-  html.fit .board { --u: var(--fu); }
-  html.fit .top { margin-bottom: 8px; align-items: center; flex-wrap: nowrap; }
-  html.fit .top > div:first-child { flex: 1 1 auto; min-width: 0; }
-  html.fit .tools { flex: none; }
-  html.fit .top h1 { font-size: 22px; margin-bottom: 2px; }
-  html.fit .top p { font-size: 13px; max-width: none; }
-  html.fit .chip em { font-size: max(5.5px, 0.62em); }
-  html.fit .foot { margin-top: 12px; font-size: 12px; }
-}
-/* between 881 and 1080 px the scaled board would be below the legible size: use the one-column layout here too */
-@media (min-width: 881px) and (max-width: 1080px) {
-  html.fit .board { --u: 14px; display: flex; flex-direction: column; gap: calc(var(--u) * 1.3); position: relative; padding-right: calc(var(--u) * 0.8); }
-  html.fit .board::before { content: ""; position: absolute; z-index: 1; top: calc(var(--u) * -0.8); bottom: calc(var(--u) * -0.8); left: calc(var(--lx) - var(--lw) / 2);
-    border-left: var(--lw) dashed var(--acc); pointer-events: none; }
-  html.fit .col { display: contents; }
-  html.fit .turn { display: none; }
-  html.fit .card { flex: none; }
-  html.fit .where-grid, html.fit .grow.n3, html.fit .cols3 { grid-template-columns: 1fr 1fr; }
-  html.fit .page { padding: 20px 14px 32px; }
-}
+/* The board's size on the page is decided by app.js (see arrange()): Normal = the target font; Large = a bigger font; Fit = the smallest
+   font (never below 12px) with which the whole map fits the window. The cards are re-arranged to use the width and the height. */
+html.embed .page { --m: 8px; padding: 4px var(--m); }
+html.embed .top, html.embed .foot { display: none; }
+
+/* header tools: size, theme, language, then the actions */
+.intro { flex: 1 1 320px; min-width: 0; }
+.tools { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 6px 14px; flex: 0 1 auto; }
+.tools-row, .actions { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 6px 8px; }
+.seg.sizes button { padding: 6px 12px; }
+.btn { font: inherit; font-weight: 600; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border: 1px solid var(--edge); border-radius: 999px;
+  background: var(--card); color: var(--ink2); cursor: pointer; text-decoration: none; }
+.btn:hover, .btn[aria-expanded="true"] { color: var(--ink); border-color: var(--acc); }
+.btn:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
+.btn .caret { width: 9px; height: 6px; flex: none; }
+.btn.sm { padding: 3px 10px; font-size: 12px; }
+.reviewed { font-size: 12px; color: var(--muted); padding-left: 4px; font-variant-numeric: tabular-nums; }
+.pop-sm { width: min(240px, calc(100vw - 16px)); }
+.pop button[role="menuitem"] { display: flex; width: 100%; text-align: left; font: inherit; color: inherit; background: none; border: 0; padding: 7px 10px; border-radius: 8px; cursor: pointer; }
+.pop button[role="menuitem"]:hover, .pop button[role="menuitem"]:focus-visible { background: var(--soft); outline: none; }
+.pop button[role="menuitem"]:focus-visible { box-shadow: inset 0 0 0 2px var(--acc); }
+.pop[data-alert] button[role="menuitem"]:hover, .pop[data-alert] button[role="menuitem"]:focus-visible { background: var(--paper); }
+.pop-sm a, .pop-sm button { font-size: 13px; }
+.pop-embed { width: min(660px, calc(100vw - 16px)); padding: 12px 14px 14px; }
+.emb-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 4px; }
+.emb-head h2 { margin: 0; font-size: 15px; }
+.emb h3 { margin: 12px 0 4px; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink2); }
+.emb pre { margin: 0 0 6px; padding: 8px 10px; background: var(--bg); border: 1px solid var(--edge); border-radius: 8px; overflow: auto; max-height: 120px; font-size: 12px; line-height: 1.45; user-select: all; }
+.emb code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; white-space: pre-wrap; word-break: break-all; }
+.emb-credit { margin: 10px 0 0; font-size: 12px; color: var(--ink2); }
+.toast { position: fixed; z-index: 90; left: 50%; bottom: 24px; transform: translateX(-50%); padding: 8px 14px; border-radius: 999px; background: var(--ink); color: var(--bg); font-size: 13px; }
+@media (max-width: 700px) { .tools, .tools-row, .actions { align-items: flex-start; justify-content: flex-start; } .reviewed { padding-left: 0; } .top h1 { font-size: 20px; } }
 .pop .m time { white-space: nowrap; }
 
 /* the model line (drawn by app.js as one SVG path) and the small motions. Motion is decoration only: nothing depends on it. */
