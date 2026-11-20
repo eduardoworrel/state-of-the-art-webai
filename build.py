@@ -24,6 +24,18 @@ THEME_ICONS = {
 }
 
 
+ALERT_ICONS = {
+    "critical": '<svg class="ai" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M5.2 1h5.6L15 5.2v5.6L10.8 15H5.2L1 10.8V5.2z" fill="currentColor"/><path class="g" d="M8 4.4v4.3M8 10.6v1.1" fill="none" stroke-width="1.7" stroke-linecap="round"/></svg>',
+    "warning": '<svg class="ai" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M8 1.3l7.2 12.6H.8z" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linejoin="round"/><path class="g" d="M8 5.8v3.9M8 11.4v.9" fill="none" stroke-width="1.7" stroke-linecap="round"/></svg>',
+    "info": '<svg class="ai" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><circle cx="8" cy="8" r="7" fill="currentColor"/><path class="g" d="M8 7.2v4.2" fill="none" stroke-width="1.7" stroke-linecap="round"/><circle class="gf" cx="8" cy="4.7" r="1"/></svg>',
+}
+
+
+def short(url, n=46):
+    u = url.split("://", 1)[1].removeprefix("www.")
+    return u if len(u) <= n else u[: n - 22] + "…" + u[-20:]
+
+
 def host(url):
     return urlparse(url).netloc.removeprefix("www.")
 
@@ -47,29 +59,55 @@ def menu_item(s, tx):
             f'<span class="t">{escape(s["title"])}</span>{meta_item(s, tx)}</a>')
 
 
+def alert_title(a, tx):
+    return (f'<span data-t="ui.alert.level.{a["level"]}">{escape(tx["ui.alert.level." + a["level"]])}</span> · '
+            f'<span data-t="ui.alert.kind.{a["kind"]}">{escape(tx["ui.alert.kind." + a["kind"]])}</span>')
+
+
 def popover(c, tx, pid):
-    name = tx[f"chip.{c['id']}"]
-    body = "".join(menu_item(s, tx) for s in c["sources"] if not s.get("group"))
+    cid, name, a = c["id"], tx[f"chip.{c['id']}"], c.get("alert")
+    srcs = c["sources"]
+    date = max(s_["accessed"] for s_ in srcs)
+    status = c.get("status")
+    tag = f'<em class="tag" data-t="ui.status.{status}">{escape(tx[f"ui.status.{status}"])}</em>' if status else ""
+    head = (f'<div class="pop-head"><div class="ph-top"><strong data-t="chip.{cid}">{escape(name)}</strong>{tag}</div>'
+            f'<p class="ph-desc" data-t="desc.{cid}">{escape(tx[f"desc.{cid}"])}</p>'
+            f'<p class="ph-meta" data-date="{date}" data-n="{len(srcs)}">{escape(tx["ui.reviewed.short"])} {date} · {len(srcs)} {escape(tx["ui.sources.other"].replace("{n} ", ""))}</p></div>')
+    alert, evidence = "", ""
+    if a:
+        alert = (f'<div class="pop-alert" role="group" aria-labelledby="al-{cid}"><div class="al-title" id="al-{cid}"><span class="al" data-level="{a["level"]}">{ALERT_ICONS[a["level"]]}</span>'
+                 f'<span class="sr" data-t="ui.alert">{escape(tx["ui.alert"])}: </span>{alert_title(a, tx)}</div>'
+                 f'<p class="al-text" data-t="alert.{cid}">{escape(tx[f"alert.{cid}"])}</p>'
+                 f'<p class="al-meta"><span data-t="ui.alert.observed">{escape(tx["ui.alert.observed"])}</span> <time datetime="{a["observed"]}">{a["observed"]}</time></p></div>')
+        ev = "".join(f'<a role="menuitem" tabindex="-1" class="ev" href="{escape(u)}" target="_blank" rel="noopener">{escape(short(u))}</a>' for u in a["evidence"])
+        evidence = (f'<div role="group" aria-label="{escape(tx["ui.alert.evidence"])}" data-al="ui.alert.evidence" class="ev-group">'
+                    f'<div class="pg" aria-hidden="true" data-t="ui.alert.evidence">{escape(tx["ui.alert.evidence"])}</div>{ev}</div>')
+    body = "".join(menu_item(s_, tx) for s_ in srcs if not s_.get("group"))
     for g in SRC_ORDER:
-        items = [s for s in c["sources"] if s.get("group") == g]
+        items = [s_ for s_ in srcs if s_.get("group") == g]
         if items:
             label = escape(tx[f"srcgroup.{g}"])
             body += (f'<div role="group" aria-label="{label}" data-al="srcgroup.{g}"><div class="pg" aria-hidden="true" data-t="srcgroup.{g}">{label}</div>'
-                     f'{"".join(menu_item(s, tx) for s in items)}</div>')
+                     f'{"".join(menu_item(s_, tx) for s_ in items)}</div>')
     label = escape(tx["ui.menu"].replace("{name}", name))
-    return f'<div class="pop" id="{pid}" role="menu" aria-label="{label}" data-menu="{c["id"]}" hidden>{body}</div>'
+    lvl = f' data-alert="{a["level"]}"' if a else ""
+    return (f'<div class="pop" id="{pid}" data-menu="{cid}"{lvl} hidden>{head}{alert}'
+            f'<div role="menu" id="menu-{cid}" aria-label="{label}" data-menu-label="{cid}">{evidence}{body}</div></div>')
 
 
 def chip(c, tx):
     srcs = c["sources"]
-    cid, name, status = c["id"], escape(tx[f"chip.{c['id']}"]), c.get("status")
+    cid, name, status, a = c["id"], escape(tx[f"chip.{c['id']}"]), c.get("status"), c.get("alert")
     tag = f'<em class="tag" data-t="ui.status.{status}">{escape(tx[f"ui.status.{status}"])}</em>' if status else ""
     date = max(s["accessed"] for s in srcs)
-    attrs = f'data-id="{cid}" data-n="{len(srcs)}" data-date="{date}"' + (f' data-status="{status}"' if status else "")
-    label = f'<span class="n" data-t="chip.{cid}">{name}</span>{tag}'
-    pid = f"pop-{cid}"
-    return (f'<li><button type="button" class="chip" data-kind="tree" aria-haspopup="menu" aria-expanded="false" aria-controls="{pid}" {attrs}>{label}{CARET}</button>'
-            f'{popover(c, tx, pid)}</li>')
+    attrs = f'data-id="{cid}" data-n="{len(srcs)}" data-date="{date}"' + (f' data-status="{status}"' if status else "") + (f' data-alert="{a["level"]}"' if a else "")
+    mark = ""
+    if a:
+        mark = (f'<span class="al" data-level="{a["level"]}">{ALERT_ICONS[a["level"]]}</span>'
+                f'<span class="sr"><span data-t="ui.alert">{escape(tx["ui.alert"])}</span>: {alert_title(a, tx)}. </span>')
+    label = f'{mark}<span class="n" data-t="chip.{cid}">{name}</span>{tag}'
+    return (f'<li><button type="button" class="chip" data-kind="tree" aria-haspopup="menu" aria-expanded="false" aria-controls="menu-{cid}" {attrs}>{label}{CARET}</button>'
+            f'{popover(c, tx, "pop-" + cid)}</li>')
 
 
 def group(g, tx):

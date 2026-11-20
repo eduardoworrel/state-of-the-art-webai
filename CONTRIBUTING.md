@@ -33,7 +33,7 @@ python3 build.py             # refreshes docs/index.html, README.md and README.p
    A chip with fewer than two sources is not accepted. If you can only find one trustworthy source, open a pull request that adds the chip to the "Open items" list in `README.md` instead, and say what you found.
 
 2. Add its texts to **every** file in `i18n/`: `chip.<id>` (the name, up to 28 characters) and `desc.<id>` (one line saying what it is, 10 to 140 characters). If you only speak one language, write the English and open the pull request: the check lists what the other languages still need.
-3. Run the check and the build. `python3 scripts/linkcheck.py` opens every link (it needs network and is not run in CI).
+3. Run the check and the build. `python3 scripts/linkcheck.py` opens every link and every alert evidence url (it needs network and is not run in CI).
 
 ### What counts as a chip
 
@@ -59,6 +59,24 @@ If a chip is not plainly available, say so with `status`, using only what the so
 - `open-question`: the topic matters, but there is no comparable, agreed measurement yet.
 
 Do not write "deprecated", "stable" or "supported by browser X", and do not give a version number, unless the source says it in those words. When a page gives different states for different contexts, leave `status` out and say so in the description.
+
+### Alerts
+
+A chip can carry an `alert`: a problem **you observed**, on a day, with evidence anyone can open. It is not the same as `status` (the project's life cycle).
+
+```yaml
+- id: onnxruntime
+  alert:
+    level: critical          # critical | warning | info (it follows from kind)
+    kind: broken-link        # broken-link, removed -> critical; deprecated, superseded -> warning; moved -> info
+    observed: "2026-11-20"
+    evidence:                # 1 to 8 urls
+      - https://github.com/microsoft/onnxruntime
+      - https://www.npmjs.com/package/onnxruntime-web
+  sources: [...]             # still two sources that work
+```
+
+Then write `alert.<chip id>` in every language, saying **only what you saw, with the date**: "the repository answers 404 on 2026-11-20". Do not write that a project is abandoned, dead or unmaintained, and do not guess a cause, unless a source says it (then quote and link it). A broken link does not count as one of the two sources: add a working one and keep the broken one as evidence. After 30 days the check warns: look again, then update `observed` and the text, or remove the alert. `python3 scripts/linkcheck.py` opens the evidence for you.
 
 ### Models managed by the platform
 

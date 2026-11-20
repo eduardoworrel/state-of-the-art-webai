@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://example.invalid/state-of-the-art-webai/schema/layers.schema.json",
   "title": "State of the Art of WebAI: data/layers.yml",
-  "description": "Spec version 0.2. See SPEC.md.",
+  "description": "Spec version 0.3. See SPEC.md.",
   "type": "object",
   "required": [
     "spec",
@@ -11,7 +11,7 @@
   "additionalProperties": false,
   "properties": {
     "spec": {
-      "const": "0.2",
+      "const": "0.3",
       "description": "Version of the spec this file follows."
     },
     "layers": {
@@ -141,6 +141,9 @@
             "$ref": "#/$defs/treeSource"
           },
           "description": "At least two sources with distinct urls; preferably from different groups."
+        },
+        "alert": {
+          "$ref": "#/$defs/alert"
         }
       }
     },
@@ -271,6 +274,52 @@
         },
         "panel": {
           "$ref": "#/$defs/panel"
+        }
+      }
+    },
+    "alertLevel": {
+      "enum": [
+        "critical",
+        "warning",
+        "info"
+      ]
+    },
+    "alertKind": {
+      "enum": [
+        "broken-link",
+        "removed",
+        "deprecated",
+        "superseded",
+        "moved"
+      ]
+    },
+    "alert": {
+      "type": "object",
+      "required": [
+        "level",
+        "kind",
+        "observed",
+        "evidence"
+      ],
+      "additionalProperties": false,
+      "description": "A problem someone observed, with the day and the evidence. Separate from `status`, which is the project's life cycle.",
+      "properties": {
+        "level": {
+          "$ref": "#/$defs/alertLevel"
+        },
+        "kind": {
+          "$ref": "#/$defs/alertKind"
+        },
+        "observed": {
+          "$ref": "#/$defs/date"
+        },
+        "evidence": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 8,
+          "items": {
+            "$ref": "#/$defs/url"
+          }
         }
       }
     }

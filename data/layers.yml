@@ -1,7 +1,8 @@
-# State of the Art of WebAI: layers, groups and chips. Format: SPEC.md (version 0.2); schema: schema/layers.schema.json
+# State of the Art of WebAI: layers, groups and chips. Format: SPEC.md (version 0.3); schema: schema/layers.schema.json
 # Texts live in i18n/<lang>.yml keyed by id. Every chip has `sources`: at least two distinct links, optionally grouped by label.
+# A chip may have an `alert` (a dated, evidenced problem; SPEC.md section 4.5), separate from `status`.
 
-spec: "0.2"
+spec: "0.3"
 layers:
   - id: choose
     n: 1
@@ -430,6 +431,18 @@ layers:
         row: 1
         chips:
           - id: onnxruntime
+            alert:
+              level: critical
+              kind: broken-link
+              observed: "2026-11-20"
+              evidence:
+                - https://github.com/microsoft/onnxruntime
+                - https://api.github.com/repos/microsoft/onnxruntime
+                - https://github.com/microsoft/onnxruntime-genai
+                - https://github.com/microsoft/onnxruntime-extensions
+                - https://www.npmjs.com/package/onnxruntime-web
+                - https://pypi.org/project/onnxruntime/
+                - https://github.com/microsoft/vcpkg/issues/55189
             sources:
               - url: https://onnxruntime.ai/
                 accessed: "2026-11-19"
@@ -813,6 +826,18 @@ layers:
         col: 0
         chips:
           - id: ort-web
+            alert:
+              level: critical
+              kind: broken-link
+              observed: "2026-11-20"
+              evidence:
+                - https://github.com/microsoft/onnxruntime
+                - https://api.github.com/repos/microsoft/onnxruntime
+                - https://github.com/microsoft/onnxruntime-genai
+                - https://github.com/microsoft/onnxruntime-extensions
+                - https://www.npmjs.com/package/onnxruntime-web
+                - https://pypi.org/project/onnxruntime/
+                - https://github.com/microsoft/vcpkg/issues/55189
             sources:
               - url: https://onnxruntime.ai/docs/tutorials/web/
                 accessed: "2026-11-19"
@@ -1036,17 +1061,30 @@ layers:
                 title: "ML Kit GenAI APIs"
                 group: docs
           - id: mediapipe
+            alert:
+              level: warning
+              kind: deprecated
+              observed: "2026-11-20"
+              evidence:
+                - https://web.archive.org/web/20260517083853/https://ai.google.dev/edge/mediapipe/solutions/genai/llm_inference
+                - https://ai.google.dev/edge/mediapipe/solutions/genai/llm_inference
+                - https://developers.google.com/edge/litert-lm
             sources:
               - url: https://ai.google.dev/edge/mediapipe/solutions/genai/llm_inference
                 accessed: "2026-11-19"
                 level: primary
-                title: "MediaPipe: LLM Inference"
+                title: "MediaPipe: LLM Inference (redirects to LiteRT-LM)"
                 group: docs
               - url: https://github.com/google-ai-edge/mediapipe
                 accessed: "2026-11-20"
                 level: primary
                 title: "MediaPipe repository"
                 group: code
+              - url: https://web.archive.org/web/20260517083853/https://ai.google.dev/edge/mediapipe/solutions/genai/llm_inference
+                accessed: "2026-11-20"
+                level: trusted
+                title: "Archived page with the notice (2026-05-17)"
+                group: status
           - id: litert-lm
             sources:
               - url: https://github.com/google-ai-edge/LiteRT-LM

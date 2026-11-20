@@ -2,7 +2,7 @@
 
 A map of everything between a model and a person when the model runs in a browser, on a phone or on an edge board: choosing and adapting the model, converting and quantizing it, running it, putting it inside an app, and testing it.
 
-It is an awesome list and a landscape in one picture. Every chip is a technology, a technique or a limit, and every chip opens at least two sources it rests on, with the date they were read.
+It is an awesome list and a landscape in one picture. Every chip is a technology, a technique or a limit, and every chip opens at least two sources it rests on, with the date they were read. A chip can carry a dated alert (a broken link, a deprecation) with its evidence.
 
 ![The five layers of WebAI](docs/figure-en.png)
 
@@ -12,8 +12,8 @@ It is an awesome list and a landscape in one picture. Every chip is a technology
 
 | File | What it is |
 |---|---|
-| [SPEC.md](SPEC.md) | The specification (version 0.2): data model, rules, i18n, curation, versioning. |
-| `data/layers.yml` | The layers, groups and chips. Each chip has `sources`: at least two distinct links. |
+| [SPEC.md](SPEC.md) | The specification (version 0.3): data model, rules, i18n, curation, versioning. |
+| `data/layers.yml` | The layers, groups and chips. Each chip has `sources` (at least two distinct links) and, when something was observed, an `alert`. |
 | `i18n/en.yml`, `i18n/pt.yml` | One text per id. English is the reference language. |
 | `schema/` | JSON Schemas for the two kinds of file. |
 | `assets/` | CSS, the small script, and the icons (SVG). |
@@ -45,7 +45,7 @@ Code: MIT ([LICENSE-CODE](LICENSE-CODE)). Data and texts: CC BY 4.0 ([LICENSE-DA
 ## The list
 
 <!-- awesome:start -->
-_78 chips, 166 source links. Last reviewed: 2026-11-20. Generated from `data/layers.yml`: do not edit by hand._
+_78 chips, 167 source links. Last reviewed: 2026-11-20. Generated from `data/layers.yml`: do not edit by hand._
 
 ### 1. Choose and adapt
 _Which task, which base?_
@@ -168,6 +168,8 @@ _Which accelerator, which limit?_
 **Runtime**
 
 - **ONNX Runtime** — Runs ONNX models in the browser (WebAssembly, WebGPU, WebNN) and natively.
+  - 🔴 **Alert · Critical · Link broken** (Observed 2026-11-20): On 2026-11-20 github.com/microsoft/onnxruntime answers 404, on the web and in the GitHub API; so do onnxruntime-genai and onnxruntime-extensions. PyPI onnxruntime 1.32.0 (2026-11-13), npm onnxruntime-web 1.31.1 and onnxruntime.ai still point to that address. No new address found: github.com/onnxruntime/onnxruntime also answers 404. The documentation site and the package registries still answer.
+  - Evidence: [github.com/microsoft/onnxruntime](https://github.com/microsoft/onnxruntime), [api.github.com/repos/microsoft/onnxruntime](https://api.github.com/repos/microsoft/onnxruntime), [github.com/microsoft/onnxruntime-genai](https://github.com/microsoft/onnxruntime-genai), [github.com/microsoft/onnxruntime-extensions](https://github.com/microsoft/onnxruntime-extensions), [npmjs.com/package/onnxruntime-web](https://www.npmjs.com/package/onnxruntime-web), [pypi.org/project/onnxruntime/](https://pypi.org/project/onnxruntime/), [github.com/microsoft/vcpkg/issues/55189](https://github.com/microsoft/vcpkg/issues/55189)
   - Docs: [ONNX Runtime](https://onnxruntime.ai/), [ONNX Runtime documentation](https://onnxruntime.ai/docs/)
 - **llama.cpp** — C/C++ inference for GGUF models, with Android and Apple Metal builds.
   - Docs: [Hugging Face Hub: llama.cpp](https://huggingface.co/docs/hub/gguf-llamacpp)
@@ -263,6 +265,8 @@ _No GPU, now what?_
 **Web library**
 
 - **ONNX Runtime Web** — ONNX Runtime for the browser, with WebGPU, WebAssembly and WebNN backends.
+  - 🔴 **Alert · Critical · Link broken** (Observed 2026-11-20): On 2026-11-20 the repository listed by npm for onnxruntime-web 1.31.1 (published 2026-10-26), github.com/Microsoft/onnxruntime, answers 404, on the web and in the GitHub API. No new address found. The documentation site and the npm registry still answer.
+  - Evidence: [github.com/microsoft/onnxruntime](https://github.com/microsoft/onnxruntime), [api.github.com/repos/microsoft/onnxruntime](https://api.github.com/repos/microsoft/onnxruntime), [github.com/microsoft/onnxruntime-genai](https://github.com/microsoft/onnxruntime-genai), [github.com/microsoft/onnxruntime-extensions](https://github.com/microsoft/onnxruntime-extensions), [npmjs.com/package/onnxruntime-web](https://www.npmjs.com/package/onnxruntime-web), [pypi.org/project/onnxruntime/](https://pypi.org/project/onnxruntime/), [github.com/microsoft/vcpkg/issues/55189](https://github.com/microsoft/vcpkg/issues/55189)
   - Docs: [ONNX Runtime Web: tutorials](https://onnxruntime.ai/docs/tutorials/web/), [ONNX Runtime: get started with the web](https://onnxruntime.ai/docs/get-started/with-javascript/web.html)
 - **Transformers.js** — Hugging Face's JavaScript library; caches models with the Cache API by default.
   - Docs: [Transformers.js documentation](https://huggingface.co/docs/transformers.js/index)
@@ -315,9 +319,12 @@ _No GPU, now what?_
   - Papers: [Apple Intelligence foundation models report](https://arxiv.org/abs/2507.13575)
 - **ML Kit GenAI** — ML Kit GenAI APIs on Android use AICore and process data locally.
   - Docs: [Android: Gemini Nano](https://developer.android.com/ai/gemini-nano), [ML Kit GenAI APIs](https://developers.google.com/ml-kit/genai)
-- **MediaPipe** — The LLM Inference page now points to LiteRT-LM.
-  - Docs: [MediaPipe: LLM Inference](https://ai.google.dev/edge/mediapipe/solutions/genai/llm_inference)
+- **MediaPipe** — MediaPipe's LLM Inference API: its Android and iOS versions are deprecated in favor of LiteRT-LM; Web is not.
+  - 🟠 **Alert · Warning · Deprecated** (Observed 2026-11-20): The official page of the LLM Inference API, archived on 2026-05-17, says its Android and iOS implementations are deprecated, that Web is not, and asks mobile projects to migrate to LiteRT-LM. In the archive the notice is absent on 2026-03-30 and present on 2026-04-05. On 2026-11-20 the page address redirects (301) to the LiteRT-LM page.
+  - Evidence: [web.archive.org/web/2026…/genai/llm_inference](https://web.archive.org/web/20260517083853/https://ai.google.dev/edge/mediapipe/solutions/genai/llm_inference), [ai.google.dev/edge/media…/genai/llm_inference](https://ai.google.dev/edge/mediapipe/solutions/genai/llm_inference), [developers.google.com/edge/litert-lm](https://developers.google.com/edge/litert-lm)
+  - Docs: [MediaPipe: LLM Inference (redirects to LiteRT-LM)](https://ai.google.dev/edge/mediapipe/solutions/genai/llm_inference)
   - Code: [MediaPipe repository](https://github.com/google-ai-edge/mediapipe)
+  - Status: [Archived page with the notice (2026-05-17)](https://web.archive.org/web/20260517083853/https://ai.google.dev/edge/mediapipe/solutions/genai/llm_inference)
 - **LiteRT-LM** — LLMs on Linux, macOS, Windows and Raspberry Pi through a CLI; supports speculative decoding.
   - Docs: [LiteRT-LM overview](https://developers.google.com/edge/litert-lm/overview)
   - Code: [LiteRT-LM on GitHub](https://github.com/google-ai-edge/LiteRT-LM)

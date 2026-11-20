@@ -22,12 +22,17 @@ import minischema  # noqa: E402
 LAYERS_FILE = "data/layers.yml"
 STATIC_KEYS = (["lang.name", "site.title", "site.tagline", "label.model", "label.person", "ui.source", "ui.accessed", "ui.language", "ui.where", "ui.legend",
                 "ui.contribute", "ui.reviewed", "ui.reviewed.short", "ui.license", "ui.theme", "ui.theme.auto", "ui.theme.light", "ui.theme.dark",
-                "ui.sources.one", "ui.sources.other", "ui.menu", "ui.opens"]
+                "ui.sources.one", "ui.sources.other", "ui.menu", "ui.opens", "ui.alert", "ui.alert.observed", "ui.alert.evidence"]
+               + [f"ui.alert.level.{x}" for x in ("critical", "warning", "info")]
+               + [f"ui.alert.kind.{x}" for x in ("broken-link", "removed", "deprecated", "superseded", "moved")]
                + [f"ui.level.{x}" for x in ("primary", "trusted", "calculation")]
                + [f"ui.status.{x}" for x in ("proposal", "experimental", "open-question", "stable", "origin-trial", "preview")]
                + [f"srcgroup.{x}" for x in ("docs", "spec", "code", "papers", "blog", "status")])
 PLURALS = {"zero", "one", "two", "few", "many", "other"}
 WARN_DAYS, ERROR_DAYS = 180, 365
+ALERT_WARN_DAYS = 30
+ALERT_LEVEL = {"broken-link": "critical", "removed": "critical", "deprecated": "warning", "superseded": "warning", "moved": "info"}
+CONCLUSIONS = re.compile(r"abandon|unmaintained|\bdead\b|\bmorto\b|sem manuten", re.I)  # alerts describe what was seen, they do not conclude
 
 errors, warnings = [], []
 
@@ -64,15 +69,15 @@ def describe(data, path):
 
 def pre_checks(data):
     """Friendly messages for the most common mistakes, before the schema speaks."""
-    if isinstance(data, dict) and data.get("spec") not in (None, "0.2"):
-        err(LAYERS_FILE, "spec", f"declares spec {data.get('spec')!r}; this checker implements 0.2 (see SPEC.md, section 8)")
+    if isinstance(data, dict) and data.get("spec") not in (None, "0.3"):
+        err(LAYERS_FILE, "spec", f"declares spec {data.get('spec')!r}; this checker implements 0.3 (see SPEC.md, section 8)")
     for L in data.get("layers") or []:
         for g in (L.get("groups") or []) + ((L.get("panel") or {}).get("groups") or []):
             for c in g.get("chips") or []:
                 where = f"layer '{L.get('id')}' > group '{g.get('id')}' > chip '{c.get('id')}'"
                 srcs = c.get("sources")
                 if "source" in c:
-                    err(LAYERS_FILE, where, "uses `source`, which chips no longer have in spec 0.2: list the links under `sources` (at least two)")
+                    err(LAYERS_FILE, where, "uses `source`, which chips no longer have in spec 0.3: list the links under `sources` (at least two)")
                 if srcs is None and "source" not in c:
                     err(LAYERS_FILE, where, "has no sources: every chip needs `sources` with at least two links (SPEC.md section 4)")
                 if isinstance(srcs, list):
@@ -91,6 +96,7 @@ def pre_checks(data):
 def semantic(data, today):
     expected = set(STATIC_KEYS)
     seen = {"layer": set(), "group": set(), "chip": set(), "where": set()}
+    alerts = []
     numbers = set()
     icons = {p.stem for p in (ROOT / "assets" / "icons").glob("*.svg")}
 
@@ -125,6 +131,9 @@ def semantic(data, today):
                 cw = f"{gw} > chip '{c.get('id')}'"
                 dup("chip", c.get("id"), cw)
                 expected.update({f"chip.{c.get('id')}", f"desc.{c.get('id')}"})
+                if isinstance(c.get("alert"), dict):
+                    expected.add(f"alert.{c.get('id')}")
+                    alerts.append((cw, c))
                 for s in (c.get("sources") or []):
                     if isinstance(s, dict):
                         fresh(s, cw)
@@ -153,7 +162,23 @@ def semantic(data, today):
             if p.get("icon") not in icons:
                 err(LAYERS_FILE, f"{w} > panel", f"icon '{p.get('icon')}' not found in assets/icons/")
             groups(p.get("groups") or [], f"{w} > panel", "cols")
-    return expected, seen
+    for cw, c in alerts:
+        a = c["alert"]
+        want = ALERT_LEVEL.get(a.get("kind"))
+        if want and a.get("level") != want:
+            err(LAYERS_FILE, f"{cw} > alert", f"kind '{a.get('kind')}' is level '{want}', not '{a.get('level')}' (SPEC.md section 4.5)")
+        try:
+            age = (today - datetime.date.fromisoformat(a.get("observed"))).days
+            if age < 0:
+                err(LAYERS_FILE, f"{cw} > alert", f"observed {a['observed']} is in the future")
+            elif age > ALERT_WARN_DAYS:
+                warn(LAYERS_FILE, f"{cw} > alert", f"observed {age} days ago ({a['observed']}): check again and update `observed`, or remove the alert")
+        except (TypeError, ValueError):
+            pass
+        ev = a.get("evidence") or []
+        if len(ev) != len(set(ev)):
+            err(LAYERS_FILE, f"{cw} > alert", "lists the same evidence url twice")
+    return expected, seen, alerts
 
 
 def main():
@@ -165,7 +190,7 @@ def main():
     pre_checks(data)
     for path, msg in minischema.validate(data, layers_schema, layers_schema):
         err(LAYERS_FILE, describe(data, path), msg)
-    expected, seen = semantic(data, today)
+    expected, seen, alerts = semantic(data, today)
 
     files = sorted((ROOT / "i18n").glob("*.yml"))
     if not any(f.stem == "en" for f in files):
@@ -180,6 +205,12 @@ def main():
         extra = {k for k in tx if re.match(r"^ui\.sources\.(\w+)$", k) and k.rsplit(".", 1)[1] in PLURALS}
         for k in sorted(set(tx) - expected - extra):
             err(rel, k, "unused key (nothing in data/layers.yml refers to it; remove it)")
+        for _, c in alerts:
+            text = tx.get(f"alert.{c['id']}", "")
+            if CONCLUSIONS.search(text):
+                err(rel, f"alert.{c['id']}", "concludes instead of describing what was observed (words like abandoned/dead): say what you saw, with the date")
+            if c["alert"].get("observed") and "alert." + c["id"] in tx and not re.search(r"\d{4}-\d{2}-\d{2}|\d{2}/\d{2}/\d{4}", text):
+                err(rel, f"alert.{c['id']}", "must state the date of the observation (for example 2026-11-20)")
         if f.stem == "en" and "ui.sources.one" not in tx:
             err(rel, "ui.sources.one", "the reference language needs both ui.sources.one and ui.sources.other")
         for k in ("ui.sources.one", "ui.sources.other"):
@@ -202,7 +233,7 @@ def main():
         print(f"{len(errors)} problem(s):")
         print("\n".join(" - " + e for e in errors))
         sys.exit(1)
-    print(f"ok: {len(seen['layer'])} layers, {len(seen['group'])} groups, {n_chips} chips, {len(files)} languages, spec 0.2")
+    print(f"ok: {len(seen['layer'])} layers, {len(seen['group'])} groups, {n_chips} chips, {len(files)} languages, spec 0.3")
 
 
 if __name__ == "__main__":

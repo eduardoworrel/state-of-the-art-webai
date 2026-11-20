@@ -1,6 +1,6 @@
 # State of the Art of WebAI: specification
 
-**Version 0.2** (draft). The words MUST, SHOULD and MAY are used as in RFC 2119.
+**Version 0.3** (draft). The words MUST, SHOULD and MAY are used as in RFC 2119.
 
 This document defines the data a contribution is made of, what makes an entry valid, how texts are translated, how entries are kept fresh, and how the page, the PNG and the awesome list are generated from the same data. `schema/*.json` and `scripts/check.py` implement it; if they disagree with this text, that is a bug in one of them.
 
@@ -19,6 +19,7 @@ This document defines the data a contribution is made of, what makes an entry va
 
 ```
 layer ── group ── chip ── sources (two or more links, optionally grouped by label)
+                       └── alert (optional: a dated, evidenced problem)
   ├── where   (only in a layer with layout "rows"; each item has one source)
   └── panel ── group ── chip ...
 ```
@@ -37,7 +38,7 @@ Unknown fields are errors. "R" means required.
 
 | Field | R | Type | Rule |
 |---|---|---|---|
-| `spec` | yes | string | Exactly `"0.2"` for this version. |
+| `spec` | yes | string | Exactly `"0.3"` for this version. |
 | `layers` | yes | list | At least one layer. |
 
 ### 3.2 Layer
@@ -67,7 +68,8 @@ Unknown fields are errors. "R" means required.
 | Field | R | Type | Rule |
 |---|---|---|---|
 | `id` | yes | id | Unique among chips. Stable: once published it is never renamed (translations and links depend on it). |
-| `status` | no | status | See 4.4. |
+| `status` | no | status | The project's life cycle. See 4.4. |
+| `alert` | no | alert | A problem someone observed, with date and evidence. See 4.5. Separate from `status`. |
 | `sources` | yes | list of sources | Two to twelve sources, with distinct urls (section 4). |
 
 There is no `source` key on a chip: a chip with fewer than two sources is invalid.
@@ -161,6 +163,46 @@ Rules: the value MUST be what the source says on `accessed`. Never infer a versi
 | `trusted` | An engineering post or issue from the people who maintain the project or the browser. |
 | `calculation` | A figure derived from sources (for example, parameters times bytes per parameter). The pull request explains the arithmetic. |
 
+### 4.5 Alerts
+
+`status` (4.4) says where a project stands in its life. An **alert** says that someone **observed a problem** on a day: a link that answers 404, a page that says a thing is deprecated, an address that moved. The two are independent: a chip can have a status, an alert, both or neither.
+
+```yaml
+- id: mediapipe
+  alert:
+    level: warning            # critical | warning | info
+    kind: deprecated          # broken-link | removed | deprecated | superseded | moved
+    observed: "2026-11-20"    # the day you saw it
+    evidence:                 # pages anyone can open to see it again (1 to 8)
+      - https://web.archive.org/web/20260517083853/https://ai.google.dev/edge/mediapipe/solutions/genai/llm_inference
+      - https://developers.google.com/edge/litert-lm
+  sources: [...]
+```
+
+| Field | R | Rule |
+|---|---|---|
+| `level` | yes | `critical`, `warning` or `info`. It follows from `kind` (below); `check.py` rejects a mismatch. |
+| `kind` | yes | `broken-link` (a link a chip relies on answers an error), `removed` (the project or page is gone, said by the source), `deprecated` (a source says so), `superseded` (a source names its replacement), `moved` (the address changed, content found elsewhere). |
+| `observed` | yes | ISO date of the observation. |
+| `evidence` | yes | 1 to 8 https urls. A broken link is itself the evidence and may be listed even though it does not answer. |
+| text | yes | The i18n key `alert.<chip id>` (20 to 600 characters) says what was observed. |
+
+| kind | level | colour |
+|---|---|---|
+| `broken-link`, `removed` | `critical` | red |
+| `deprecated`, `superseded` | `warning` | amber |
+| `moved` | `info` | grey |
+
+Rules:
+
+1. **Evidence or nothing.** An alert without verifiable evidence (a url and the observation date) is invalid.
+2. **Describe, do not conclude.** The text says what was seen, with the date ("the repository answers 404 on 2026-11-20"). It never says a project is abandoned, dead or unmaintained, and never names a cause, unless a source says so, in which case it quotes that source and links it. `check.py` rejects the words *abandon*, *dead*, *unmaintained* (and the Portuguese equivalents) and requires a date in the text.
+3. **Alerts expire for review.** After 30 days `check.py` warns: look again, then update `observed` and the text, or remove the alert. `scripts/linkcheck.py` also opens the evidence and flags a `broken-link` or `removed` alert whose repository evidence answers 200 again.
+4. **Keep the two-sources rule.** A broken link does not count as one of the two sources; the chip needs two sources that work, and the broken link goes in `evidence`.
+5. **Texts in every language.** `alert.<chip id>` exists in each `i18n/<lang>.yml`; the labels come from `ui.alert.level.*` and `ui.alert.kind.*`.
+
+On the page an alert shows as a marker in the level's colour inside the chip (a different shape per level, so colour is not the only signal: octagon for critical, triangle for warning, circle for info) with text for screen readers ("Alert: Critical, Link broken"). The preview and the menu take the level's background and border and show, on top, the alert title, the detail, the day it was observed and (in the menu) the evidence links. In the awesome list the alert is a line under the chip.
+
 ## 5. Entry types and where they live
 
 Every chip is a thing a person who ships a model has to choose, know or watch. Two kinds of entry need care.
@@ -190,6 +232,7 @@ One key per id, derived from the data; there are no free-form keys besides the f
 | `desc.<chip id>` | One line saying what the chip is (used by the awesome list), 10 to 140 | 140 |
 | `where.<id>.name`, `where.<id>.desc` | Place and what runs there | 20, 60 |
 | `srcgroup.<group>` | Label of a source group | 20 |
+| `alert.<chip id>` | What was observed, with the date (4.5) | 600 |
 | `ui.*`, `label.*`, `site.*`, `lang.name` | Interface texts, listed in `scripts/check.py` | 220 |
 
 Every key that the data needs MUST exist in every language; a key nothing refers to MUST be removed.
@@ -209,7 +252,7 @@ The page uses the language in `?lang=`, then the stored choice, then the browser
 
 - Counts use `ui.sources.<category>` with the CLDR categories `zero`, `one`, `two`, `few`, `many`, `other` and the placeholder `{n}`. `other` is required in every language and `one` in `en`; the page picks the category with `Intl.PluralRules(<lang>)` and falls back to `other`.
 - Limits count characters in the language written. Chips and group labels have little room: when a translation does not fit, shorten the text (a shorter synonym or an abbreviation), do not change the limit.
-- Right-to-left languages are not supported in 0.2.
+- Right-to-left languages are not supported in 0.3.
 - Source `title` values and technology names are not translated.
 
 ## 7. Curation
@@ -269,22 +312,22 @@ CI runs `python3 scripts/check.py`, then `python3 build.py`, and fails if `docs/
 ## 10. Page behaviour (informative)
 
 - **Chips.** A chip is a `<button aria-haspopup="menu" aria-expanded>` that opens a `role="menu"` list of `role="menuitem"` links, with `role="group"` for the labelled groups. There is no direct-link chip. The where items (browser, desktop, mobile, edge) are plain links. Enter, Space or a tap opens it; Arrow keys, Home and End move; Escape closes and returns focus to the chip; Tab or a click outside closes it.
-- **Preview.** With a mouse (or keyboard focus) a chip shows a short preview: name, status, review date and the number of sources.
+- **Preview.** With a mouse (or keyboard focus) a chip shows a short preview: name, status, the one-line description, review date, number of sources and, if there is one, the alert (title, detail, day observed). It never takes the pointer (it does not hide the neighbouring chip from the mouse), opens under the chip or above it when there is no room, and stays inside the screen. The menu opened by click or tap has the same head and alert, then the evidence and the sources; when it does not fit it scrolls inside and never covers its own chip.
 - **Themes.** Automatic (follows the system), light or dark. The choice is remembered in `localStorage` (the page works without it).
 - **Demo width.** `docs/index.html` limits the board to fit a laptop screen. `?fit=0` and the PNG export keep the full layout.
 
-## Decisions waiting for approval (0.2)
+## Decisions waiting for approval (0.3)
 
-1. One key, `sources`, with at least two entries and distinct urls; no `source` on a chip, and no direct-link chip on the page. (Where items keep a single `source`: they are index entries, not chips.)
-2. "Preferably different groups" is a note in `check.py`, not an error.
-3. Source groups are a closed list of six: `docs`, `spec`, `code`, `papers`, `blog`, `status`.
-4. Status values: `proposal`, `experimental`, `origin-trial`, `preview`, `stable`, `open-question`; each only as the source says on the day.
-5. Ageing: warning after 180 days, error after 365 days.
-6. A one-line `desc.<chip id>` is required in every language.
-7. Platform-managed models live in Integrate, never in Run (section 5).
-8. The demo page fits a laptop by default; `?fit=0` restores the full width.
+1. **Alert as its own field**, separate from `status`, with `level`, `kind`, `observed` and `evidence`; the text is the i18n key `alert.<chip id>` (a convention, so no `text:` field).
+2. **`level` follows from `kind`** (broken-link, removed: critical; deprecated, superseded: warning; moved: info) and `check.py` rejects a mismatch. If you want free severity, `level` stays and the rule goes.
+3. **Expiry:** a warning after 30 days; no hard error.
+4. A broken link **does not count** toward the two sources; it goes in `evidence`.
+5. Wording rules for alerts: the text must carry a date and may not conclude (abandoned, dead, unmaintained).
+6. Marker shapes (octagon, triangle, circle) plus text for screen readers, so colour is not the only signal.
+7. Earlier decisions (0.2): one `sources` key with at least two urls; "different groups" is a note, not an error; six source groups; status values; ageing 180/365 days; required one-line `desc.<id>`; platform-managed models in Integrate; the demo fits a laptop.
 
 ## Changelog
 
 - **0.1** (2026-11-19): first draft.
 - **0.2** (2026-11-20): every chip needs at least two sources with distinct urls (`source` is removed from chips; `sources` has a minimum of two); every source carries `title` and, preferably, `group`; the page has no direct-link chip. Migration: `source:` blocks become the first entry of `sources:`, plus a second source. `scripts/linkcheck.py` added.
+- **0.3** (2026-11-20): optional `alert` on a chip (`level`, `kind`, `observed`, `evidence`; text `alert.<chip id>`), separate from `status`; alert colours, marker and preview; hover preview now carries the description and the alert; `linkcheck.py` reports alert evidence. Migration: none for existing data besides `spec: "0.3"`.

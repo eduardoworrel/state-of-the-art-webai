@@ -31,6 +31,12 @@ def chip_lines(c, tx):
     name = tx[f"chip.{c['id']}"]
     state = f" · *{tx['ui.status.' + c['status']]}*" if c.get("status") else ""
     out = [f"- **{name}**{state} — {tx['desc.' + c['id']]}"]
+    if c.get("alert"):
+        al = c["alert"]
+        icon = {"critical": "🔴", "warning": "🟠", "info": "⚪"}[al["level"]]
+        lab = lambda u: (lambda x: x if len(x) <= 46 else x[:24] + "…" + x[-20:])(u.split("://", 1)[1].removeprefix("www."))
+        out.append(f"  - {icon} **{tx['ui.alert']} · {tx['ui.alert.level.' + al['level']]} · {tx['ui.alert.kind.' + al['kind']]}** ({tx['ui.alert.observed']} {al['observed']}): {tx['alert.' + c['id']]}")
+        out.append(f"  - {tx['ui.alert.evidence']}: " + ", ".join(f"[{lab(u)}]({u})" for u in al["evidence"]))
     ungrouped = [s for s in c["sources"] if not s.get("group")]
     if ungrouped:
         out.append("  - " + ", ".join(link(s, tx) for s in ungrouped))

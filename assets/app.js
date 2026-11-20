@@ -11,7 +11,6 @@
     try { return get ? localStorage.getItem(key) : localStorage.setItem(key, value); } catch (e) { return null; }
   }
   function t(key) { return (I18N[lang] && I18N[lang][key]) || I18N[DEFAULT][key] || key; }
-  function name(el) { var n = el.querySelector(".n"); return n ? n.textContent : el.textContent; }
 
   /* ---------- language ---------- */
   function pickLang() {
@@ -29,8 +28,11 @@
     document.querySelectorAll("[data-t]").forEach(function (el) { el.textContent = t(el.getAttribute("data-t")); });
     document.querySelectorAll("[data-al]").forEach(function (el) { el.setAttribute("aria-label", t(el.getAttribute("data-al"))); });
     document.querySelectorAll("[data-tl]").forEach(function (el) { el.setAttribute("title", t(el.getAttribute("data-tl"))); });
-    document.querySelectorAll(".pop[data-menu]").forEach(function (p) {
-      p.setAttribute("aria-label", t("ui.menu").replace("{name}", t("chip." + p.getAttribute("data-menu"))));
+    document.querySelectorAll("[data-menu-label]").forEach(function (m) {
+      m.setAttribute("aria-label", t("ui.menu").replace("{name}", t("chip." + m.getAttribute("data-menu-label"))));
+    });
+    document.querySelectorAll(".ph-meta").forEach(function (m) {
+      m.textContent = t("ui.reviewed.short") + " " + m.dataset.date + " · " + plural(+m.dataset.n);
     });
     document.querySelectorAll("[data-lang]").forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.lang === l)); });
     document.title = t("site.title");
@@ -51,30 +53,53 @@
     if (choice === "light" || choice === "dark") root.setAttribute("data-theme", choice); else root.removeAttribute("data-theme");
     document.querySelectorAll("[data-theme-choice]").forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.themeChoice === (choice || "auto"))); });
   }
-  var themeNow = q.get("theme") || store(true, "webai-theme") || "auto";
-  applyTheme(themeNow);
+  applyTheme(q.get("theme") || store(true, "webai-theme") || "auto");
   document.querySelectorAll("[data-theme-choice]").forEach(function (b) {
     b.addEventListener("click", function () { store(false, "webai-theme", b.dataset.themeChoice); applyTheme(b.dataset.themeChoice); });
   });
 
-  /* ---------- hover preview ---------- */
-  var tip = document.getElementById("tip"), tipTimer = null;
-  var canHover = window.matchMedia && window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+  /* ---------- placing floating boxes ---------- */
   function place(el, anchor) {
-    el.style.visibility = "hidden"; el.hidden = false;
-    var r = anchor.getBoundingClientRect(), w = el.offsetWidth, h = el.offsetHeight;
-    var x = Math.min(Math.max(8, r.left), window.innerWidth - w - 8), y = r.bottom + 6;
-    if (y + h > window.innerHeight - 8 && r.top - 6 - h > 8) y = r.top - 6 - h;
+    el.style.visibility = "hidden"; el.hidden = false; el.style.maxHeight = "";
+    var r = anchor.getBoundingClientRect(), w = el.offsetWidth, h = el.offsetHeight, gap = 8, m = 8;
+    var x = Math.min(Math.max(m, r.left), window.innerWidth - w - m);
+    var below = window.innerHeight - r.bottom - gap - m, above = r.top - gap - m, y;
+    if (h <= below) y = r.bottom + gap;                         // fits under the chip
+    else if (h <= above) y = r.top - gap - h;                   // fits over the chip
+    else {                                                      // fits on neither side: take the bigger side and scroll inside, never cover the chip
+      var room = Math.max(below, above);
+      el.style.maxHeight = Math.max(160, room) + "px";
+      y = below >= above ? r.bottom + gap : r.top - gap - Math.min(h, Math.max(160, room));
+    }
     el.style.left = x + "px"; el.style.top = y + "px"; el.style.visibility = "";
   }
+
+  /* ---------- hover preview: the head of the chip's menu (name, state, description, review, sources) and its alert ---------- */
+  var tip = document.getElementById("tip"), tipTimer = null;
+  var canHover = window.matchMedia && window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+  function popOf(btn) { var m = document.getElementById(btn.getAttribute("aria-controls")); return m && m.closest(".pop"); }
+  function clean(node) {
+    var c = node.cloneNode(true);
+    c.querySelectorAll("[id]").forEach(function (e) { e.removeAttribute("id"); });
+    c.removeAttribute("aria-labelledby");
+    return c;
+  }
   function showTip(chip) {
-    var d = chip.dataset, n = +d.n, lines = [];
-    var head = document.createElement("strong"); head.textContent = name(chip);
-    var line1 = document.createElement("div"); line1.appendChild(head);
-    if (d.status) { var s = document.createElement("em"); s.textContent = t("ui.status." + d.status); line1.appendChild(s); }
-    var line2 = document.createElement("div"); line2.className = "sub";
-    line2.textContent = [t("ui.reviewed.short") + " " + d.date, n > 1 ? plural(n) : d.host + " · " + t("ui.level." + d.level)].join(" · ");
-    tip.replaceChildren(line1, line2);
+    var pop = chip.dataset.kind === "tree" ? popOf(chip) : null, parts = [];
+    if (pop) {
+      parts.push(clean(pop.querySelector(".pop-head")));
+      var al = pop.querySelector(".pop-alert");
+      if (al) parts.push(clean(al));
+      if (pop.dataset.alert) tip.setAttribute("data-alert", pop.dataset.alert); else tip.removeAttribute("data-alert");
+    } else {                                  // where-it-runs items: one link, no menu
+      var d = chip.dataset, line = document.createElement("div");
+      line.className = "pop-head";
+      line.innerHTML = "<div class='ph-top'><strong></strong></div><p class='ph-meta'></p>";
+      line.querySelector("strong").textContent = chip.textContent;
+      line.querySelector(".ph-meta").textContent = t("ui.reviewed.short") + " " + d.date + " · " + d.host + " · " + t("ui.level." + d.level);
+      parts.push(line); tip.removeAttribute("data-alert");
+    }
+    tip.replaceChildren.apply(tip, parts);
     place(tip, chip);
   }
   function hideTip() { clearTimeout(tipTimer); if (tip) tip.hidden = true; }
@@ -95,10 +120,9 @@
   });
   document.addEventListener("focusout", hideTip);
 
-  /* ---------- source menus (tree chips) ---------- */
+  /* ---------- source menus: every chip opens one (touch, click, Enter, Space, ArrowDown) ---------- */
   var openBtn = null;
   function items(pop) { return Array.prototype.slice.call(pop.querySelectorAll('[role="menuitem"]')); }
-  function popOf(btn) { return document.getElementById(btn.getAttribute("aria-controls")); }
   function close(returnFocus) {
     if (!openBtn) return;
     var btn = openBtn; openBtn = null;
