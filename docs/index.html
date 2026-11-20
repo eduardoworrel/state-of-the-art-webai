@@ -6,12 +6,20 @@
 <title>State of the Art of WebAI</title>
 <meta name="description" content="Everything between a model and a person, in a browser, on a phone or on an edge board. Each chip opens its sources.">
 <link rel="canonical" href="https://webai.blog.br/state-of-the-art/"><link rel="alternate" hreflang="en" href="https://webai.blog.br/state-of-the-art/?lang=en"><link rel="alternate" hreflang="pt" href="https://webai.blog.br/state-of-the-art/?lang=pt"><meta property="og:type" content="website"><meta property="og:title" content="State of the Art of WebAI"><meta property="og:description" content="Everything between a model and a person, in a browser, on a phone or on an edge board. Each chip opens its sources."><meta property="og:url" content="https://webai.blog.br/state-of-the-art/"><meta property="og:image" content="https://webai.blog.br/state-of-the-art/figure-en.png">
+<link rel="preload" href="fonts/atkinson-hyperlegible-next/atkinson-hyperlegible-next-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
 <script>
 (function () { try { var q = new URLSearchParams(location.search), r = document.documentElement;
   var th = q.get("theme") || localStorage.getItem("webai-theme"); if (th === "light" || th === "dark") r.setAttribute("data-theme", th);
   if (q.get("fit") === "0") r.setAttribute("data-size", "large"); } catch (e) {} })();
 </script>
 <style>
+/* Atkinson Hyperlegible Next + Mono (OFL, self-hosted, variable). From design-webai/fonts.css; fonts is replaced by build.py (fonts/ or ../fonts/). */
+@font-face { font-family: "Atkinson Hyperlegible Next"; font-style: normal; font-weight: 200 800; font-display: swap; src: url(fonts/atkinson-hyperlegible-next/atkinson-hyperlegible-next-latin-wght-normal.woff2) format("woff2"); unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
+@font-face { font-family: "Atkinson Hyperlegible Next"; font-style: normal; font-weight: 200 800; font-display: swap; src: url(fonts/atkinson-hyperlegible-next/atkinson-hyperlegible-next-latin-ext-wght-normal.woff2) format("woff2"); unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF; }
+@font-face { font-family: "Atkinson Hyperlegible Next Fallback"; src: local("Arial"); size-adjust: 100.58%; ascent-override: 97.8%; descent-override: 31.4%; line-gap-override: 0.0%; }
+@font-face { font-family: "Atkinson Hyperlegible Mono"; font-style: normal; font-weight: 200 800; font-display: swap; src: url(fonts/atkinson-hyperlegible-mono/atkinson-hyperlegible-mono-latin-wght-normal.woff2) format("woff2"); unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
+@font-face { font-family: "Atkinson Hyperlegible Mono"; font-style: normal; font-weight: 200 800; font-display: swap; src: url(fonts/atkinson-hyperlegible-mono/atkinson-hyperlegible-mono-latin-ext-wght-normal.woff2) format("woff2"); unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF; }
+@font-face { font-family: "Atkinson Hyperlegible Mono Fallback"; src: local("Courier New"); size-adjust: 94.95%; ascent-override: 103.6%; descent-override: 33.3%; line-gap-override: 0.0%; }
 /* State of the Art of WebAI. The board adapts to the window: app.js picks the font (--u, the chip text size) and arranges the five cards in
    1 to 5 columns so the whole map uses the available width and height; the text never shrinks below 12px. */
 :root {
@@ -20,7 +28,13 @@
   --al-crit: #b42318; --al-crit-bg: #fdeceb; --al-crit-bd: #d4584d; --al-crit-tx: #8f1d14;
   --al-warn: #8a5200; --al-warn-bg: #fff3d6; --al-warn-bd: #a36b00; --al-warn-tx: #6b3f00;
   --al-info: #4b5563; --al-info-bg: #eceef1; --al-info-bd: #6b7380; --al-info-tx: #374151;
-  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  /* Typography tokens (design-webai, set D): Atkinson Hyperlegible Next for everything, Atkinson Hyperlegible Mono for code. */
+  --ff-ui: "Atkinson Hyperlegible Next", "Atkinson Hyperlegible Next Fallback", system-ui, sans-serif;
+  --ff-mono: "Atkinson Hyperlegible Mono", "Atkinson Hyperlegible Mono Fallback", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --font: var(--ff-ui);
+  --ui-2xs: 10px; --ui-xs: 11px; --ui-sm: 12px; --ui-md: 13px; --ui-lg: 14px;   /* fixed UI scale; chip labels never go below --ui-2xs */
+  --w-regular: 400; --w-medium: 500; --w-semibold: 600; --w-bold: 700;
+  --num-table: tabular-nums;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
@@ -41,7 +55,7 @@
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
 html { background: var(--bg); }
-body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font); line-height: 1.4; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font); line-height: 1.4; font-variant-numeric: var(--num-table); }
 a { color: inherit; }
 
 /* page shell */
@@ -106,7 +120,7 @@ html.export .board { --u: 14.4px; width: 1552px; margin: 0; }
 .chip[data-status]:not([data-status="stable"]) { border-style: dashed; border-color: var(--acc); }
 .chip[data-status="stable"] em { color: var(--ink2); }
 .chips li { min-width: 0; max-width: 100%; }
-.chip em { white-space: nowrap; font-style: normal; font-size: 0.62em; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--acc-tx); }
+.chip em { white-space: nowrap; font-style: normal; font-size: max(var(--ui-2xs), 0.62em); font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--acc-tx); }
 
 /* where it runs and limits */
 .where h3 { margin: 0 0 calc(var(--s) * 0.4); font-size: calc(var(--u) * 0.78); letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
@@ -146,7 +160,7 @@ html.export .board { --u: 14.4px; width: 1552px; margin: 0; }
 .pop-head, .pop-alert { padding: 7px 10px; }
 .pop-head .ph-top { display: flex; align-items: baseline; gap: 8px; }
 .pop-head strong { font-size: 14px; }
-.pop-head .tag, .pop .tag { font-style: normal; font-size: 10.5px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--acc-tx); }
+.pop-head .tag, .pop .tag { font-style: normal; font-size: max(var(--ui-2xs), 10.5px); font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--acc-tx); }
 .pop-head .ph-desc { margin: 3px 0 0; color: var(--ink2); }
 .pop-head .ph-meta { margin: 5px 0 0; font-size: 11.5px; color: var(--ink2); font-variant-numeric: tabular-nums; }
 .pop-alert { margin: 4px 0 2px; border-radius: 8px; }
@@ -190,7 +204,7 @@ html.embed .top, html.embed .foot { display: none; }
 /* header: title and tagline on the left; on the right ONE row (language, theme, Share), same height, same gap */
 .intro { flex: 1 1 320px; min-width: 0; }
 @media (pointer: coarse) { .chip { min-height: 24px; } }
-.bar { display: flex; align-items: center; gap: 8px; flex: none; }
+.bar { display: flex; align-items: center; gap: 8px; flex: none; max-width: 100%; flex-wrap: wrap; }
 .seg, .btn.share { height: 32px; box-sizing: border-box; }
 .seg button { height: 100%; }
 .btn { font: inherit; font-weight: 600; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border: 1px solid var(--edge); border-radius: 999px;
@@ -221,7 +235,7 @@ html.embed .top, html.embed .foot { display: none; }
 .emb-txt { min-width: 0; }
 .emb-txt b { font-size: 13px; }
 .emb-txt p { margin: 1px 0 3px; font-size: 12px; line-height: 1.35; color: var(--ink2); }
-.emb-txt code.pv { display: block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 11px; color: var(--muted); }
+.emb-txt code.pv { display: block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--ff-mono); font-size: var(--ui-xs); color: var(--muted); }
 .btn.copy { background: var(--ink); color: var(--bg); border-color: var(--ink); min-width: 78px; justify-content: center; }
 .btn.copy:hover, .btn.copy:focus-visible { background: var(--acc); border-color: var(--acc); color: #fff; }
 .btn.copy.done { background: var(--acc); border-color: var(--acc); color: #fff; }
@@ -727,7 +741,12 @@ html.motion .where-item .m-led2 { animation: led 1.6s steps(1) infinite 0.5s; }
   /* ---------- start ---------- */
   applyLang(pickLang());
   applyMotion();
-  window.addEventListener("load", function () {
+  // The layout measures text, and the text width depends on the font: wait for the web font before the final arrangement (and redo it if a font
+  // arrives later, for example the latin-ext part when a language needs it).
+  function fontsReady() { return document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve(); }
+  if (document.fonts && document.fonts.addEventListener) document.fonts.addEventListener("loadingdone", function () { arrange(); postHeight(); });
+  window.addEventListener("load", function () { fontsReady().then(start, start); });
+  function start() {
     arrange();
     applyMotion();
     postHeight(); openChipFromHash();
@@ -736,7 +755,7 @@ html.motion .where-item .m-led2 { animation: led 1.6s steps(1) infinite 0.5s; }
     if (want) { var b = document.querySelector('[data-id="' + want + '"]'); if (b && b.dataset.kind === "tree") open(b, false); }
     if (tipFor) { var c = document.querySelector('[data-id="' + tipFor + '"]'); if (c) showTip(c); }
     var mn = q.get("menu"); if (mn) { var mb = document.querySelector('[data-menu-btn="' + mn + '"]'); if (mb) open(mb, false); }
-  });
+  }
 })();
 
 </script>

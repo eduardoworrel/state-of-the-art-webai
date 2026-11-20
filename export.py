@@ -9,6 +9,7 @@ The figure is the board at its classic size (3 columns, 1552 px wide), without a
 <foreignObject>: it opens in any modern browser and works in <img>, it is not a path drawing.
 """
 import argparse
+import base64
 import html
 import os
 import re
@@ -39,6 +40,21 @@ def run(chrome, args):
                               check=True, capture_output=True, text=True, timeout=180).stdout
 
 
+def svg_fonts():
+    """@font-face for the SVG: an SVG used as <img> cannot load external files, so the (latin) font travels inside it as a data: URI (about 45 KB)."""
+    css = (ROOT / "assets" / "fonts.css").read_text(encoding="utf-8")
+    keep = []
+    for line in css.splitlines():
+        if "Atkinson Hyperlegible Next" not in line or "latin-ext" in line:   # the board uses only the sans family; every character is in the latin range
+            continue
+        m = re.search(r"url\(__FONTS__/([^)]+)\)", line)
+        if m:
+            data = base64.b64encode((ROOT / "docs" / "fonts" / m.group(1)).read_bytes()).decode()
+            line = line.replace(m.group(0), f"url(data:font/woff2;base64,{data})")
+        keep.append(line)
+    return "\n".join(keep) + "\n"
+
+
 def svg_figure(chrome, page, lang, theme, title):
     out = run(chrome, ["--window-size=1700,1000", "--virtual-time-budget=3000", "--dump-dom", f"{page}?lang={lang}&export=1&theme={theme}&xhtml=1"])
     m = re.search(r"<textarea id=\"xhtml\" data-w=\"(\d+)\" data-h=\"(\d+)\">(.*?)</textarea>", out, re.S)
@@ -47,7 +63,7 @@ def svg_figure(chrome, page, lang, theme, title):
     bw, bh, board = int(m.group(1)), int(m.group(2)), html.unescape(m.group(3))
     pad = 20
     W, H = bw + 2 * pad, bh + 2 * pad
-    css = (ROOT / "assets" / "style.css").read_text(encoding="utf-8").replace("]]>", "]]&gt;")
+    css = (svg_fonts() + (ROOT / "assets" / "style.css").read_text(encoding="utf-8")).replace("]]>", "]]&gt;")
     board = board.replace("<div ", f'<div style="--u:14.4px;width:{bw}px" ', 1) if False else board
     return (f'<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}" viewBox="0 0 {W} {H}" data-theme="{theme}" role="img" aria-label="{html.escape(title)}">'
             f'<title>{html.escape(title)}</title><style><![CDATA[{css}\n.svgroot {{ font-family: var(--font); color: var(--ink); line-height: 1.4; }}\n.svgroot .board {{ --u: 14.4px; width: {bw}px; margin: 0; }}]]></style>'

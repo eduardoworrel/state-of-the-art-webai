@@ -450,7 +450,12 @@
   /* ---------- start ---------- */
   applyLang(pickLang());
   applyMotion();
-  window.addEventListener("load", function () {
+  // The layout measures text, and the text width depends on the font: wait for the web font before the final arrangement (and redo it if a font
+  // arrives later, for example the latin-ext part when a language needs it).
+  function fontsReady() { return document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve(); }
+  if (document.fonts && document.fonts.addEventListener) document.fonts.addEventListener("loadingdone", function () { arrange(); postHeight(); });
+  window.addEventListener("load", function () { fontsReady().then(start, start); });
+  function start() {
     arrange();
     applyMotion();
     postHeight(); openChipFromHash();
@@ -459,5 +464,5 @@
     if (want) { var b = document.querySelector('[data-id="' + want + '"]'); if (b && b.dataset.kind === "tree") open(b, false); }
     if (tipFor) { var c = document.querySelector('[data-id="' + tipFor + '"]'); if (c) showTip(c); }
     var mn = q.get("menu"); if (mn) { var mb = document.querySelector('[data-menu-btn="' + mn + '"]'); if (mb) open(mb, false); }
-  });
+  }
 })();

@@ -195,6 +195,14 @@ def menus(tx, reviewed):
             '<div class="sr" role="status" aria-live="polite" id="emb-live"></div></div>')
 
 
+FONT_PRELOAD = "atkinson-hyperlegible-next/atkinson-hyperlegible-next-latin-wght-normal.woff2"
+
+
+def font_css(base):
+    """@font-face rules for the self-hosted Atkinson fonts; base is the path from the page to docs/fonts (fonts or ../fonts)."""
+    return (ROOT / "assets" / "fonts.css").read_text(encoding="utf-8").replace("__FONTS__", base)
+
+
 def render(embed=False):
     langs = load_langs()
     tx = langs[DEFAULT]
@@ -208,7 +216,9 @@ def render(embed=False):
     board = (f'<div class="board" role="group" aria-label="{escape(tx["site.title"])}">'
              f'<span class="tag-end" id="tag-model" data-t="label.model">{escape(tx["label.model"])}</span><span class="tag-end" id="tag-person" data-t="label.person">{escape(tx["label.person"])}</span>'
              f'<div class="cols"><div class="col">{cols["left"]}</div><div class="col">{cols["center"]}</div><div class="col">{cols["right"]}</div></div></div>')
-    css = (ROOT / "assets" / "style.css").read_text(encoding="utf-8")
+    fonts = "../fonts" if embed else "fonts"
+    css = font_css(fonts) + (ROOT / "assets" / "style.css").read_text(encoding="utf-8")
+    preload = f'<link rel="preload" href="{fonts}/{FONT_PRELOAD}" as="font" type="font/woff2" crossorigin>'
     site = {"base": BASE, "repo": SITE["repo"], "branch": SITE.get("branch", "main"), "reviewed": reviewed}
     alt = "".join(f'<link rel="alternate" hreflang="{k}" href="{BASE}?lang={k}">' for k in langs)
     if embed:
@@ -233,6 +243,7 @@ def render(embed=False):
 <title>{escape(tx["site.title"])}</title>
 <meta name="description" content="{escape(tx["site.tagline"])}">
 {head_extra}
+{preload}
 <script>
 (function () {{ try {{ var q = new URLSearchParams(location.search), r = document.documentElement;
   var th = q.get("theme") || localStorage.getItem("webai-theme"); if (th === "light" || th === "dark") r.setAttribute("data-theme", th);
