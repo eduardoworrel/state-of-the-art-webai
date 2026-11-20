@@ -12,7 +12,7 @@ It is an awesome list and a landscape in one picture. Every chip is a technology
 
 | File | What it is |
 |---|---|
-| [SPEC.md](SPEC.md) | The specification (version 0.3): data model, rules, i18n, curation, versioning. |
+| [SPEC.md](SPEC.md) | The specification (version 0.4): data model, rules, i18n, curation, versioning. |
 | `data/layers.yml` | The layers, groups and chips. Each chip has `sources` (at least two distinct links) and, when something was observed, an `alert`. |
 | `i18n/en.yml`, `i18n/pt.yml` | One text per id. English is the reference language. |
 | `schema/` | JSON Schemas for the two kinds of file. |
@@ -36,7 +36,7 @@ Add a chip, fix a source, or translate the whole map. See [CONTRIBUTING.md](CONT
 
 ## Open items
 
-Chips waiting for a good source (two are needed): base model, narrow task, per-device measurement, regression tests, streaming, and **MatMulNBits** (the ONNX Runtime int4 operator: today only the quantization page documents it; a second primary page is missing). Pull requests with sources are welcome.
+Chips waiting for a good source (two are needed): base model, narrow task, per-device measurement, regression tests, streaming, and **MatMulNBits** (the ONNX Runtime int4 operator: today only the quantization page documents it; a second primary page is missing). Left out after checking: mistral.rs (its README shows no browser, phone or edge target) and a Transformers.js convert script (its docs now recommend Optimum). Pull requests with sources are welcome.
 
 ## License
 
@@ -45,7 +45,7 @@ Code: MIT ([LICENSE-CODE](LICENSE-CODE)). Data and texts: CC BY 4.0 ([LICENSE-DA
 ## The list
 
 <!-- awesome:start -->
-_78 chips, 167 source links. Last reviewed: 2026-11-20. Generated from `data/layers.yml`: do not edit by hand._
+_97 chips, 210 source links. Last reviewed: 2026-11-20. Generated from `data/layers.yml`: do not edit by hand._
 
 ### 1. Choose and adapt
 _Which task, which base?_
@@ -104,6 +104,32 @@ _How low can I go?_
 - **int4** — 4-bit weights: a 4× reduction in size compared with BF16.
   - Docs: [ONNX Runtime: quantization](https://onnxruntime.ai/docs/performance/model-optimizations/quantization.html), [Transformers: bitsandbytes (4-bit)](https://huggingface.co/docs/transformers/en/quantization/bitsandbytes)
 
+**Quantize with**
+
+- **llama.cpp quantize** — Takes a GGUF model in a high-precision type (F32, BF16) and converts it to a quantized type; an imatrix file can limit the accuracy loss.
+  - Docs: [Hugging Face Hub: GGUF](https://huggingface.co/docs/hub/gguf)
+  - Code: [llama.cpp: quantize tool](https://github.com/ggml-org/llama.cpp/blob/master/tools/quantize/README.md)
+- **AutoGPTQ** — A GPTQ quantization package; its README says it is unmaintained and suggests GPTQModel, and the repository is archived.
+  - 🟠 **Alert · Warning · Superseded** (Observed 2026-11-20): The AutoGPTQ README, read on 2026-11-20, begins: “AutoGPTQ is unmaintained - we suggest using GPTQModel for bug fixes and new models support”. The GitHub API reports the repository as archived (last push 2025-04-11).
+  - Evidence: [github.com/AutoGPTQ/AutoGPTQ](https://github.com/AutoGPTQ/AutoGPTQ), [api.github.com/repos/AutoGPTQ/AutoGPTQ](https://api.github.com/repos/AutoGPTQ/AutoGPTQ), [github.com/ModelCloud/GPTQModel](https://github.com/ModelCloud/GPTQModel)
+  - Code: [AutoGPTQ repository](https://github.com/AutoGPTQ/AutoGPTQ), [auto-gptq on PyPI](https://pypi.org/project/auto-gptq/)
+- **AutoAWQ** — An AWQ quantization package; its README says it is officially deprecated and points to llm-compressor.
+  - 🟠 **Alert · Warning · Deprecated** (Observed 2026-11-20): The AutoAWQ README, read on 2026-11-20, says: “AutoAWQ is officially deprecated and will no longer be maintained.” and that the vLLM project adopted it as llm-compressor. The GitHub API reports the repository as archived (last push 2025-05-11).
+  - Evidence: [github.com/casper-hansen/AutoAWQ](https://github.com/casper-hansen/AutoAWQ), [api.github.com/repos/casper-hansen/AutoAWQ](https://api.github.com/repos/casper-hansen/AutoAWQ), [github.com/vllm-project/llm-compressor](https://github.com/vllm-project/llm-compressor)
+  - Code: [AutoAWQ repository](https://github.com/casper-hansen/AutoAWQ), [autoawq on PyPI](https://pypi.org/project/autoawq/)
+- **llm-compressor** — The vLLM project's library to compress LLMs for production inference; AutoAWQ's README says vLLM adopted AutoAWQ there.
+  - Docs: [llm-compressor documentation](https://docs.vllm.ai/projects/llm-compressor/en/latest/)
+  - Code: [llm-compressor repository](https://github.com/vllm-project/llm-compressor)
+- **bitsandbytes** — k-bit quantization for PyTorch, with the 8-bit and 4-bit (NF4) types that QLoRA uses.
+  - Docs: [bitsandbytes documentation](https://huggingface.co/docs/bitsandbytes/index)
+  - Code: [bitsandbytes repository](https://github.com/bitsandbytes-foundation/bitsandbytes)
+
+_Also exists (not drawn on the figure):_
+
+- **torchao** — PyTorch-native quantization and training optimization; its README says new feature development is minimized.
+  - Docs: [torchao documentation](https://docs.pytorch.org/ao/stable/)
+  - Code: [torchao repository](https://github.com/pytorch/ao)
+
 **Method**
 
 - **RTN** — Round-to-nearest, the default 4-bit algorithm in ONNX Runtime, applied block by block.
@@ -127,6 +153,37 @@ _How low can I go?_
 - **QAT** — Trains the model already knowing it will be quantized; Gemma 3 ships QAT versions.
   - Papers: [LLM-QAT paper](https://arxiv.org/abs/2305.17888)
   - Posts: [Google: Gemma 3 QAT](https://developers.googleblog.com/en/gemma-3-quantized-aware-trained-state-of-the-art-ai-to-consumer-gpus/)
+
+**Export with**
+
+- **Optimum** — Hugging Face's toolkit to export and optimize models; the Transformers.js docs recommend it to convert PyTorch models to ONNX.
+  - ⚪ **Alert · Info · Moved** (Observed 2026-11-20): The Optimum README, read on 2026-11-20, says the ONNX integration was moved to optimum-onnx, which has its own installation instructions.
+  - Evidence: [github.com/huggingface/optimum](https://github.com/huggingface/optimum), [github.com/huggingface/optimum-onnx](https://github.com/huggingface/optimum-onnx)
+  - Docs: [Optimum documentation](https://huggingface.co/docs/optimum/index), [Transformers.js: custom usage](https://huggingface.co/docs/transformers.js/custom_usage)
+  - Code: [Optimum repository](https://github.com/huggingface/optimum), [Optimum ONNX repository](https://github.com/huggingface/optimum-onnx)
+- **Olive** — Microsoft's toolkit for the ONNX Runtime: model conversion, quantization and optimization for CPUs, GPUs and NPUs.
+  - 🔴 **Alert · Critical · Link broken** (Observed 2026-11-20): On 2026-11-20 github.com/microsoft/Olive answers 404, on the web and in the GitHub API. The documentation site microsoft.github.io/Olive and PyPI olive-ai 0.13.0 (2026-06-09) still answer, and PyPI still links to that repository. No new address found.
+  - Evidence: [github.com/microsoft/Olive](https://github.com/microsoft/Olive), [api.github.com/repos/microsoft/Olive](https://api.github.com/repos/microsoft/Olive), [pypi.org/project/olive-ai/](https://pypi.org/project/olive-ai/), [microsoft.github.io/Olive/](https://microsoft.github.io/Olive/)
+  - Docs: [Olive documentation](https://microsoft.github.io/Olive/), [ONNX Runtime: Olive](https://onnxruntime.ai/docs/performance/olive.html)
+  - Code: [olive-ai on PyPI](https://pypi.org/project/olive-ai/)
+- **GenAI Model Builder** — The ONNX Runtime GenAI tool that builds an ONNX model for the generate() API from Hugging Face weights, in the precision you choose.
+  - 🔴 **Alert · Critical · Link broken** (Observed 2026-11-20): On 2026-11-20 the page "Generate models using Model Builder" only points to the model builder guide at github.com/microsoft/onnxruntime-genai, which answers 404 (the whole repository does, on the web and in the GitHub API). The Phi-2 tutorial on onnxruntime.ai still describes the builder command. No new address found.
+  - Evidence: [github.com/microsoft/onnxruntime-genai](https://github.com/microsoft/onnxruntime-genai), [api.github.com/repos/mic…ft/onnxruntime-genai](https://api.github.com/repos/microsoft/onnxruntime-genai), [github.com/microsoft/onn…/py/models/README.md](https://github.com/microsoft/onnxruntime-genai/blob/main/src/python/py/models/README.md), [onnxruntime.ai/docs/genai/](https://onnxruntime.ai/docs/genai/), [pypi.org/project/onnxruntime-genai/](https://pypi.org/project/onnxruntime-genai/)
+  - Docs: [Generate models using Model Builder](https://onnxruntime.ai/docs/genai/howto/build-model.html), [Phi-2 with the generate() API](https://onnxruntime.ai/docs/genai/tutorials/phi2-python.html)
+- **MLC compile** — Converts weights to the MLC format and compiles the model library so a model runs on the platform you target.
+  - Docs: [MLC LLM: compile model libraries](https://llm.mlc.ai/docs/compilation/compile_models.html)
+  - Code: [MLC LLM repository](https://github.com/mlc-ai/mlc-llm)
+- **litert-torch** — Converts PyTorch models to LiteRT for on-device inference.
+  - ⚪ **Alert · Info · Moved** (Observed 2026-11-20): On 2026-11-20 github.com/google-ai-edge/ai-edge-torch redirects (301) to github.com/google-ai-edge/litert-torch.
+  - Evidence: [github.com/google-ai-edge/ai-edge-torch](https://github.com/google-ai-edge/ai-edge-torch), [github.com/google-ai-edge/litert-torch](https://github.com/google-ai-edge/litert-torch)
+  - Docs: [LiteRT: convert PyTorch models](https://developers.google.com/edge/litert/conversion/pytorch/overview)
+  - Code: [litert-torch repository](https://github.com/google-ai-edge/litert-torch)
+- **coremltools** — Apple's tools to convert and edit models for Core ML, with weight and activation quantization.
+  - Docs: [coremltools guide](https://apple.github.io/coremltools/docs-guides/)
+  - Code: [coremltools repository](https://github.com/apple/coremltools)
+- **ExecuTorch export** — Captures a PyTorch model with torch.export, optimizes it for the target hardware and produces an ExecuTorch program.
+  - Docs: [ExecuTorch: export](https://docs.pytorch.org/executorch/main/using-executorch-export.html)
+  - Code: [ExecuTorch repository](https://github.com/pytorch/executorch)
 
 **KV cache**
 
@@ -185,6 +242,29 @@ _Which accelerator, which limit?_
 - **Core ML** — Apple's framework for running models on a person's device.
   - Docs: [Apple: Core ML](https://developer.apple.com/documentation/coreml)
   - Code: [coremltools repository](https://github.com/apple/coremltools)
+- **ONNX Runtime GenAI** — The generative AI loop for ONNX models: tokenization, search and sampling, KV cache management and a generate() API, in preview.
+  - 🔴 **Alert · Critical · Link broken** (Observed 2026-11-20): On 2026-11-20 github.com/microsoft/onnxruntime-genai answers 404, on the web and in the GitHub API, like the other ONNX Runtime repositories. The documentation at onnxruntime.ai still links to it and says the API is in preview; PyPI onnxruntime-genai 0.20.0 (2026-11-14) still answers. No new address found.
+  - Evidence: [github.com/microsoft/onnxruntime-genai](https://github.com/microsoft/onnxruntime-genai), [api.github.com/repos/mic…ft/onnxruntime-genai](https://api.github.com/repos/microsoft/onnxruntime-genai), [github.com/microsoft/onn…/py/models/README.md](https://github.com/microsoft/onnxruntime-genai/blob/main/src/python/py/models/README.md), [onnxruntime.ai/docs/genai/](https://onnxruntime.ai/docs/genai/), [pypi.org/project/onnxruntime-genai/](https://pypi.org/project/onnxruntime-genai/)
+  - Docs: [ONNX Runtime generate() API](https://onnxruntime.ai/docs/genai/), [Install the generate() API](https://onnxruntime.ai/docs/genai/howto/install.html)
+  - Code: [onnxruntime-genai on PyPI](https://pypi.org/project/onnxruntime-genai/)
+- **LiteRT-LM** — Google's orchestration layer to run LLMs with LiteRT: cross-platform, with a command-line tool and Python, Kotlin, Swift, Web and C++ APIs.
+  - Docs: [LiteRT-LM overview](https://developers.google.com/edge/litert-lm/overview)
+  - Code: [LiteRT-LM repository](https://github.com/google-ai-edge/LiteRT-LM), [litert-lm on PyPI](https://pypi.org/project/litert-lm/)
+- **MNN-LLM** — The LLM module of Alibaba's MNN inference engine: it exports PyTorch models to MNN and runs text generation; MNN ships Android chat apps.
+  - Docs: [MNN: LLM documentation](https://mnn-docs.readthedocs.io/en/latest/transformers/llm.html)
+  - Code: [MNN repository](https://github.com/alibaba/MNN)
+
+_Also exists (not drawn on the figure):_
+
+- **ExecuTorch LLM** — ExecuTorch's building blocks for local LLMs: quantized text models, long context, tool calling, speculative decoding, a local server.
+  - Docs: [ExecuTorch: working with LLMs](https://docs.pytorch.org/executorch/main/llm/working-with-llms.html)
+  - Code: [ExecuTorch repository](https://github.com/pytorch/executorch)
+- **Candle** — Hugging Face's minimalist Rust ML framework; its online demos run LLaMA2 and T5 text generation entirely in the browser.
+  - Docs: [The Candle book](https://huggingface.github.io/candle/)
+  - Code: [Candle repository](https://github.com/huggingface/candle)
+- **Burn** — A Rust deep-learning framework whose backends include WebGPU and a no_std CPU backend.
+  - Docs: [The Burn book](https://burn.dev/books/burn/)
+  - Code: [Burn repository](https://github.com/tracel-ai/burn)
 
 **Cache and size**
 

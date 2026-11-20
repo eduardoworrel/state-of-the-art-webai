@@ -22,7 +22,7 @@ import minischema  # noqa: E402
 LAYERS_FILE = "data/layers.yml"
 STATIC_KEYS = (["lang.name", "site.title", "site.tagline", "label.model", "label.person", "ui.source", "ui.accessed", "ui.language", "ui.where", "ui.legend",
                 "ui.contribute", "ui.reviewed", "ui.reviewed.short", "ui.license", "ui.theme", "ui.theme.auto", "ui.theme.light", "ui.theme.dark",
-                "ui.sources.one", "ui.sources.other", "ui.menu", "ui.opens", "ui.alert", "ui.alert.observed", "ui.alert.evidence"]
+                "ui.sources.one", "ui.sources.other", "ui.menu", "ui.opens", "ui.alert", "ui.alert.observed", "ui.alert.evidence", "ui.also"]
                + [f"ui.alert.level.{x}" for x in ("critical", "warning", "info")]
                + [f"ui.alert.kind.{x}" for x in ("broken-link", "removed", "deprecated", "superseded", "moved")]
                + [f"ui.level.{x}" for x in ("primary", "trusted", "calculation")]
@@ -69,15 +69,15 @@ def describe(data, path):
 
 def pre_checks(data):
     """Friendly messages for the most common mistakes, before the schema speaks."""
-    if isinstance(data, dict) and data.get("spec") not in (None, "0.3"):
-        err(LAYERS_FILE, "spec", f"declares spec {data.get('spec')!r}; this checker implements 0.3 (see SPEC.md, section 8)")
+    if isinstance(data, dict) and data.get("spec") not in (None, "0.4"):
+        err(LAYERS_FILE, "spec", f"declares spec {data.get('spec')!r}; this checker implements 0.4 (see SPEC.md, section 8)")
     for L in data.get("layers") or []:
         for g in (L.get("groups") or []) + ((L.get("panel") or {}).get("groups") or []):
             for c in g.get("chips") or []:
                 where = f"layer '{L.get('id')}' > group '{g.get('id')}' > chip '{c.get('id')}'"
                 srcs = c.get("sources")
                 if "source" in c:
-                    err(LAYERS_FILE, where, "uses `source`, which chips no longer have in spec 0.3: list the links under `sources` (at least two)")
+                    err(LAYERS_FILE, where, "uses `source`, which chips no longer have in spec 0.4: list the links under `sources` (at least two)")
                 if srcs is None and "source" not in c:
                     err(LAYERS_FILE, where, "has no sources: every chip needs `sources` with at least two links (SPEC.md section 4)")
                 if isinstance(srcs, list):
@@ -207,8 +207,8 @@ def main():
             err(rel, k, "unused key (nothing in data/layers.yml refers to it; remove it)")
         for _, c in alerts:
             text = tx.get(f"alert.{c['id']}", "")
-            if CONCLUSIONS.search(text):
-                err(rel, f"alert.{c['id']}", "concludes instead of describing what was observed (words like abandoned/dead): say what you saw, with the date")
+            if CONCLUSIONS.search(re.sub(r'“[^”]*”|"[^"]*"', "", text)):  # words inside quotation marks are the source's, not ours
+                err(rel, f"alert.{c['id']}", "concludes instead of describing what was observed (words like abandoned/dead): say what you saw, with the date, or quote the source between quotation marks")
             if c["alert"].get("observed") and "alert." + c["id"] in tx and not re.search(r"\d{4}-\d{2}-\d{2}|\d{2}/\d{2}/\d{4}", text):
                 err(rel, f"alert.{c['id']}", "must state the date of the observation (for example 2026-11-20)")
         if f.stem == "en" and "ui.sources.one" not in tx:
@@ -233,7 +233,7 @@ def main():
         print(f"{len(errors)} problem(s):")
         print("\n".join(" - " + e for e in errors))
         sys.exit(1)
-    print(f"ok: {len(seen['layer'])} layers, {len(seen['group'])} groups, {n_chips} chips, {len(files)} languages, spec 0.3")
+    print(f"ok: {len(seen['layer'])} layers, {len(seen['group'])} groups, {n_chips} chips, {len(files)} languages, spec 0.4")
 
 
 if __name__ == "__main__":

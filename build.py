@@ -110,9 +110,15 @@ def chip(c, tx):
             f'{popover(c, tx, "pop-" + cid)}</li>')
 
 
+def shown(g):
+    return [c for c in g["chips"] if c.get("featured", True)]
+
+
 def group(g, tx):
+    if not shown(g):
+        return ""
     return (f'<div class="group"><h3 data-t="group.{g["id"]}">{escape(tx[f"group.{g["id"]}"])}</h3>'
-            f'<ul class="chips">{"".join(chip(c, tx) for c in g["chips"])}</ul></div>')
+            f'<ul class="chips">{"".join(chip(c, tx) for c in shown(g))}</ul></div>')
 
 
 def columns(groups, tx, n, cls):
@@ -148,7 +154,7 @@ def card(L, tx):
                      f'<span class="icon">{icon(p["icon"])}</span></div>{columns(p["groups"], tx, 3, "cols3")}</section>')
     else:
         body = columns(L["groups"], tx, 2, "cols2")
-    n_chips = sum(len(g["chips"]) for g in L["groups"] + (L.get("panel") or {}).get("groups", []))
+    n_chips = sum(len(shown(g)) for g in L["groups"] + (L.get("panel") or {}).get("groups", []))
     return (f'<article class="card" id="layer-{i}" style="flex-grow:{n_chips + 8}"><span class="badge">{L["n"]}</span>'
             f'<div class="card-h"><h2 data-t="layer.{i}">{escape(tx[f"layer.{i}"])}</h2><span class="icon">{icon(L["icon"])}</span></div>'
             f'<div class="body">{body}</div>'

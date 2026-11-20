@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://example.invalid/state-of-the-art-webai/schema/i18n.schema.json",
   "title": "State of the Art of WebAI: i18n/<lang>.yml",
-  "description": "Spec version 0.3. One flat map of key to text. Which keys must exist is checked against data/layers.yml by scripts/check.py; this schema fixes the key families and the length limits.",
+  "description": "Spec version 0.4. One flat map of key to text. Which keys must exist is checked against data/layers.yml by scripts/check.py; this schema fixes the key families and the length limits.",
   "type": "object",
   "required": [
     "lang.name",

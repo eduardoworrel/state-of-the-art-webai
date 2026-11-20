@@ -1,6 +1,6 @@
 # State of the Art of WebAI: specification
 
-**Version 0.3** (draft). The words MUST, SHOULD and MAY are used as in RFC 2119.
+**Version 0.4** (draft). The words MUST, SHOULD and MAY are used as in RFC 2119.
 
 This document defines the data a contribution is made of, what makes an entry valid, how texts are translated, how entries are kept fresh, and how the page, the PNG and the awesome list are generated from the same data. `schema/*.json` and `scripts/check.py` implement it; if they disagree with this text, that is a bug in one of them.
 
@@ -38,7 +38,7 @@ Unknown fields are errors. "R" means required.
 
 | Field | R | Type | Rule |
 |---|---|---|---|
-| `spec` | yes | string | Exactly `"0.3"` for this version. |
+| `spec` | yes | string | Exactly `"0.4"` for this version. |
 | `layers` | yes | list | At least one layer. |
 
 ### 3.2 Layer
@@ -70,6 +70,7 @@ Unknown fields are errors. "R" means required.
 | `id` | yes | id | Unique among chips. Stable: once published it is never renamed (translations and links depend on it). |
 | `status` | no | status | The project's life cycle. See 4.4. |
 | `alert` | no | alert | A problem someone observed, with date and evidence. See 4.5. Separate from `status`. |
+| `featured` | no | boolean | Default `true`. `false`: the chip is not drawn on the figure or the page and appears in the README list under "Also exists". It still needs two sources and its texts. |
 | `sources` | yes | list of sources | Two to twelve sources, with distinct urls (section 4). |
 
 There is no `source` key on a chip: a chip with fewer than two sources is invalid.
@@ -203,6 +204,10 @@ Rules:
 
 On the page an alert shows as a marker in the level's colour inside the chip (a different shape per level, so colour is not the only signal: octagon for critical, triangle for warning, circle for info) with text for screen readers ("Alert: Critical, Link broken"). The preview and the menu take the level's background and border and show, on top, the alert title, the detail, the day it was observed and (in the menu) the evidence links. In the awesome list the alert is a line under the chip.
 
+### 4.6 Figure and list
+
+The figure is a cut, the README list is the full set. When a group would crowd its card, keep the most relevant chips drawn and mark the rest `featured: false`: they stay in `data/layers.yml`, in `i18n/` and in the awesome list (under "Also exists"), with the same rules (two sources, texts, alerts). Choose by relevance to running models in a browser, on a phone or on an edge board.
+
 ## 5. Entry types and where they live
 
 Every chip is a thing a person who ships a model has to choose, know or watch. Two kinds of entry need care.
@@ -252,7 +257,7 @@ The page uses the language in `?lang=`, then the stored choice, then the browser
 
 - Counts use `ui.sources.<category>` with the CLDR categories `zero`, `one`, `two`, `few`, `many`, `other` and the placeholder `{n}`. `other` is required in every language and `one` in `en`; the page picks the category with `Intl.PluralRules(<lang>)` and falls back to `other`.
 - Limits count characters in the language written. Chips and group labels have little room: when a translation does not fit, shorten the text (a shorter synonym or an abbreviation), do not change the limit.
-- Right-to-left languages are not supported in 0.3.
+- Right-to-left languages are not supported in 0.4.
 - Source `title` values and technology names are not translated.
 
 ## 7. Curation
@@ -316,18 +321,16 @@ CI runs `python3 scripts/check.py`, then `python3 build.py`, and fails if `docs/
 - **Themes.** Automatic (follows the system), light or dark. The choice is remembered in `localStorage` (the page works without it).
 - **Demo width.** `docs/index.html` limits the board to fit a laptop screen. `?fit=0` and the PNG export keep the full layout.
 
-## Decisions waiting for approval (0.3)
+## Decisions waiting for approval (0.4)
 
-1. **Alert as its own field**, separate from `status`, with `level`, `kind`, `observed` and `evidence`; the text is the i18n key `alert.<chip id>` (a convention, so no `text:` field).
-2. **`level` follows from `kind`** (broken-link, removed: critical; deprecated, superseded: warning; moved: info) and `check.py` rejects a mismatch. If you want free severity, `level` stays and the rule goes.
-3. **Expiry:** a warning after 30 days; no hard error.
-4. A broken link **does not count** toward the two sources; it goes in `evidence`.
-5. Wording rules for alerts: the text must carry a date and may not conclude (abandoned, dead, unmaintained).
-6. Marker shapes (octagon, triangle, circle) plus text for screen readers, so colour is not the only signal.
-7. Earlier decisions (0.2): one `sources` key with at least two urls; "different groups" is a note, not an error; six source groups; status values; ageing 180/365 days; required one-line `desc.<id>`; platform-managed models in Integrate; the demo fits a laptop.
+1. **`featured: false`** (new, optional) keeps a chip off the figure and the page but in the README "Also exists" list. The alternative is a separate list file.
+2. Tool groups: "Export with" and "Quantize with" (layer 2). Libraries that wrap a generation loop sit in Run > Runtime.
+3. An alert needs one of five kinds; a README notice such as "new feature development is minimized" (torchao) fits none, so it is written in the description, not as an alert. Add a kind (for example `reduced`) if you want those flagged.
+4. Earlier decisions (0.3 and 0.2) still stand: alert as its own field with `level` following `kind`, 30-day expiry warning, a broken link does not count as a source, two or more sources per chip, six source groups, status values, ageing 180/365 days, one-line `desc`.
 
 ## Changelog
 
 - **0.1** (2026-11-19): first draft.
 - **0.2** (2026-11-20): every chip needs at least two sources with distinct urls (`source` is removed from chips; `sources` has a minimum of two); every source carries `title` and, preferably, `group`; the page has no direct-link chip. Migration: `source:` blocks become the first entry of `sources:`, plus a second source. `scripts/linkcheck.py` added.
 - **0.3** (2026-11-20): optional `alert` on a chip (`level`, `kind`, `observed`, `evidence`; text `alert.<chip id>`), separate from `status`; alert colours, marker and preview; hover preview now carries the description and the alert; `linkcheck.py` reports alert evidence. Migration: none for existing data besides `spec: "0.3"`.
+- **0.4** (2026-11-20): optional `featured` on a chip (off the figure, in the README "Also exists" list); `quant-tools` and `export-tools` groups; quoted words inside an alert text are not treated as our conclusion. Migration: `spec: "0.4"`.

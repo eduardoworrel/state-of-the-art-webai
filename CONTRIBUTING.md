@@ -60,6 +60,10 @@ If a chip is not plainly available, say so with `status`, using only what the so
 
 Do not write "deprecated", "stable" or "supported by browser X", and do not give a version number, unless the source says it in those words. When a page gives different states for different contexts, leave `status` out and say so in the description.
 
+### Too many chips in a group
+
+The figure is a cut. If a group would crowd its card, keep the most relevant chips drawn and add `featured: false` to the rest: they still need two sources and their texts, and they show up in the README under "Also exists".
+
 ### Alerts
 
 A chip can carry an `alert`: a problem **you observed**, on a day, with evidence anyone can open. It is not the same as `status` (the project's life cycle).

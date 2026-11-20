@@ -47,6 +47,23 @@ def chip_lines(c, tx):
     return out
 
 
+ALSO = {"en": "Also exists (not drawn on the figure)", "pt": "Também existe (fora da figura)"}
+
+
+def group_lines(g, tx, lang="en"):
+    main = [c for c in g["chips"] if c.get("featured", True)]
+    extra = [c for c in g["chips"] if not c.get("featured", True)]
+    out = [f"**{tx['group.' + g['id']]}**", ""]
+    for c in main:
+        out += chip_lines(c, tx)
+    if extra:
+        out += ["", f"_{tx['ui.also']}:_", ""]
+        for c in extra:
+            out += chip_lines(c, tx)
+    out.append("")
+    return out
+
+
 def render(lang, layers, tx):
     allsrc = [s for L in layers for g in L["groups"] + (L.get("panel") or {}).get("groups", []) for c in g["chips"] for s in sources(c)]
     reviewed = max(s["accessed"] for s in allsrc)
@@ -57,10 +74,7 @@ def render(lang, layers, tx):
     for L in layers:
         out += [f"### {L['n']}. {tx['layer.' + L['id']]}", f"_{tx['decision.' + L['id']]}_", ""]
         for g in L["groups"]:
-            out += [f"**{tx['group.' + g['id']]}**", ""]
-            for c in g["chips"]:
-                out += chip_lines(c, tx)
-            out.append("")
+            out += group_lines(g, tx)
         if L.get("where"):
             out += [f"**{tx['ui.where']}**", ""]
             for w in L["where"]:
@@ -70,10 +84,7 @@ def render(lang, layers, tx):
             p = L["panel"]
             out += [f"#### {tx['panel.' + p['id']]}", ""]
             for g in p["groups"]:
-                out += [f"**{tx['group.' + g['id']]}**", ""]
-                for c in g["chips"]:
-                    out += chip_lines(c, tx)
-                out.append("")
+                out += group_lines(g, tx)
     return "\n".join(out).rstrip() + "\n"
 
 

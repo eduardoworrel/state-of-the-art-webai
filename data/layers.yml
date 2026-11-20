@@ -1,8 +1,9 @@
-# State of the Art of WebAI: layers, groups and chips. Format: SPEC.md (version 0.3); schema: schema/layers.schema.json
+# State of the Art of WebAI: layers, groups and chips. Format: SPEC.md (version 0.4); schema: schema/layers.schema.json
 # Texts live in i18n/<lang>.yml keyed by id. Every chip has `sources`: at least two distinct links, optionally grouped by label.
-# A chip may have an `alert` (a dated, evidenced problem; SPEC.md section 4.5), separate from `status`.
+# A chip may have an `alert` (a dated, evidenced problem; SPEC.md section 4.5), separate from `status`, and `featured: false`
+# (not drawn on the figure; listed in the README under 'Also exists').
 
-spec: "0.3"
+spec: "0.4"
 layers:
   - id: choose
     n: 1
@@ -208,6 +209,98 @@ layers:
                 level: trusted
                 title: "Transformers: bitsandbytes (4-bit)"
                 group: docs
+      - id: quant-tools
+        col: 0
+        chips:
+          - id: llama-quantize
+            sources:
+              - url: https://github.com/ggml-org/llama.cpp/blob/master/tools/quantize/README.md
+                accessed: "2026-11-20"
+                level: primary
+                title: "llama.cpp: quantize tool"
+                group: code
+              - url: https://huggingface.co/docs/hub/gguf
+                accessed: "2026-11-20"
+                level: trusted
+                title: "Hugging Face Hub: GGUF"
+                group: docs
+          - id: autogptq
+            alert:
+              level: warning
+              kind: superseded
+              observed: "2026-11-20"
+              evidence:
+                - https://github.com/AutoGPTQ/AutoGPTQ
+                - https://api.github.com/repos/AutoGPTQ/AutoGPTQ
+                - https://github.com/ModelCloud/GPTQModel
+            sources:
+              - url: https://github.com/AutoGPTQ/AutoGPTQ
+                accessed: "2026-11-20"
+                level: primary
+                title: "AutoGPTQ repository"
+                group: code
+              - url: https://pypi.org/project/auto-gptq/
+                accessed: "2026-11-20"
+                level: primary
+                title: "auto-gptq on PyPI"
+                group: code
+          - id: autoawq
+            alert:
+              level: warning
+              kind: deprecated
+              observed: "2026-11-20"
+              evidence:
+                - https://github.com/casper-hansen/AutoAWQ
+                - https://api.github.com/repos/casper-hansen/AutoAWQ
+                - https://github.com/vllm-project/llm-compressor
+            sources:
+              - url: https://github.com/casper-hansen/AutoAWQ
+                accessed: "2026-11-20"
+                level: primary
+                title: "AutoAWQ repository"
+                group: code
+              - url: https://pypi.org/project/autoawq/
+                accessed: "2026-11-20"
+                level: primary
+                title: "autoawq on PyPI"
+                group: code
+          - id: llm-compressor
+            sources:
+              - url: https://github.com/vllm-project/llm-compressor
+                accessed: "2026-11-20"
+                level: primary
+                title: "llm-compressor repository"
+                group: code
+              - url: https://docs.vllm.ai/projects/llm-compressor/en/latest/
+                accessed: "2026-11-20"
+                level: primary
+                title: "llm-compressor documentation"
+                group: docs
+          - id: bitsandbytes
+            sources:
+              - url: https://github.com/bitsandbytes-foundation/bitsandbytes
+                accessed: "2026-11-20"
+                level: primary
+                title: "bitsandbytes repository"
+                group: code
+              - url: https://huggingface.co/docs/bitsandbytes/index
+                accessed: "2026-11-20"
+                level: trusted
+                title: "bitsandbytes documentation"
+                group: docs
+          - id: torchao
+            featured: false
+            sources:
+              - url: https://github.com/pytorch/ao
+                accessed: "2026-11-20"
+                level: primary
+                title: "torchao repository"
+                group: code
+              - url: https://docs.pytorch.org/ao/stable/
+                accessed: "2026-11-20"
+                level: primary
+                title: "torchao documentation"
+                group: docs
       - id: method
         col: 1
         chips:
@@ -295,6 +388,141 @@ layers:
                 level: primary
                 title: "LLM-QAT paper"
                 group: papers
+      - id: export-tools
+        col: 1
+        chips:
+          - id: optimum
+            alert:
+              level: info
+              kind: moved
+              observed: "2026-11-20"
+              evidence:
+                - https://github.com/huggingface/optimum
+                - https://github.com/huggingface/optimum-onnx
+            sources:
+              - url: https://huggingface.co/docs/optimum/index
+                accessed: "2026-11-20"
+                level: trusted
+                title: "Optimum documentation"
+                group: docs
+              - url: https://github.com/huggingface/optimum
+                accessed: "2026-11-20"
+                level: primary
+                title: "Optimum repository"
+                group: code
+              - url: https://github.com/huggingface/optimum-onnx
+                accessed: "2026-11-20"
+                level: primary
+                title: "Optimum ONNX repository"
+                group: code
+              - url: https://huggingface.co/docs/transformers.js/custom_usage
+                accessed: "2026-11-20"
+                level: primary
+                title: "Transformers.js: custom usage"
+                group: docs
+          - id: olive
+            alert:
+              level: critical
+              kind: broken-link
+              observed: "2026-11-20"
+              evidence:
+                - https://github.com/microsoft/Olive
+                - https://api.github.com/repos/microsoft/Olive
+                - https://pypi.org/project/olive-ai/
+                - https://microsoft.github.io/Olive/
+            sources:
+              - url: https://microsoft.github.io/Olive/
+                accessed: "2026-11-20"
+                level: primary
+                title: "Olive documentation"
+                group: docs
+              - url: https://onnxruntime.ai/docs/performance/olive.html
+                accessed: "2026-11-20"
+                level: primary
+                title: "ONNX Runtime: Olive"
+                group: docs
+              - url: https://pypi.org/project/olive-ai/
+                accessed: "2026-11-20"
+                level: primary
+                title: "olive-ai on PyPI"
+                group: code
+          - id: ort-genai-builder
+            alert:
+              level: critical
+              kind: broken-link
+              observed: "2026-11-20"
+              evidence:
+                - https://github.com/microsoft/onnxruntime-genai
+                - https://api.github.com/repos/microsoft/onnxruntime-genai
+                - https://github.com/microsoft/onnxruntime-genai/blob/main/src/python/py/models/README.md
+                - https://onnxruntime.ai/docs/genai/
+                - https://pypi.org/project/onnxruntime-genai/
+            sources:
+              - url: https://onnxruntime.ai/docs/genai/howto/build-model.html
+                accessed: "2026-11-20"
+                level: primary
+                title: "Generate models using Model Builder"
+                group: docs
+              - url: https://onnxruntime.ai/docs/genai/tutorials/phi2-python.html
+                accessed: "2026-11-20"
+                level: primary
+                title: "Phi-2 with the generate() API"
+                group: docs
+          - id: mlc-compile
+            sources:
+              - url: https://llm.mlc.ai/docs/compilation/compile_models.html
+                accessed: "2026-11-20"
+                level: primary
+                title: "MLC LLM: compile model libraries"
+                group: docs
+              - url: https://github.com/mlc-ai/mlc-llm
+                accessed: "2026-11-20"
+                level: primary
+                title: "MLC LLM repository"
+                group: code
+          - id: litert-torch
+            alert:
+              level: info
+              kind: moved
+              observed: "2026-11-20"
+              evidence:
+                - https://github.com/google-ai-edge/ai-edge-torch
+                - https://github.com/google-ai-edge/litert-torch
+            sources:
+              - url: https://github.com/google-ai-edge/litert-torch
+                accessed: "2026-11-20"
+                level: primary
+                title: "litert-torch repository"
+                group: code
+              - url: https://developers.google.com/edge/litert/conversion/pytorch/overview
+                accessed: "2026-11-20"
+                level: primary
+                title: "LiteRT: convert PyTorch models"
+                group: docs
+          - id: coremltools-export
+            sources:
+              - url: https://apple.github.io/coremltools/docs-guides/
+                accessed: "2026-11-20"
+                level: primary
+                title: "coremltools guide"
+                group: docs
+              - url: https://github.com/apple/coremltools
+                accessed: "2026-11-20"
+                level: primary
+                title: "coremltools repository"
+                group: code
+          - id: executorch-export
+            sources:
+              - url: https://docs.pytorch.org/executorch/main/using-executorch-export.html
+                accessed: "2026-11-20"
+                level: primary
+                title: "ExecuTorch: export"
+                group: docs
+              - url: https://github.com/pytorch/executorch
+                accessed: "2026-11-20"
+                level: primary
+                title: "ExecuTorch repository"
+                group: code
       - id: kv-cache
         col: 1
         chips:
@@ -514,6 +742,101 @@ layers:
                 level: primary
                 title: "coremltools repository"
                 group: code
+          - id: ort-genai
+            alert:
+              level: critical
+              kind: broken-link
+              observed: "2026-11-20"
+              evidence:
+                - https://github.com/microsoft/onnxruntime-genai
+                - https://api.github.com/repos/microsoft/onnxruntime-genai
+                - https://github.com/microsoft/onnxruntime-genai/blob/main/src/python/py/models/README.md
+                - https://onnxruntime.ai/docs/genai/
+                - https://pypi.org/project/onnxruntime-genai/
+            sources:
+              - url: https://onnxruntime.ai/docs/genai/
+                accessed: "2026-11-20"
+                level: primary
+                title: "ONNX Runtime generate() API"
+                group: docs
+              - url: https://pypi.org/project/onnxruntime-genai/
+                accessed: "2026-11-20"
+                level: primary
+                title: "onnxruntime-genai on PyPI"
+                group: code
+              - url: https://onnxruntime.ai/docs/genai/howto/install.html
+                accessed: "2026-11-20"
+                level: primary
+                title: "Install the generate() API"
+                group: docs
+          - id: litert-lm-runtime
+            sources:
+              - url: https://github.com/google-ai-edge/LiteRT-LM
+                accessed: "2026-11-20"
+                level: primary
+                title: "LiteRT-LM repository"
+                group: code
+              - url: https://developers.google.com/edge/litert-lm/overview
+                accessed: "2026-11-20"
+                level: primary
+                title: "LiteRT-LM overview"
+                group: docs
+              - url: https://pypi.org/project/litert-lm/
+                accessed: "2026-11-20"
+                level: primary
+                title: "litert-lm on PyPI"
+                group: code
+          - id: mnn-llm
+            sources:
+              - url: https://github.com/alibaba/MNN
+                accessed: "2026-11-20"
+                level: primary
+                title: "MNN repository"
+                group: code
+              - url: https://mnn-docs.readthedocs.io/en/latest/transformers/llm.html
+                accessed: "2026-11-20"
+                level: primary
+                title: "MNN: LLM documentation"
+                group: docs
+          - id: executorch-llm
+            featured: false
+            sources:
+              - url: https://docs.pytorch.org/executorch/main/llm/working-with-llms.html
+                accessed: "2026-11-20"
+                level: primary
+                title: "ExecuTorch: working with LLMs"
+                group: docs
+              - url: https://github.com/pytorch/executorch
+                accessed: "2026-11-20"
+                level: primary
+                title: "ExecuTorch repository"
+                group: code
+          - id: candle
+            featured: false
+            sources:
+              - url: https://github.com/huggingface/candle
+                accessed: "2026-11-20"
+                level: primary
+                title: "Candle repository"
+                group: code
+              - url: https://huggingface.github.io/candle/
+                accessed: "2026-11-20"
+                level: primary
+                title: "The Candle book"
+                group: docs
+          - id: burn
+            featured: false
+            sources:
+              - url: https://github.com/tracel-ai/burn
+                accessed: "2026-11-20"
+                level: primary
+                title: "Burn repository"
+                group: code
+              - url: https://burn.dev/books/burn/
+                accessed: "2026-11-20"
+                level: primary
+                title: "The Burn book"
+                group: docs
       - id: cache
         row: 2
         chips:

@@ -51,7 +51,7 @@ def probe(url):
         for extra in ([], ["-r", "0-0"]):  # a plain GET first, then a one-byte range for servers that refuse bots on full GETs
             r = subprocess.run(["curl", "-sL", "-A", UA, "-m", "25", "-o", os.devnull, "-w", "%{http_code} %{url_effective}", *extra, url], capture_output=True, text=True)
             code, _, final = r.stdout.partition(" ")
-            if code == "200":
+            if code in ("200", "206"):   # 206: the one-byte range request worked
                 return 200, final
         return int(code) if code.isdigit() else 0, url
     for method in ("HEAD", "GET"):
