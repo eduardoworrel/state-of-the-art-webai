@@ -1,0 +1,198 @@
+#!/usr/bin/env python3
+"""Validates data/layers.yml and i18n/*.yml against SPEC.md (schema/*.json plus the rules a schema cannot express).
+
+    python3 scripts/check.py
+
+Exit code 1 if anything is wrong. Every message starts with the file and says which layer, group and chip it is about.
+Source freshness: a source read more than 180 days ago is a warning, more than 365 days ago is an error
+(set CHECK_TODAY=YYYY-MM-DD to test).
+"""
+import datetime
+import json
+import os
+import re
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT / "scripts"))
+import miniyaml  # noqa: E402
+import minischema  # noqa: E402
+
+LAYERS_FILE = "data/layers.yml"
+STATIC_KEYS = (["lang.name", "site.title", "site.tagline", "label.model", "label.person", "ui.source", "ui.accessed", "ui.language", "ui.where", "ui.legend",
+                "ui.contribute", "ui.reviewed", "ui.reviewed.short", "ui.license", "ui.theme", "ui.theme.auto", "ui.theme.light", "ui.theme.dark",
+                "ui.sources.one", "ui.sources.other", "ui.menu", "ui.opens"]
+               + [f"ui.level.{x}" for x in ("primary", "trusted", "calculation")]
+               + [f"ui.status.{x}" for x in ("proposal", "experimental", "open-question", "stable", "origin-trial", "preview")]
+               + [f"srcgroup.{x}" for x in ("docs", "spec", "code", "papers", "blog", "status")])
+PLURALS = {"zero", "one", "two", "few", "many", "other"}
+WARN_DAYS, ERROR_DAYS = 180, 365
+
+errors, warnings = [], []
+
+
+def err(file, where, msg):
+    errors.append(f"{file}: {where}: {msg}")
+
+
+def warn(file, where, msg):
+    warnings.append(f"{file}: {where}: {msg}")
+
+
+def describe(data, path):
+    """Turns $.layers[2].groups[0].chips[3].source.url into: layer 'run' > group 'cache' > chip 'opfs' > source.url"""
+    kinds = {"layers": "layer", "groups": "group", "chips": "chip", "where": "where", "sources": "source"}
+    node, label, field, last = data, [], [], ""
+    for key, idx in re.findall(r"\.([A-Za-z_]+)|\[(\d+)\]", path):
+        try:
+            node = node[key] if key else node[int(idx)]
+        except (KeyError, IndexError, TypeError):
+            field.append(key or f"[{idx}]")
+            continue
+        if key:
+            last = key
+            field.append(key)
+        else:
+            field.append(f"[{idx}]")
+        if isinstance(node, dict) and "id" in node and not key:
+            label.append(f"{kinds.get(last, 'item')} '{node['id']}'")
+            field = []
+    tail = "".join(f".{f}" if not f.startswith("[") else f for f in field).lstrip(".")
+    return " > ".join(label + ([tail] if tail else [])) or "(top level)"
+
+
+def pre_checks(data):
+    """Friendly messages for the most common mistakes, before the schema speaks."""
+    for L in data.get("layers") or []:
+        for g in (L.get("groups") or []) + ((L.get("panel") or {}).get("groups") or []):
+            for c in g.get("chips") or []:
+                where = f"layer '{L.get('id')}' > group '{g.get('id')}' > chip '{c.get('id')}'"
+                has_one, has_many = "source" in c, "sources" in c
+                if not has_one and not has_many:
+                    err(LAYERS_FILE, where, "has no source. Every chip needs `source` (one link) or `sources` (a tree of two or more links): see SPEC.md section 4")
+                if has_one and has_many:
+                    err(LAYERS_FILE, where, "has both `source` and `sources`; use only one")
+                if has_many and isinstance(c["sources"], list) and len(c["sources"]) == 1:
+                    err(LAYERS_FILE, where, "has a single entry under `sources`; use `source` for one link")
+                if has_many and isinstance(c["sources"], list):
+                    urls = [s.get("url") for s in c["sources"] if isinstance(s, dict)]
+                    if len(urls) != len(set(urls)):
+                        err(LAYERS_FILE, where, "lists the same url twice in `sources`")
+
+
+def semantic(data, today):
+    expected = set(STATIC_KEYS)
+    seen = {"layer": set(), "group": set(), "chip": set(), "where": set()}
+    numbers = set()
+    icons = {p.stem for p in (ROOT / "assets" / "icons").glob("*.svg")}
+
+    def dup(kind, i, where):
+        if i in seen[kind]:
+            err(LAYERS_FILE, where, f"duplicate {kind} id '{i}' (ids are unique across the whole file)")
+        seen[kind].add(i)
+
+    def fresh(src, where):
+        d = src.get("accessed")
+        try:
+            age = (today - datetime.date.fromisoformat(d)).days
+        except (TypeError, ValueError):
+            return  # the schema reports the format
+        if age < 0:
+            err(LAYERS_FILE, where, f"accessed {d} is in the future")
+        elif age > ERROR_DAYS:
+            err(LAYERS_FILE, where, f"source read {age} days ago ({d}): read it again and update `accessed`, or remove the chip")
+        elif age > WARN_DAYS:
+            warn(LAYERS_FILE, where, f"source read {age} days ago ({d}): due for a re-read")
+
+    def groups(gs, where, mode):
+        for g in gs:
+            gw = f"{where} > group '{g.get('id')}'"
+            dup("group", g.get("id"), gw)
+            expected.add(f"group.{g.get('id')}")
+            if mode == "rows" and "row" not in g:
+                err(LAYERS_FILE, gw, "layout 'rows' needs `row` (1 to 3)")
+            if mode == "cols" and "col" not in g:
+                err(LAYERS_FILE, gw, "needs `col` (0 to 2)")
+            for c in g.get("chips") or []:
+                cw = f"{gw} > chip '{c.get('id')}'"
+                dup("chip", c.get("id"), cw)
+                expected.update({f"chip.{c.get('id')}", f"desc.{c.get('id')}"})
+                for s in ([c["source"]] if "source" in c else []) + (c.get("sources") or []):
+                    if isinstance(s, dict):
+                        fresh(s, cw)
+
+    for L in data.get("layers") or []:
+        w = f"layer '{L.get('id')}'"
+        dup("layer", L.get("id"), w)
+        expected.update({f"layer.{L.get('id')}", f"decision.{L.get('id')}"})
+        if L.get("n") in numbers:
+            err(LAYERS_FILE, w, f"layer number n={L.get('n')} is used twice")
+        numbers.add(L.get("n"))
+        if L.get("icon") not in icons:
+            err(LAYERS_FILE, w, f"icon '{L.get('icon')}' not found in assets/icons/")
+        groups(L.get("groups") or [], w, L.get("layout"))
+        for it in L.get("where") or []:
+            ww = f"{w} > where '{it.get('id')}'"
+            dup("where", it.get("id"), ww)
+            expected.update({f"where.{it.get('id')}.name", f"where.{it.get('id')}.desc"})
+            if it.get("icon") not in icons:
+                err(LAYERS_FILE, ww, f"icon '{it.get('icon')}' not found in assets/icons/")
+            if isinstance(it.get("source"), dict):
+                fresh(it["source"], ww)
+        if L.get("panel"):
+            p = L["panel"]
+            expected.add(f"panel.{p.get('id')}")
+            if p.get("icon") not in icons:
+                err(LAYERS_FILE, f"{w} > panel", f"icon '{p.get('icon')}' not found in assets/icons/")
+            groups(p.get("groups") or [], f"{w} > panel", "cols")
+    return expected, seen
+
+
+def main():
+    today = datetime.date.fromisoformat(os.environ["CHECK_TODAY"]) if os.environ.get("CHECK_TODAY") else datetime.date.today()
+    layers_schema = json.loads((ROOT / "schema" / "layers.schema.json").read_text())
+    i18n_schema = json.loads((ROOT / "schema" / "i18n.schema.json").read_text())
+    data = miniyaml.load(ROOT / LAYERS_FILE)
+
+    pre_checks(data)
+    for path, msg in minischema.validate(data, layers_schema, layers_schema):
+        err(LAYERS_FILE, describe(data, path), msg)
+    expected, seen = semantic(data, today)
+
+    files = sorted((ROOT / "i18n").glob("*.yml"))
+    if not any(f.stem == "en" for f in files):
+        err("i18n", "(folder)", "en.yml (the reference language) is missing")
+    names = {}
+    for f in files:
+        rel, tx = f"i18n/{f.name}", miniyaml.load(f)
+        for path, msg in minischema.validate(tx, i18n_schema, i18n_schema):
+            err(rel, path.removeprefix("$."), msg)
+        for k in sorted(expected - set(tx)):
+            err(rel, k, "missing text (copy the English line from i18n/en.yml and translate it)")
+        extra = {k for k in tx if re.match(r"^ui\.sources\.(\w+)$", k) and k.rsplit(".", 1)[1] in PLURALS}
+        for k in sorted(set(tx) - expected - extra):
+            err(rel, k, "unused key (nothing in data/layers.yml refers to it; remove it)")
+        if f.stem == "en" and "ui.sources.one" not in tx:
+            err(rel, "ui.sources.one", "the reference language needs both ui.sources.one and ui.sources.other")
+        for k in ("ui.sources.one", "ui.sources.other"):
+            if k in tx and "{n}" not in tx[k]:
+                err(rel, k, "must contain the {n} placeholder")
+        if "ui.menu" in tx and "{name}" not in tx["ui.menu"]:
+            err(rel, "ui.menu", "must contain the {name} placeholder")
+        if tx.get("lang.name") in names:
+            err(rel, "lang.name", f"same as {names[tx['lang.name']]}")
+        names[tx.get("lang.name")] = rel
+
+    n_chips = len(seen["chip"])
+    for w in warnings:
+        print("warning:", w)
+    if errors:
+        print(f"{len(errors)} problem(s):")
+        print("\n".join(" - " + e for e in errors))
+        sys.exit(1)
+    print(f"ok: {len(seen['layer'])} layers, {len(seen['group'])} groups, {n_chips} chips, {len(files)} languages, spec 0.1")
+
+
+if __name__ == "__main__":
+    main()

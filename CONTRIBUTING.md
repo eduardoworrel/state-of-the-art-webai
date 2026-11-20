@@ -1,0 +1,91 @@
+# Contributing
+
+Two kinds of contribution: **content** (chips, sources) and **translation**. Both are text files; you do not need to touch the layout. The rules are in [SPEC.md](SPEC.md); this page is the short version.
+
+## Before you open a pull request
+
+```sh
+python3 scripts/check.py     # data and translations against the spec
+python3 build.py             # refreshes docs/index.html, README.md and README.pt.md
+```
+
+`check.py` names the file, the layer, the group and the chip of every problem. CI runs the same check, rebuilds, and fails if `docs/index.html`, `README.md` or `README.pt.md` change, so commit the rebuilt files.
+
+## Add or change a chip
+
+1. Find the group in `data/layers.yml` and add the chip. A chip has **one source** or **a tree of sources**:
+
+   ```yaml
+   - id: opfs                    # lowercase, digits and dashes; unique; never renamed
+     source:
+       url: https://developer.mozilla.org/en-US/docs/Web/API/File_System_API/Origin_private_file_system
+       accessed: "2026-11-19"    # the day you read the page, quoted
+       level: primary            # primary | trusted | calculation
+
+   - id: webgpu                  # two or more links: a tree, optionally with labels
+     sources:
+       - url: https://developer.mozilla.org/en-US/docs/Web/API/WebGPU_API
+         accessed: "2026-11-19"
+         level: primary
+         title: "MDN: WebGPU API"
+         group: docs             # docs | spec | code | papers | blog | status (optional)
+       - url: https://www.w3.org/TR/webgpu/
+         accessed: "2026-11-19"
+         level: primary
+         title: "W3C: WebGPU"
+         group: spec
+   ```
+
+   A chip without a source is not accepted. One link opens directly; two or more open a menu.
+
+2. Add its texts to **every** file in `i18n/`: `chip.<id>` (the name, up to 28 characters) and `desc.<id>` (one line saying what it is, 10 to 140 characters). If you only speak one language, write the English and open the pull request: the check lists what the other languages still need.
+3. Run the check and the build.
+
+### What counts as a chip
+
+A short noun phrase: a runtime, a library, a format, a technique, a browser feature, a limit or a practice. Not a product pitch, a benchmark number or an opinion.
+
+### What counts as a source
+
+| Level | Use it for |
+|---|---|
+| `primary` | The specification, the official documentation, the project README, a paper. |
+| `trusted` | An engineering post or an issue from the people who maintain the project or the browser. |
+| `calculation` | A figure that is derived (for example, parameters times bytes per parameter). Explain the arithmetic in the pull request. |
+
+The source must say what the chip and its description say. Open the page; do not cite a search result. Put the day you read it in `accessed`. A source older than 180 days earns a warning and older than 365 days fails the check: re-read it and update the date, or remove the chip.
+
+### Status
+
+If a chip is not plainly available, say so with `status`, using only what the source says that day:
+
+- `proposal`: written down, no browser or platform ships it.
+- `experimental`: behind a flag, an origin trial or a draft that vendors are testing.
+- `origin-trial`, `preview`, `stable`: only when the official page uses those words for it.
+- `open-question`: the topic matters, but there is no comparable, agreed measurement yet.
+
+Do not write "deprecated", "stable" or "supported by browser X", and do not give a version number, unless the source says it in those words. When a page gives different states for different contexts, leave `status` out and say so in the description.
+
+### Models managed by the platform
+
+Some entries are not about running a model you ship: you call an API, and the browser or the system downloads, updates and removes the model (the built-in browser APIs such as the Prompt API, AICore on Android, Foundation Models on Apple platforms). These live in **Integrate in the app** (groups *Browser API* and *Native SDK*), not in **Run**, where you bring the model. Write "the browser (or the system) manages the model". Do not write "shared between sites" unless an official page says so.
+
+### Groups, layers and icons
+
+Groups use `col` (0 or 1 in a card, 0 to 2 in the limits panel) or `row` (in the Run layer). Their text keys are `group.<id>`. A new icon is an SVG in `assets/icons/`; use `data-f` and `data-s` attributes (`ink`, `acc`, `bg`, `paper`, `edge`, `track`, `muted`) instead of colors so it follows the light and dark themes. Changes to the data model itself (new fields, new enumerations) are spec changes: see SPEC.md section 8.
+
+## Translate
+
+1. Copy `i18n/en.yml` to `i18n/<code>.yml` (for example `es.yml`).
+2. Translate the values, not the keys. Keep technology names (ONNX, WebGPU, LoRA, ...) and the `{n}` and `{name}` placeholders.
+3. Set `lang.name` to the name of the language in that language (it labels the button).
+4. For plurals, add the categories your language needs (`ui.sources.few`, `ui.sources.many`, ...); `other` is required.
+5. Run `python3 scripts/check.py`. It lists every key still missing and every text that is too long.
+
+Keep texts short: chips and group labels have little room. Test with `?lang=<code>` and look for chips that wrap.
+
+## Style
+
+- Plain words. No marketing, no superlatives.
+- One idea per chip.
+- English is the reference language: write new text there first.

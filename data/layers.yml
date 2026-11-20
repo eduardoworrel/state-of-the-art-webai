@@ -1,0 +1,771 @@
+# State of the Art of WebAI: layers, groups and chips. Format: SPEC.md (version 0.1); schema: schema/layers.schema.json
+# Texts live in i18n/<lang>.yml keyed by id. Every chip has `source` (one link) or `sources` (a tree of two or more).
+
+spec: "0.1"
+layers:
+  - id: choose
+    n: 1
+    icon: model
+    column: left
+    layout: cols
+    groups:
+      - id: start
+        col: 0
+        chips:
+          - id: open-weights
+            source:
+              url: https://huggingface.co/HuggingFaceTB/SmolLM3-3B
+              accessed: "2026-11-19"
+              level: primary
+              title: "SmolLM3-3B model card"
+          - id: short-context
+            source:
+              url: https://huggingface.co/blog/kv-cache-quantization
+              accessed: "2026-11-19"
+              level: trusted
+              title: "Hugging Face: KV cache quantization"
+      - id: adapt
+        col: 1
+        chips:
+          - id: lora
+            source:
+              url: https://arxiv.org/abs/2106.09685
+              accessed: "2026-11-19"
+              level: primary
+              title: "LoRA paper"
+          - id: qlora
+            source:
+              url: https://arxiv.org/abs/2305.14314
+              accessed: "2026-11-19"
+              level: primary
+              title: "QLoRA paper"
+          - id: distillation
+            sources:
+              - url: https://arxiv.org/abs/1503.02531
+                accessed: "2026-11-19"
+                level: primary
+                title: "Distilling the knowledge in a neural network"
+                group: papers
+              - url: https://arxiv.org/abs/1910.01108
+                accessed: "2026-11-19"
+                level: primary
+                title: "DistilBERT"
+                group: papers
+  - id: convert
+    n: 2
+    icon: bits
+    column: left
+    layout: cols
+    groups:
+      - id: format
+        col: 0
+        chips:
+          - id: onnx
+            source:
+              url: https://onnxruntime.ai/docs/tutorials/web/
+              accessed: "2026-11-19"
+              level: primary
+              title: "ONNX Runtime Web: tutorials"
+          - id: gguf
+            source:
+              url: https://github.com/ggml-org/ggml/blob/master/docs/gguf.md
+              accessed: "2026-11-19"
+              level: primary
+              title: "GGUF specification"
+          - id: mlc-format
+            source:
+              url: https://github.com/mlc-ai/web-llm
+              accessed: "2026-11-19"
+              level: primary
+              title: "WebLLM README"
+          - id: tflite
+            source:
+              url: https://ai.google.dev/edge/litert
+              accessed: "2026-11-19"
+              level: primary
+              title: "LiteRT documentation"
+          - id: coreml-format
+            source:
+              url: https://developer.apple.com/documentation/coreml
+              accessed: "2026-11-19"
+              level: primary
+              title: "Apple: Core ML"
+      - id: precision
+        col: 0
+        chips:
+          - id: fp32
+            source:
+              url: https://cloud.google.com/blog/products/ai-machine-learning/bfloat16-the-secret-to-high-performance-on-cloud-tpus
+              accessed: "2026-11-19"
+              level: trusted
+              title: "Google Cloud: bfloat16"
+          - id: fp16
+            source:
+              url: https://en.wikipedia.org/wiki/Half-precision_floating-point_format
+              accessed: "2026-11-19"
+              level: trusted
+              title: "Wikipedia: half-precision"
+          - id: bf16
+            source:
+              url: https://cloud.google.com/blog/products/ai-machine-learning/bfloat16-the-secret-to-high-performance-on-cloud-tpus
+              accessed: "2026-11-19"
+              level: trusted
+              title: "Google Cloud: bfloat16"
+          - id: int8
+            source:
+              url: https://onnxruntime.ai/docs/performance/model-optimizations/quantization.html
+              accessed: "2026-11-19"
+              level: primary
+              title: "ONNX Runtime: quantization"
+          - id: int4
+            source:
+              url: https://onnxruntime.ai/docs/performance/model-optimizations/quantization.html
+              accessed: "2026-11-19"
+              level: primary
+              title: "ONNX Runtime: quantization"
+      - id: method
+        col: 1
+        chips:
+          - id: rtn
+            source:
+              url: https://onnxruntime.ai/docs/performance/model-optimizations/quantization.html
+              accessed: "2026-11-19"
+              level: primary
+              title: "ONNX Runtime: quantization"
+          - id: gptq
+            source:
+              url: https://arxiv.org/abs/2210.17323
+              accessed: "2026-11-19"
+              level: primary
+              title: "GPTQ paper"
+          - id: awq
+            source:
+              url: https://arxiv.org/abs/2306.00978
+              accessed: "2026-11-19"
+              level: primary
+              title: "AWQ paper"
+          - id: hqq
+            source:
+              url: https://onnxruntime.ai/docs/performance/model-optimizations/quantization.html
+              accessed: "2026-11-19"
+              level: primary
+              title: "ONNX Runtime: quantization"
+          - id: nf4
+            source:
+              url: https://arxiv.org/abs/2305.14314
+              accessed: "2026-11-19"
+              level: primary
+              title: "QLoRA paper"
+          - id: k-quants
+            source:
+              url: https://github.com/ggml-org/llama.cpp/pull/1684
+              accessed: "2026-11-19"
+              level: trusted
+              title: "llama.cpp: k-quants pull request"
+          - id: qat
+            source:
+              url: https://developers.googleblog.com/en/gemma-3-quantized-aware-trained-state-of-the-art-ai-to-consumer-gpus/
+              accessed: "2026-11-19"
+              level: trusted
+              title: "Google: Gemma 3 QAT"
+      - id: in-ort
+        col: 1
+        chips:
+          - id: matmulnbits
+            source:
+              url: https://onnxruntime.ai/docs/performance/model-optimizations/quantization.html
+              accessed: "2026-11-19"
+              level: primary
+              title: "ONNX Runtime: quantization"
+      - id: kv-cache
+        col: 1
+        chips:
+          - id: kivi
+            source:
+              url: https://arxiv.org/abs/2402.02750
+              accessed: "2026-11-19"
+              level: primary
+              title: "KIVI paper"
+  - id: run
+    n: 3
+    icon: chip
+    column: center
+    layout: rows
+    groups:
+      - id: acceleration
+        row: 1
+        chips:
+          - id: webgpu
+            sources:
+              - url: https://developer.mozilla.org/en-US/docs/Web/API/WebGPU_API
+                accessed: "2026-11-19"
+                level: primary
+                title: "MDN: WebGPU API"
+                group: docs
+              - url: https://www.w3.org/TR/webgpu/
+                accessed: "2026-11-19"
+                level: primary
+                title: "W3C: WebGPU"
+                group: spec
+              - url: https://web.dev/blog/webgpu-supported-major-browsers
+                accessed: "2026-11-19"
+                level: primary
+                title: "web.dev: browser support"
+                group: status
+          - id: webassembly
+            source:
+              url: https://webassembly.org/features/
+              accessed: "2026-11-19"
+              level: primary
+              title: "WebAssembly feature support"
+          - id: webnn
+            status: experimental
+            sources:
+              - url: https://www.w3.org/TR/webnn/
+                accessed: "2026-11-19"
+                level: primary
+                title: "W3C: WebNN"
+                group: spec
+              - url: https://onnxruntime.ai/docs/tutorials/web/ep-webnn.html
+                accessed: "2026-11-19"
+                level: primary
+                title: "ONNX Runtime: WebNN execution provider"
+                group: docs
+              - url: https://developer.chrome.com/blog/chrome-146-beta
+                accessed: "2026-11-19"
+                level: primary
+                title: "Chrome: origin trial"
+                group: status
+              - url: https://github.com/mozilla/standards-positions/issues/1215
+                accessed: "2026-11-19"
+                level: primary
+                title: "Mozilla: standards position"
+                group: status
+              - url: https://github.com/WebKit/standards-positions/issues/486
+                accessed: "2026-11-19"
+                level: primary
+                title: "WebKit: standards position"
+                group: status
+          - id: npu
+            source:
+              url: https://www.w3.org/TR/webnn/
+              accessed: "2026-11-19"
+              level: primary
+              title: "W3C: WebNN"
+      - id: execution
+        row: 1
+        chips:
+          - id: web-worker
+            source:
+              url: https://developer.mozilla.org/en-US/docs/Web/API/Worker
+              accessed: "2026-11-19"
+              level: primary
+              title: "MDN: Worker"
+          - id: shared-worker
+            source:
+              url: https://developer.mozilla.org/en-US/docs/Web/API/SharedWorker
+              accessed: "2026-11-19"
+              level: primary
+              title: "MDN: SharedWorker"
+          - id: offscreen-doc
+            source:
+              url: https://developer.chrome.com/docs/extensions/reference/api/offscreen
+              accessed: "2026-11-19"
+              level: primary
+              title: "Chrome: offscreen API"
+      - id: runtime
+        row: 1
+        chips:
+          - id: onnxruntime
+            source:
+              url: https://onnxruntime.ai/
+              accessed: "2026-11-19"
+              level: primary
+              title: "ONNX Runtime"
+          - id: llamacpp
+            source:
+              url: https://github.com/ggml-org/llama.cpp
+              accessed: "2026-11-19"
+              level: primary
+              title: "llama.cpp"
+          - id: mlc-runtime
+            source:
+              url: https://github.com/mlc-ai/web-llm
+              accessed: "2026-11-19"
+              level: primary
+              title: "WebLLM README"
+          - id: litert
+            source:
+              url: https://ai.google.dev/edge/litert
+              accessed: "2026-11-19"
+              level: primary
+              title: "LiteRT documentation"
+          - id: executorch
+            source:
+              url: https://github.com/pytorch/executorch
+              accessed: "2026-11-19"
+              level: primary
+              title: "ExecuTorch"
+          - id: coreml-runtime
+            source:
+              url: https://developer.apple.com/documentation/coreml
+              accessed: "2026-11-19"
+              level: primary
+              title: "Apple: Core ML"
+      - id: cache
+        row: 2
+        chips:
+          - id: per-site-cache
+            source:
+              url: https://developer.chrome.com/blog/http-cache-partitioning
+              accessed: "2026-11-19"
+              level: primary
+              title: "Chrome: HTTP cache partitioning"
+          - id: cache-api
+            sources:
+              - url: https://developer.chrome.com/docs/ai/cache-models
+                accessed: "2026-11-19"
+                level: primary
+                title: "Chrome: cache AI models"
+                group: docs
+              - url: https://huggingface.co/docs/transformers.js/api/env
+                accessed: "2026-11-19"
+                level: primary
+                title: "Transformers.js: env"
+                group: docs
+              - url: https://onnxruntime.ai/docs/tutorials/web/large-models.html
+                accessed: "2026-11-19"
+                level: primary
+                title: "ONNX Runtime: large models"
+                group: docs
+              - url: https://raw.githubusercontent.com/mlc-ai/web-llm/main/README.md
+                accessed: "2026-11-19"
+                level: primary
+                title: "WebLLM: cacheBackend"
+                group: code
+          - id: opfs
+            source:
+              url: https://developer.mozilla.org/en-US/docs/Web/API/File_System_API/Origin_private_file_system
+              accessed: "2026-11-19"
+              level: primary
+              title: "MDN: origin private file system"
+          - id: shared-cache
+            status: proposal
+            sources:
+              - url: https://developer.chrome.com/blog/introducing-cross-origin-storage
+                accessed: "2026-11-19"
+                level: primary
+                title: "Chrome: introducing Cross-Origin Storage"
+                group: docs
+              - url: https://huggingface.co/blog/cross-origin-storage
+                accessed: "2026-11-19"
+                level: trusted
+                title: "Hugging Face: Cross-Origin Storage"
+                group: blog
+              - url: https://github.com/WICG/cross-origin-storage
+                accessed: "2026-11-19"
+                level: primary
+                title: "WICG explainer"
+                group: spec
+              - url: https://github.com/mozilla/standards-positions/issues/1427
+                accessed: "2026-11-19"
+                level: primary
+                title: "Mozilla: standards position"
+                group: status
+              - url: https://github.com/WebKit/standards-positions/issues/703
+                accessed: "2026-11-19"
+                level: primary
+                title: "WebKit: standards position"
+                group: status
+          - id: split-download
+            sources:
+              - url: https://developer.chrome.com/docs/ai/cache-models
+                accessed: "2026-11-19"
+                level: primary
+                title: "Chrome: cache AI models"
+                group: docs
+              - url: https://developer.mozilla.org/en-US/docs/Web/HTTP/Range_requests
+                accessed: "2026-11-19"
+                level: primary
+                title: "MDN: range requests"
+                group: docs
+          - id: resume-download
+            source:
+              url: https://developer.mozilla.org/en-US/docs/Web/HTTP/Range_requests
+              accessed: "2026-11-19"
+              level: primary
+              title: "MDN: range requests"
+          - id: size-budget
+            source:
+              url: https://onnxruntime.ai/docs/performance/model-optimizations/quantization.html
+              accessed: "2026-11-19"
+              level: calculation
+              title: "ONNX Runtime: quantization"
+    where:
+      - id: browser
+        icon: browser
+        source:
+          url: https://web.dev/blog/webgpu-supported-major-browsers
+          accessed: "2026-11-19"
+          level: primary
+          title: "web.dev: browser support"
+      - id: desktop
+        icon: desktop
+        source:
+          url: https://www.electronjs.org/
+          accessed: "2026-11-19"
+          level: primary
+          title: "Electron"
+      - id: mobile
+        icon: mobile
+        source:
+          url: https://github.com/pytorch/executorch
+          accessed: "2026-11-19"
+          level: primary
+          title: "ExecuTorch"
+      - id: edge
+        icon: edge
+        source:
+          url: https://www.raspberrypi.com/products/raspberry-pi-5/
+          accessed: "2026-11-19"
+          level: primary
+          title: "Raspberry Pi 5"
+    panel:
+      id: limits
+      icon: limits
+      groups:
+        - id: memory
+          col: 0
+          chips:
+            - id: wasm-4gb
+              sources:
+                - url: https://v8.dev/blog/4gb-wasm-memory
+                  accessed: "2026-11-19"
+                  level: primary
+                  title: "V8: 4 GB of Wasm memory"
+                  group: docs
+                - url: https://webassembly.org/news/2025-09-17-wasm-3.0/
+                  accessed: "2026-11-19"
+                  level: primary
+                  title: "WebAssembly 3.0"
+                  group: docs
+            - id: file-2gb
+              sources:
+                - url: https://onnxruntime.ai/docs/tutorials/web/large-models.html
+                  accessed: "2026-11-19"
+                  level: primary
+                  title: "ONNX Runtime: large models"
+                  group: docs
+                - url: https://github.com/ngxson/wllama
+                  accessed: "2026-11-19"
+                  level: primary
+                  title: "wllama README"
+                  group: code
+            - id: buffer-256mb
+              source:
+                url: https://developer.mozilla.org/en-US/docs/Web/API/GPUSupportedLimits
+                accessed: "2026-11-19"
+                level: primary
+                title: "MDN: GPUSupportedLimits"
+            - id: kv-grows
+              sources:
+                - url: https://huggingface.co/blog/kv-cache-quantization
+                  accessed: "2026-11-19"
+                  level: trusted
+                  title: "Hugging Face: KV cache quantization"
+                  group: blog
+                - url: https://developer.nvidia.com/blog/mastering-llm-techniques-inference-optimization/
+                  accessed: "2026-11-19"
+                  level: trusted
+                  title: "NVIDIA: LLM inference optimization"
+                  group: blog
+        - id: gpu
+          col: 1
+          chips:
+            - id: no-shader-f16
+              source:
+                url: https://developer.chrome.com/blog/new-in-webgpu-120
+                accessed: "2026-11-19"
+                level: primary
+                title: "Chrome: new in WebGPU 120"
+            - id: device-lost
+              sources:
+                - url: https://developer.mozilla.org/en-US/docs/Web/API/GPUDevice/lost
+                  accessed: "2026-11-19"
+                  level: primary
+                  title: "MDN: GPUDevice.lost"
+                  group: docs
+                - url: https://github.com/mlc-ai/web-llm/issues/517
+                  accessed: "2026-11-19"
+                  level: trusted
+                  title: "WebLLM issue 517"
+                  group: code
+            - id: raise-limits
+              source:
+                url: https://developer.mozilla.org/en-US/docs/Web/API/GPUAdapter/requestDevice
+                accessed: "2026-11-19"
+                level: primary
+                title: "MDN: requestDevice"
+            - id: availability
+              source:
+                url: https://web.dev/blog/webgpu-supported-major-browsers
+                accessed: "2026-11-19"
+                level: primary
+                title: "web.dev: browser support"
+        - id: disk
+          col: 2
+          chips:
+            - id: origin-quota
+              sources:
+                - url: https://developer.mozilla.org/en-US/docs/Web/API/Storage_API/Storage_quotas_and_eviction_criteria
+                  accessed: "2026-11-19"
+                  level: primary
+                  title: "MDN: quotas and eviction"
+                  group: docs
+                - url: https://web.dev/articles/storage-for-the-web
+                  accessed: "2026-11-19"
+                  level: primary
+                  title: "web.dev: storage for the web"
+                  group: docs
+            - id: eviction
+              source:
+                url: https://developer.mozilla.org/en-US/docs/Web/API/StorageManager/persist
+                accessed: "2026-11-19"
+                level: primary
+                title: "MDN: StorageManager.persist"
+            - id: persist
+              sources:
+                - url: https://developer.mozilla.org/en-US/docs/Web/API/StorageManager/persist
+                  accessed: "2026-11-19"
+                  level: primary
+                  title: "MDN: StorageManager.persist"
+                  group: docs
+                - url: https://developer.mozilla.org/en-US/docs/Web/API/Storage_API/Storage_quotas_and_eviction_criteria
+                  accessed: "2026-11-19"
+                  level: primary
+                  title: "MDN: quotas and eviction"
+                  group: docs
+        - id: isolation
+          col: 0
+          chips:
+            - id: coop-coep
+              sources:
+                - url: https://developer.mozilla.org/en-US/docs/Web/API/Window/crossOriginIsolated
+                  accessed: "2026-11-19"
+                  level: primary
+                  title: "MDN: crossOriginIsolated"
+                  group: docs
+                - url: https://onnxruntime.ai/docs/tutorials/web/env-flags-and-session-options.html
+                  accessed: "2026-11-19"
+                  level: primary
+                  title: "ONNX Runtime: env flags"
+                  group: docs
+  - id: integrate
+    n: 4
+    icon: app
+    column: right
+    layout: cols
+    groups:
+      - id: web-library
+        col: 0
+        chips:
+          - id: ort-web
+            source:
+              url: https://onnxruntime.ai/docs/tutorials/web/
+              accessed: "2026-11-19"
+              level: primary
+              title: "ONNX Runtime Web: tutorials"
+          - id: transformersjs
+            source:
+              url: https://huggingface.co/docs/transformers.js/index
+              accessed: "2026-11-19"
+              level: primary
+              title: "Transformers.js documentation"
+          - id: webllm
+            source:
+              url: https://github.com/mlc-ai/web-llm
+              accessed: "2026-11-19"
+              level: primary
+              title: "WebLLM README"
+          - id: wllama
+            source:
+              url: https://github.com/ngxson/wllama
+              accessed: "2026-11-19"
+              level: primary
+              title: "wllama README"
+          - id: tfjs
+            source:
+              url: https://github.com/tensorflow/tfjs
+              accessed: "2026-11-19"
+              level: primary
+              title: "TensorFlow.js"
+          - id: litertjs
+            source:
+              url: https://ai.google.dev/edge/litert/web
+              accessed: "2026-11-19"
+              level: primary
+              title: "LiteRT for the web"
+      - id: packaging
+        col: 0
+        chips:
+          - id: extension
+            source:
+              url: https://github.com/mlc-ai/web-llm
+              accessed: "2026-11-19"
+              level: primary
+              title: "WebLLM README"
+          - id: pwa
+            source:
+              url: https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps
+              accessed: "2026-11-19"
+              level: primary
+              title: "MDN: progressive web apps"
+      - id: experience
+        col: 0
+        chips:
+          - id: loading-screen
+            source:
+              url: https://developer.chrome.com/docs/ai/built-in
+              accessed: "2026-11-19"
+              level: primary
+              title: "Chrome: built-in AI"
+          - id: no-gpu-fallback
+            sources:
+              - url: https://huggingface.co/docs/transformers.js/guides/webgpu
+                accessed: "2026-11-19"
+                level: primary
+                title: "Transformers.js: WebGPU guide"
+                group: docs
+              - url: https://onnxruntime.ai/docs/tutorials/web/
+                accessed: "2026-11-19"
+                level: primary
+                title: "ONNX Runtime Web: tutorials"
+                group: docs
+          - id: structured-output
+            sources:
+              - url: https://arxiv.org/abs/2411.15100
+                accessed: "2026-11-19"
+                level: primary
+                title: "XGrammar paper"
+                group: papers
+              - url: https://github.com/ggml-org/llama.cpp
+                accessed: "2026-11-19"
+                level: primary
+                title: "llama.cpp: grammars"
+                group: code
+      - id: browser-api
+        col: 1
+        chips:
+          - id: prompt-api
+            sources:
+              - url: https://developer.chrome.com/docs/ai/prompt-api
+                accessed: "2026-11-19"
+                level: primary
+                title: "Chrome: Prompt API"
+                group: docs
+              - url: https://developer.chrome.com/docs/ai/understand-built-in-model-management
+                accessed: "2026-11-19"
+                level: primary
+                title: "Chrome: built-in model management"
+                group: docs
+              - url: https://developer.chrome.com/docs/ai/built-in-apis
+                accessed: "2026-11-19"
+                level: primary
+                title: "Chrome: built-in AI APIs"
+                group: docs
+          - id: summarizer
+            status: stable
+            source:
+              url: https://developer.chrome.com/docs/ai/built-in-apis
+              accessed: "2026-11-19"
+              level: primary
+              title: "Chrome: built-in AI APIs"
+          - id: translator
+            status: stable
+            source:
+              url: https://developer.chrome.com/docs/ai/built-in-apis
+              accessed: "2026-11-19"
+              level: primary
+              title: "Chrome: built-in AI APIs"
+      - id: native-sdk
+        col: 1
+        chips:
+          - id: aicore
+            source:
+              url: https://developer.android.com/ai/gemini-nano
+              accessed: "2026-11-19"
+              level: primary
+              title: "Android: Gemini Nano"
+          - id: foundation-models
+            source:
+              url: https://developer.apple.com/documentation/foundationmodels
+              accessed: "2026-11-19"
+              level: primary
+              title: "Apple: Foundation Models"
+          - id: mlkit-genai
+            source:
+              url: https://developer.android.com/ai/gemini-nano
+              accessed: "2026-11-19"
+              level: primary
+              title: "Android: Gemini Nano"
+          - id: mediapipe
+            source:
+              url: https://ai.google.dev/edge/mediapipe/solutions/genai/llm_inference
+              accessed: "2026-11-19"
+              level: primary
+              title: "MediaPipe: LLM Inference"
+          - id: litert-lm
+            sources:
+              - url: https://github.com/google-ai-edge/LiteRT-LM
+                accessed: "2026-11-19"
+                level: primary
+                title: "LiteRT-LM on GitHub"
+                group: code
+              - url: https://ai.google.dev/edge/litert-lm/overview
+                accessed: "2026-11-19"
+                level: primary
+                title: "LiteRT-LM overview"
+                group: docs
+  - id: evaluate
+    n: 5
+    icon: evaluate
+    column: right
+    layout: cols
+    groups:
+      - id: quality
+        col: 0
+        chips:
+          - id: fidelity
+            source:
+              url: https://developers.googleblog.com/en/gemma-3-quantized-aware-trained-state-of-the-art-ai-to-consumer-gpus/
+              accessed: "2026-11-19"
+              level: trusted
+              title: "Google: Gemma 3 QAT"
+          - id: op-coverage
+            source:
+              url: https://onnxruntime.ai/docs/tutorials/web/
+              accessed: "2026-11-19"
+              level: primary
+              title: "ONNX Runtime Web: tutorials"
+      - id: performance
+        col: 1
+        chips:
+          - id: energy-battery
+            status: open-question
+            sources:
+              - url: https://arxiv.org/abs/2609.11940
+                accessed: "2026-11-19"
+                level: primary
+                title: "On-device vs server energy"
+                group: papers
+              - url: https://arxiv.org/abs/2410.03613
+                accessed: "2026-11-19"
+                level: primary
+                title: "Phone battery and launch time"
+                group: papers
+          - id: background-tab
+            source:
+              url: https://developer.chrome.com/blog/timer-throttling-in-chrome-88
+              accessed: "2026-11-19"
+              level: primary
+              title: "Chrome: timer throttling"
