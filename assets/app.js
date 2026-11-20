@@ -39,7 +39,7 @@
     hideTip();
     var page = document.querySelector(".page");
     if (page) document.body.setAttribute("data-board-h", Math.ceil(page.getBoundingClientRect().height));
-    drawFlow();
+    fitBoard(); drawFlow();
   }
   document.querySelectorAll("[data-lang]").forEach(function (b) {
     b.addEventListener("click", function () {
@@ -205,15 +205,34 @@
       dot.querySelector("animateMotion").setAttribute("path", d);
     } else if (dot) { dot.remove(); }
   }
+  /* fit mode: tell the CSS the board's aspect and the room under the header; the CSS picks the scale (see style.css) */
+  var FLOOR = 7;   // px per unit: chips are about 7px at the floor; below it the page scrolls
+  function fitBoard() {
+    if (!root.classList.contains("fit") || window.innerWidth < 1081) { root.style.removeProperty("--fu"); return; }
+    var board = document.querySelector(".board"), cur = parseFloat(root.style.getPropertyValue("--fu")) || 9;
+    if (!board) return;
+    for (var i = 0; i < 4; i++) {
+      if (!board.offsetWidth) return;
+      var ar = board.offsetHeight / board.offsetWidth, top = board.getBoundingClientRect().top + window.pageYOffset;
+      var avail = Math.max(240, window.innerHeight - top - 12);                  // the footer may be below the fold; the five layers may not
+      var u = Math.max(FLOOR, Math.min(0.6 * window.innerWidth, avail / ar) / 107.5);
+      u = Math.round(u * 20) / 20;
+      if (Math.abs(u - cur) < 0.06) break;
+      cur = u; root.style.setProperty("--fu", u + "px");
+    }
+    document.body.setAttribute("data-fit", "board " + board.offsetWidth + "x" + board.offsetHeight + " unit " + cur + "px of window " + window.innerWidth + "x" + window.innerHeight);
+  }
+  window.addEventListener("resize", fitBoard);
   function applyMotion() { root.classList.toggle("motion", motionOn()); drawFlow(); }
   if (reduce && reduce.addEventListener) reduce.addEventListener("change", applyMotion);
-  if (window.ResizeObserver) { var ro = new ResizeObserver(function () { requestAnimationFrame(drawFlow); }); ro.observe(document.querySelector(".board")); }
+  if (window.ResizeObserver) { var ro = new ResizeObserver(function () { requestAnimationFrame(function () { fitBoard(); drawFlow(); }); }); ro.observe(document.querySelector(".board")); }
 
   /* ---------- start ---------- */
   applyLang(pickLang());
   applyMotion();
   window.addEventListener("load", function () {
     applyLang(lang);
+    fitBoard();
     applyMotion();
     var want = q.get("open"), tipFor = q.get("tip");  // deep links, handy for screenshots
     if (want) { var b = document.querySelector('[data-id="' + want + '"]'); if (b && b.dataset.kind === "tree") open(b, false); }

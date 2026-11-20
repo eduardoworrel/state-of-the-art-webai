@@ -6,7 +6,7 @@ It is an awesome list and a landscape in one picture. Every chip is a technology
 
 ![The five layers of WebAI](docs/figure-en.png)
 
-**Live page:** `docs/index.html` (static; switch language with the buttons or `?lang=pt`, theme with the sun and moon buttons). [Português](README.pt.md).
+**Live page:** `docs/index.html` (scaled to fit the window; `?fit=0` for the full-size layout; static; switch language with the buttons or `?lang=pt`, theme with the sun and moon buttons). [Português](README.pt.md).
 
 ## How it works
 

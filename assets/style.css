@@ -98,7 +98,7 @@ html.export .page { padding: 20px; max-width: none; }
 .cols3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: calc(var(--u) * 1.2) calc(var(--u) * 1.4); align-items: start; }
 .gcol { display: flex; flex-direction: column; gap: calc(var(--u) * 1.15); min-width: 0; }
 .grow { display: grid; gap: calc(var(--u) * 1.2) calc(var(--u) * 1.5); align-items: start; }
-.grow.n3 { grid-template-columns: repeat(3, minmax(0, 1fr)); } .grow.n1 { grid-template-columns: minmax(0, 1fr); }
+.grow.n2 { grid-template-columns: repeat(2, minmax(0, 1fr)); } .grow.n3 { grid-template-columns: repeat(3, minmax(0, 1fr)); } .grow.n1 { grid-template-columns: minmax(0, 1fr); }
 .group { min-width: 0; }
 .group h3 { margin: 0 0 calc(var(--u) * 0.6); font-size: calc(var(--u) * 0.78); letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
 .chips { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: calc(var(--u) * 0.6) calc(var(--u) * 0.45); }
@@ -198,13 +198,33 @@ html.export .page { padding: 20px; max-width: none; }
 .pop[data-alert] [role="group"] { border-top-color: var(--edge); }
 #tip .pop-head { padding: 5px 8px; } #tip .pop-alert { margin: 2px 0 0; padding: 5px 8px; }
 
-/* demo (docs/index.html): the whole board fits a laptop screen. The repo and the PNG export use the full layout (?export=1 or ?fit=0). */
-@media (min-width: 881px) {
-  html.fit .page { max-width: 1360px; padding-top: 18px; padding-bottom: 28px; }
-  html.fit .board { --u: clamp(9.5px, 0.82vw, 12.2px); }
-  html.fit .top { margin-bottom: 18px; }
-  html.fit .top h1 { font-size: clamp(20px, 2.2vw, 26px); }
-  html.fit .top p { font-size: 14px; }
+/* demo (docs/index.html, fit mode): the whole board is scaled by ONE variable, --fu, so that it takes about 60% of the window width and
+   fits the window height (the five layers visible without scrolling). The board keeps a fixed width/size ratio (107.5 units), so it behaves like
+   a picture: the layout never changes, only the scale. app.js measures the board's aspect and the room under the header and sets --fu.
+   Below the floor (7px per unit, set in app.js) it stops shrinking and the page scrolls. ?fit=0 and the PNG export keep the full layout.
+   Menus and previews are in px: they stay readable at any scale. */
+@media (min-width: 1081px) {
+  html.fit { --fu: clamp(8px, 0.62vw, 12px); }   /* without JS; app.js sets --fu from the window size */
+  html.fit .page { max-width: none; width: calc(var(--fu) * 107.5); padding: 14px 0 18px; margin: 0 auto; }
+  html.fit .board { --u: var(--fu); }
+  html.fit .top { margin-bottom: 8px; align-items: center; flex-wrap: nowrap; }
+  html.fit .top > div:first-child { flex: 1 1 auto; min-width: 0; }
+  html.fit .tools { flex: none; }
+  html.fit .top h1 { font-size: 22px; margin-bottom: 2px; }
+  html.fit .top p { font-size: 13px; max-width: none; }
+  html.fit .chip em { font-size: max(5.5px, 0.62em); }
+  html.fit .foot { margin-top: 12px; font-size: 12px; }
+}
+/* between 881 and 1080 px the scaled board would be below the legible size: use the one-column layout here too */
+@media (min-width: 881px) and (max-width: 1080px) {
+  html.fit .board { --u: 14px; display: flex; flex-direction: column; gap: calc(var(--u) * 1.3); position: relative; padding-right: calc(var(--u) * 0.8); }
+  html.fit .board::before { content: ""; position: absolute; z-index: 1; top: calc(var(--u) * -0.8); bottom: calc(var(--u) * -0.8); left: calc(var(--lx) - var(--lw) / 2);
+    border-left: var(--lw) dashed var(--acc); pointer-events: none; }
+  html.fit .col { display: contents; }
+  html.fit .turn { display: none; }
+  html.fit .card { flex: none; }
+  html.fit .where-grid, html.fit .grow.n3, html.fit .cols3 { grid-template-columns: 1fr 1fr; }
+  html.fit .page { padding: 20px 14px 32px; }
 }
 .pop .m time { white-space: nowrap; }
 

@@ -320,7 +320,7 @@ CI runs `python3 scripts/check.py`, then `python3 build.py`, and fails if `docs/
 - **Preview.** With a mouse (or keyboard focus) a chip shows a short preview: name, status, the one-line description, review date, number of sources and, if there is one, the alert (title, detail, day observed). It never takes the pointer (it does not hide the neighbouring chip from the mouse), opens under the chip or above it when there is no room, and stays inside the screen. The menu opened by click or tap has the same head and alert, then the evidence and the sources; when it does not fit it scrolls inside and never covers its own chip.
 - **Themes.** Automatic (follows the system), light or dark. The choice is remembered in `localStorage` (the page works without it).
 - **Motion.** Decoration only. The model line and the "Where it runs" icons may move; no information depends on it. Off with `prefers-reduced-motion`, `?motion=0` and in the PNG export (`?export=1`).
-- **Demo width.** `docs/index.html` limits the board to fit a laptop screen. `?fit=0` and the PNG export keep the full layout.
+- **Demo scale.** `docs/index.html` scales the whole board by one variable so that it takes about 60% of the window width and the five layers fit the window height without scrolling (from 1081 px wide; below that, and on phones, the one-column layout). The board keeps a fixed size ratio, so the layout never changes, only the scale; below a floor of 7 px per unit the scale stops and the page scrolls. Menus and previews keep a fixed, readable size at any scale. `?fit=0` and the PNG export keep the full-size layout.
 
 ## Decisions waiting for approval (0.4)
 
@@ -336,3 +336,4 @@ CI runs `python3 scripts/check.py`, then `python3 build.py`, and fails if `docs/
 - **0.3** (2026-11-20): optional `alert` on a chip (`level`, `kind`, `observed`, `evidence`; text `alert.<chip id>`), separate from `status`; alert colours, marker and preview; hover preview now carries the description and the alert; `linkcheck.py` reports alert evidence. Migration: none for existing data besides `spec: "0.3"`.
 - **0.4** (2026-11-20): optional `featured` on a chip (off the figure, in the README "Also exists" list); `quant-tools` and `export-tools` groups; quoted words inside an alert text are not treated as our conclusion. Migration: `spec: "0.4"`.
 - **0.4** (2026-11-20, addendum): decorative motion (SVG model line, `?motion=0`, reduced motion respected); no data change.
+- **0.4** (2026-11-20, addendum): demo scale-to-fit; the Run layer's Runtime group moved to its own row (`row: 2`, Cache `row: 3`) and KV cache to the first column; no rule change.

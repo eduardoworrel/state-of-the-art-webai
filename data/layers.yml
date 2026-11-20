@@ -524,7 +524,7 @@ layers:
                 title: "ExecuTorch repository"
                 group: code
       - id: kv-cache
-        col: 1
+        col: 0
         chips:
           - id: kivi
             sources:
@@ -656,7 +656,7 @@ layers:
                 title: "Chrome: offscreen documents"
                 group: blog
       - id: runtime
-        row: 1
+        row: 2
         chips:
           - id: onnxruntime
             alert:
@@ -838,7 +838,7 @@ layers:
                 title: "The Burn book"
                 group: docs
       - id: cache
-        row: 2
+        row: 3
         chips:
           - id: per-site-cache
             sources:

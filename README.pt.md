@@ -6,7 +6,7 @@ Um mapa de tudo o que existe entre um modelo e uma pessoa quando o modelo roda n
 
 ![As cinco camadas do WebAI](docs/figure-pt.png)
 
-**Página:** `docs/index.html` (estática; troque o idioma pelos botões ou `?lang=pt`, e o tema pelos botões de sol e lua). [English](README.md).
+**Página:** `docs/index.html` (ajustada à janela; `?fit=0` para o tamanho cheio; estática; troque o idioma pelos botões ou `?lang=pt`, e o tema pelos botões de sol e lua). [English](README.md).
 
 ## Como funciona
 
