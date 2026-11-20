@@ -34,6 +34,10 @@ Python 3.10+ is enough (PyYAML is used if installed, otherwise a tiny built-in r
 
 Add a chip, fix a source, or translate the whole map. See [CONTRIBUTING.md](CONTRIBUTING.md). The short version: no chip without a source, and every text lives in `i18n/`.
 
+## Motion
+
+The dashed model line marches along its path and a small dot travels it; the four "Where it runs" items rise in, lift on hover and focus, and each icon has a small motion of its own. It is decoration only: nothing depends on it. It is off when the system asks for reduced motion, with `?motion=0`, and in the PNG export. It is plain CSS and SVG, no library.
+
 ## Open items
 
 Chips waiting for a good source (two are needed): base model, narrow task, per-device measurement, regression tests, streaming, and **MatMulNBits** (the ONNX Runtime int4 operator: today only the quantization page documents it; a second primary page is missing). Left out after checking: mistral.rs (its README shows no browser, phone or edge target) and a Transformers.js convert script (its docs now recommend Optimum). Pull requests with sources are welcome.

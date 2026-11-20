@@ -100,6 +100,10 @@ Groups use `col` (0 or 1 in a card, 0 to 2 in the limits panel) or `row` (in the
 
 Keep texts short: chips and group labels have little room. Test with `?lang=<code>` and look for chips that wrap.
 
+## Motion
+
+The page has small motions (the model line, the dot on it, the "Where it runs" items and their icons). They are decoration only: never put information in a motion, and a new icon must look right and say the same when still. Motion is driven by the `motion` class that `assets/app.js` sets on `<html>`, only when the system does not ask for reduced motion, `?motion=0` is absent and the page is not exported. To add a motion to an icon, tag the part with a class (for example `m-led1`) and write the keyframes under `html.motion` in `assets/style.css`; nothing else.
+
 ## Style
 
 - Plain words. No marketing, no superlatives.

@@ -31,6 +31,10 @@ python3 export.py          # docs/figure-<idioma>.png (precisa de Chrome ou Chro
 
 Adicione um chip, corrija uma fonte ou traduza o mapa inteiro. Veja o [CONTRIBUTING.md](CONTRIBUTING.md) (em inglês). Em resumo: nenhum chip com menos de duas fontes, e todo texto fica em `i18n/`. Para um idioma novo, copie `i18n/en.yml` para `i18n/<idioma>.yml` e traduza os valores; `python3 scripts/check.py` lista o que falta.
 
+## Movimento
+
+A linha tracejada do modelo anda pelo caminho e um pontinho a percorre; os quatro itens de "Onde roda" entram em sequência, sobem no hover e no foco, e cada ícone tem um movimento discreto. É só decoração: nenhuma informação depende dele. Fica desligado quando o sistema pede menos movimento, com `?motion=0` e no PNG exportado. É só CSS e SVG, sem biblioteca.
+
 ## Itens em aberto
 
 Chips que aguardam boas fontes (são necessárias duas): modelo base, tarefa estreita, medida por aparelho, testes de regressão, streaming e **MatMulNBits** (o operador int4 do ONNX Runtime: hoje só a página de quantização o documenta; falta uma segunda página primária). Ficaram de fora depois de conferir: mistral.rs (o README não mostra alvo de navegador, celular ou borda) e um script de conversão do Transformers.js (a documentação agora recomenda o Optimum). Pull requests com fontes são bem-vindos.

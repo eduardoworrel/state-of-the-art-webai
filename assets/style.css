@@ -48,6 +48,7 @@ html.export .page { padding: 20px; max-width: none; }
 
 /* board */
 .board {
+  position: relative;
   --u: clamp(10px, 0.9vw, 14.4px); --gc: calc(var(--u) * 1.9); --rowv: calc(var(--u) * 4); --lw: 2.5px;
   --lx: calc(var(--u) * 1.8); --r: calc(var(--u) * 1.5);
   display: grid; grid-template-columns: 600fr 860fr 600fr; column-gap: var(--gc); grid-template-rows: var(--rowv) auto var(--rowv);
@@ -206,3 +207,31 @@ html.export .page { padding: 20px; max-width: none; }
   html.fit .top p { font-size: 14px; }
 }
 .pop .m time { white-space: nowrap; }
+
+/* the model line (drawn by app.js as one SVG path) and the small motions. Motion is decoration only: nothing depends on it. */
+svg.flow { position: absolute; left: 0; top: 0; z-index: 1; pointer-events: none; overflow: visible; }
+.fl-path { fill: none; stroke: var(--acc); stroke-width: 2.5; stroke-dasharray: 9 7; }
+.fl-dot circle { fill: var(--acc); } .fl-dot .halo { opacity: 0.22; }
+html.flow .col::before, html.flow .board::before { display: none; }
+html.flow .turn { border-color: transparent !important; }
+.where-item:nth-child(2) { --i: 1; } .where-item:nth-child(3) { --i: 2; } .where-item:nth-child(4) { --i: 3; }
+@keyframes march { to { stroke-dashoffset: -16; } }
+@keyframes wi-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes blink { 50% { opacity: 0; } }
+@keyframes glow { from { opacity: 0.78; } to { opacity: 1; } }
+@keyframes ring { 0% { opacity: 0.75; transform: scale(1); } 70%, 100% { opacity: 0; transform: scale(3.4); } }
+@keyframes led { 0% { opacity: 1; } 50% { opacity: 0.22; } }
+html.motion .fl-path { animation: march 1.8s linear infinite; }
+html.motion .where-item { animation: wi-in 0.55s cubic-bezier(0.2, 0.7, 0.2, 1) both; animation-delay: calc(var(--i, 0) * 140ms + 200ms); }
+html.motion .where-item .glyph { transition: transform 0.18s ease; }
+html.motion .where-item:hover .glyph, html.motion .where-item:focus-within .glyph { transform: translateY(-3px) scale(1.07); }
+html.motion .where-item .m-cursor { animation: blink 1.1s steps(1) infinite; animation-delay: calc(var(--i, 0) * 0.3s); }
+html.motion .where-item .m-glow { animation: glow 3.2s ease-in-out infinite alternate; }
+html.motion .where-item .m-pulse { animation: glow 2.4s ease-in-out infinite alternate; }
+html.motion .where-item .m-ring { transform-box: fill-box; transform-origin: center; animation: ring 2.8s ease-out infinite; }
+html.motion .where-item .m-led1 { animation: led 1.6s steps(1) infinite; }
+html.motion .where-item .m-led2 { animation: led 1.6s steps(1) infinite 0.5s; }
+@media (prefers-reduced-motion: reduce) {
+  .fl-path, .where-item, .where-item * { animation: none !important; transition: none !important; }
+  .fl-dot { display: none; }
+}

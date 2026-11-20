@@ -39,6 +39,7 @@
     hideTip();
     var page = document.querySelector(".page");
     if (page) document.body.setAttribute("data-board-h", Math.ceil(page.getBoundingClientRect().height));
+    drawFlow();
   }
   document.querySelectorAll("[data-lang]").forEach(function (b) {
     b.addEventListener("click", function () {
@@ -163,10 +164,57 @@
   var lastW = window.innerWidth;
   window.addEventListener("resize", function () { if (window.innerWidth !== lastW) { lastW = window.innerWidth; close(false); hideTip(); } });  // phones resize when the address bar hides
 
+  /* ---------- the model line: one SVG path over the board; it marches (dash offset) and carries a small dot when motion is on.
+     Motion is decoration only: off with prefers-reduced-motion, with ?motion=0, and in the PNG export. ---------- */
+  var NS = "http://www.w3.org/2000/svg", reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)");
+  function motionOn() { return !root.classList.contains("export") && q.get("motion") !== "0" && !(reduce && reduce.matches); }
+  function drawFlow() {
+    var board = document.querySelector(".board");
+    if (!board) return;
+    var b = board.getBoundingClientRect(), W = Math.round(b.width), H = Math.round(b.height);
+    var svg = board.querySelector("svg.flow");
+    if (!svg) {
+      svg = document.createElementNS(NS, "svg"); svg.setAttribute("class", "flow"); svg.setAttribute("aria-hidden", "true");
+      svg.appendChild(document.createElementNS(NS, "path")).setAttribute("class", "fl-path");
+      board.appendChild(svg);
+    }
+    svg.setAttribute("width", W); svg.setAttribute("height", H); svg.setAttribute("viewBox", "0 0 " + W + " " + H);
+    function cx(sel) { var e = board.querySelector(sel); if (!e) return null; var r = e.getBoundingClientRect(); return r.left + r.width / 2 - b.left; }
+    var xa = cx(".col.left .badge"), d;
+    if (getComputedStyle(board).display === "flex") {                       // phone: a straight line down the left edge
+      d = "M" + xa + ",0 L" + xa + "," + H;
+    } else {
+      var xb = cx(".col.center .badge"), xc = cx(".col.right .badge"), t2 = board.querySelector(".t2"), b1 = board.querySelector(".b1");
+      if (xa == null || xb == null || xc == null || !t2 || !b1) return;
+      var yt = t2.getBoundingClientRect().top - b.top, yb = b1.getBoundingClientRect().bottom - b.top;
+      var r = parseFloat(getComputedStyle(t2).borderTopLeftRadius) || 20;
+      d = "M" + xa + ",0 L" + xa + "," + (yb - r) + " Q" + xa + "," + yb + " " + (xa + r) + "," + yb + " L" + (xb - r) + "," + yb + " Q" + xb + "," + yb + " " + xb + "," + (yb - r) +
+          " L" + xb + "," + (yt + r) + " Q" + xb + "," + yt + " " + (xb + r) + "," + yt + " L" + (xc - r) + "," + yt + " Q" + xc + "," + yt + " " + xc + "," + (yt + r) + " L" + xc + "," + H;
+    }
+    svg.querySelector(".fl-path").setAttribute("d", d);
+    root.classList.add("flow");
+    var dot = svg.querySelector(".fl-dot");
+    if (motionOn()) {
+      if (!dot) {
+        dot = document.createElementNS(NS, "g"); dot.setAttribute("class", "fl-dot");
+        var h = dot.appendChild(document.createElementNS(NS, "circle")); h.setAttribute("class", "halo"); h.setAttribute("r", 9);
+        dot.appendChild(document.createElementNS(NS, "circle")).setAttribute("r", 4.5);
+        var m = dot.appendChild(document.createElementNS(NS, "animateMotion")); m.setAttribute("dur", "18s"); m.setAttribute("repeatCount", "indefinite");
+        svg.appendChild(dot);
+      }
+      dot.querySelector("animateMotion").setAttribute("path", d);
+    } else if (dot) { dot.remove(); }
+  }
+  function applyMotion() { root.classList.toggle("motion", motionOn()); drawFlow(); }
+  if (reduce && reduce.addEventListener) reduce.addEventListener("change", applyMotion);
+  if (window.ResizeObserver) { var ro = new ResizeObserver(function () { requestAnimationFrame(drawFlow); }); ro.observe(document.querySelector(".board")); }
+
   /* ---------- start ---------- */
   applyLang(pickLang());
+  applyMotion();
   window.addEventListener("load", function () {
     applyLang(lang);
+    applyMotion();
     var want = q.get("open"), tipFor = q.get("tip");  // deep links, handy for screenshots
     if (want) { var b = document.querySelector('[data-id="' + want + '"]'); if (b && b.dataset.kind === "tree") open(b, false); }
     if (tipFor) { var c = document.querySelector('[data-id="' + tipFor + '"]'); if (c) showTip(c); }
