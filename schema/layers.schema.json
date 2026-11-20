@@ -2,99 +2,276 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://example.invalid/state-of-the-art-webai/schema/layers.schema.json",
   "title": "State of the Art of WebAI: data/layers.yml",
-  "description": "Spec version 0.1. See SPEC.md.",
+  "description": "Spec version 0.2. See SPEC.md.",
   "type": "object",
-  "required": ["spec", "layers"],
+  "required": [
+    "spec",
+    "layers"
+  ],
   "additionalProperties": false,
   "properties": {
-    "spec": { "const": "0.1", "description": "Version of the spec this file follows." },
-    "layers": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/layer" } }
+    "spec": {
+      "const": "0.2",
+      "description": "Version of the spec this file follows."
+    },
+    "layers": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/layer"
+      }
+    }
   },
   "$defs": {
-    "id": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$", "minLength": 2, "maxLength": 40 },
-    "date": { "type": "string", "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$" },
-    "url": { "type": "string", "pattern": "^https://[^\\s]+$", "maxLength": 300 },
-    "level": { "enum": ["primary", "trusted", "calculation"] },
-    "status": { "enum": ["proposal", "experimental", "open-question", "stable", "origin-trial", "preview"] },
-    "sourceGroup": { "enum": ["docs", "spec", "code", "papers", "blog", "status"] },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+      "minLength": 2,
+      "maxLength": 40
+    },
+    "date": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$"
+    },
+    "url": {
+      "type": "string",
+      "pattern": "^https://[^\\s]+$",
+      "maxLength": 300
+    },
+    "level": {
+      "enum": [
+        "primary",
+        "trusted",
+        "calculation"
+      ]
+    },
+    "status": {
+      "enum": [
+        "proposal",
+        "experimental",
+        "open-question",
+        "stable",
+        "origin-trial",
+        "preview"
+      ]
+    },
+    "sourceGroup": {
+      "enum": [
+        "docs",
+        "spec",
+        "code",
+        "papers",
+        "blog",
+        "status"
+      ]
+    },
     "source": {
       "type": "object",
-      "required": ["url", "accessed", "level"],
+      "required": [
+        "url",
+        "accessed",
+        "level"
+      ],
       "additionalProperties": false,
       "properties": {
-        "url": { "$ref": "#/$defs/url" },
-        "accessed": { "$ref": "#/$defs/date" },
-        "level": { "$ref": "#/$defs/level" },
-        "title": { "type": "string", "minLength": 2, "maxLength": 60 }
+        "url": {
+          "$ref": "#/$defs/url"
+        },
+        "accessed": {
+          "$ref": "#/$defs/date"
+        },
+        "level": {
+          "$ref": "#/$defs/level"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 60
+        }
       }
     },
     "treeSource": {
       "type": "object",
-      "required": ["url", "accessed", "level", "title"],
+      "required": [
+        "url",
+        "accessed",
+        "level",
+        "title"
+      ],
       "additionalProperties": false,
       "properties": {
-        "url": { "$ref": "#/$defs/url" },
-        "accessed": { "$ref": "#/$defs/date" },
-        "level": { "$ref": "#/$defs/level" },
-        "title": { "type": "string", "minLength": 2, "maxLength": 60 },
-        "group": { "$ref": "#/$defs/sourceGroup" }
+        "url": {
+          "$ref": "#/$defs/url"
+        },
+        "accessed": {
+          "$ref": "#/$defs/date"
+        },
+        "level": {
+          "$ref": "#/$defs/level"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 60
+        },
+        "group": {
+          "$ref": "#/$defs/sourceGroup"
+        }
       }
     },
     "chip": {
       "type": "object",
-      "required": ["id"],
+      "required": [
+        "id",
+        "sources"
+      ],
       "additionalProperties": false,
       "properties": {
-        "id": { "$ref": "#/$defs/id" },
-        "status": { "$ref": "#/$defs/status" },
-        "source": { "$ref": "#/$defs/source" },
-        "sources": { "type": "array", "minItems": 2, "maxItems": 12, "items": { "$ref": "#/$defs/treeSource" } }
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "status": {
+          "$ref": "#/$defs/status"
+        },
+        "sources": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 12,
+          "items": {
+            "$ref": "#/$defs/treeSource"
+          },
+          "description": "At least two sources with distinct urls; preferably from different groups."
+        }
       }
     },
     "group": {
       "type": "object",
-      "required": ["id", "chips"],
+      "required": [
+        "id",
+        "chips"
+      ],
       "additionalProperties": false,
       "properties": {
-        "id": { "$ref": "#/$defs/id" },
-        "col": { "type": "integer", "minimum": 0, "maximum": 2 },
-        "row": { "type": "integer", "minimum": 1, "maximum": 3 },
-        "chips": { "type": "array", "minItems": 1, "maxItems": 12, "items": { "$ref": "#/$defs/chip" } }
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "col": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 2
+        },
+        "row": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 3
+        },
+        "chips": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 12,
+          "items": {
+            "$ref": "#/$defs/chip"
+          }
+        }
       }
     },
     "where": {
       "type": "object",
-      "required": ["id", "icon", "source"],
+      "required": [
+        "id",
+        "icon",
+        "source"
+      ],
       "additionalProperties": false,
       "properties": {
-        "id": { "$ref": "#/$defs/id" },
-        "icon": { "$ref": "#/$defs/id" },
-        "source": { "$ref": "#/$defs/source" }
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "icon": {
+          "$ref": "#/$defs/id"
+        },
+        "source": {
+          "$ref": "#/$defs/source"
+        }
       }
     },
     "panel": {
       "type": "object",
-      "required": ["id", "icon", "groups"],
+      "required": [
+        "id",
+        "icon",
+        "groups"
+      ],
       "additionalProperties": false,
       "properties": {
-        "id": { "$ref": "#/$defs/id" },
-        "icon": { "$ref": "#/$defs/id" },
-        "groups": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/group" } }
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "icon": {
+          "$ref": "#/$defs/id"
+        },
+        "groups": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/group"
+          }
+        }
       }
     },
     "layer": {
       "type": "object",
-      "required": ["id", "n", "icon", "column", "layout", "groups"],
+      "required": [
+        "id",
+        "n",
+        "icon",
+        "column",
+        "layout",
+        "groups"
+      ],
       "additionalProperties": false,
       "properties": {
-        "id": { "$ref": "#/$defs/id" },
-        "n": { "type": "integer", "minimum": 1, "maximum": 20 },
-        "icon": { "$ref": "#/$defs/id" },
-        "column": { "enum": ["left", "center", "right"] },
-        "layout": { "enum": ["cols", "rows"] },
-        "groups": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/group" } },
-        "where": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/where" } },
-        "panel": { "$ref": "#/$defs/panel" }
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "n": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 20
+        },
+        "icon": {
+          "$ref": "#/$defs/id"
+        },
+        "column": {
+          "enum": [
+            "left",
+            "center",
+            "right"
+          ]
+        },
+        "layout": {
+          "enum": [
+            "cols",
+            "rows"
+          ]
+        },
+        "groups": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/group"
+          }
+        },
+        "where": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/where"
+          }
+        },
+        "panel": {
+          "$ref": "#/$defs/panel"
+        }
       }
     }
   }

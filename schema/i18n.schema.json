@@ -2,25 +2,89 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://example.invalid/state-of-the-art-webai/schema/i18n.schema.json",
   "title": "State of the Art of WebAI: i18n/<lang>.yml",
-  "description": "Spec version 0.1. One flat map of key to text. Which keys must exist is checked against data/layers.yml by scripts/check.py; this schema fixes the key families and the length limits.",
+  "description": "Spec version 0.2. One flat map of key to text. Which keys must exist is checked against data/layers.yml by scripts/check.py; this schema fixes the key families and the length limits.",
   "type": "object",
-  "required": ["lang.name", "site.title", "site.tagline", "ui.sources.other"],
-  "propertyNames": { "type": "string", "maxLength": 80 },
+  "required": [
+    "lang.name",
+    "site.title",
+    "site.tagline",
+    "ui.sources.other"
+  ],
+  "propertyNames": {
+    "type": "string",
+    "maxLength": 80
+  },
   "patternProperties": {
-    "^lang\\.name$": { "type": "string", "minLength": 2, "maxLength": 30 },
-    "^site\\.title$": { "type": "string", "minLength": 1, "maxLength": 60 },
-    "^site\\.tagline$": { "type": "string", "minLength": 1, "maxLength": 220 },
-    "^(label)\\.[a-z]+$": { "type": "string", "minLength": 1, "maxLength": 20 },
-    "^layer\\.[a-z0-9-]+$": { "type": "string", "minLength": 1, "maxLength": 30 },
-    "^decision\\.[a-z0-9-]+$": { "type": "string", "minLength": 1, "maxLength": 40 },
-    "^panel\\.[a-z0-9-]+$": { "type": "string", "minLength": 1, "maxLength": 24 },
-    "^group\\.[a-z0-9-]+$": { "type": "string", "minLength": 1, "maxLength": 24 },
-    "^chip\\.[a-z0-9-]+$": { "type": "string", "minLength": 1, "maxLength": 28 },
-    "^desc\\.[a-z0-9-]+$": { "type": "string", "minLength": 10, "maxLength": 140 },
-    "^where\\.[a-z0-9-]+\\.name$": { "type": "string", "minLength": 1, "maxLength": 20 },
-    "^where\\.[a-z0-9-]+\\.desc$": { "type": "string", "minLength": 1, "maxLength": 60 },
-    "^srcgroup\\.[a-z0-9-]+$": { "type": "string", "minLength": 1, "maxLength": 20 },
-    "^ui\\.[a-z0-9.-]+$": { "type": "string", "minLength": 1, "maxLength": 220 }
+    "^lang\\.name$": {
+      "type": "string",
+      "minLength": 2,
+      "maxLength": 30
+    },
+    "^site\\.title$": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 60
+    },
+    "^site\\.tagline$": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 220
+    },
+    "^(label)\\.[a-z]+$": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 20
+    },
+    "^layer\\.[a-z0-9-]+$": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 30
+    },
+    "^decision\\.[a-z0-9-]+$": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 40
+    },
+    "^panel\\.[a-z0-9-]+$": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 24
+    },
+    "^group\\.[a-z0-9-]+$": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 24
+    },
+    "^chip\\.[a-z0-9-]+$": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 28
+    },
+    "^desc\\.[a-z0-9-]+$": {
+      "type": "string",
+      "minLength": 10,
+      "maxLength": 140
+    },
+    "^where\\.[a-z0-9-]+\\.name$": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 20
+    },
+    "^where\\.[a-z0-9-]+\\.desc$": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 60
+    },
+    "^srcgroup\\.[a-z0-9-]+$": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 20
+    },
+    "^ui\\.[a-z0-9.-]+$": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 220
+    }
   },
   "additionalProperties": false
 }

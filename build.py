@@ -61,16 +61,12 @@ def popover(c, tx, pid):
 
 
 def chip(c, tx):
-    srcs = c["sources"] if "sources" in c else [c["source"]]
+    srcs = c["sources"]
     cid, name, status = c["id"], escape(tx[f"chip.{c['id']}"]), c.get("status")
     tag = f'<em class="tag" data-t="ui.status.{status}">{escape(tx[f"ui.status.{status}"])}</em>' if status else ""
     date = max(s["accessed"] for s in srcs)
     attrs = f'data-id="{cid}" data-n="{len(srcs)}" data-date="{date}"' + (f' data-status="{status}"' if status else "")
     label = f'<span class="n" data-t="chip.{cid}">{name}</span>{tag}'
-    if len(srcs) == 1:
-        s = srcs[0]
-        return (f'<li><a class="chip" href="{escape(s["url"])}" target="_blank" rel="noopener" data-kind="link" {attrs} '
-                f'data-host="{escape(host(s["url"]))}" data-level="{s["level"]}">{label}</a></li>')
     pid = f"pop-{cid}"
     return (f'<li><button type="button" class="chip" data-kind="tree" aria-haspopup="menu" aria-expanded="false" aria-controls="{pid}" {attrs}>{label}{CARET}</button>'
             f'{popover(c, tx, pid)}</li>')
@@ -127,7 +123,7 @@ def main():
     layers = miniyaml.load(ROOT / "data" / "layers.yml")["layers"]
     cols = {k: "".join(card(L, tx) for L in layers if L["column"] == k) for k in ("left", "center", "right")}
     all_groups = [g for L in layers for g in L["groups"] + (L.get("panel") or {}).get("groups", [])]
-    reviewed = max(s["accessed"] for g in all_groups for c in g["chips"] for s in (c["sources"] if "sources" in c else [c["source"]]))
+    reviewed = max(s["accessed"] for g in all_groups for c in g["chips"] for s in c["sources"])
     buttons = "".join(f'<button type="button" data-lang="{k}" aria-pressed="{str(k == DEFAULT).lower()}">{escape(v["lang.name"])}</button>' for k, v in langs.items())
     themes = "".join(f'<button type="button" data-theme-choice="{k}" aria-pressed="{str(k == "auto").lower()}" aria-label="{escape(tx["ui.theme." + k])}" data-al="ui.theme.{k}" '
                      f'title="{escape(tx["ui.theme." + k])}" data-tl="ui.theme.{k}">{THEME_ICONS[k]}</button>' for k in ("auto", "light", "dark"))

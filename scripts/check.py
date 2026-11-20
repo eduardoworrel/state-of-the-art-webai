@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Validates data/layers.yml and i18n/*.yml against SPEC.md (schema/*.json plus the rules a schema cannot express).
 
-    python3 scripts/check.py
+    python3 scripts/check.py [--verbose]
 
 Exit code 1 if anything is wrong. Every message starts with the file and says which layer, group and chip it is about.
 Source freshness: a source read more than 180 days ago is a warning, more than 365 days ago is an error
@@ -64,21 +64,28 @@ def describe(data, path):
 
 def pre_checks(data):
     """Friendly messages for the most common mistakes, before the schema speaks."""
+    if isinstance(data, dict) and data.get("spec") not in (None, "0.2"):
+        err(LAYERS_FILE, "spec", f"declares spec {data.get('spec')!r}; this checker implements 0.2 (see SPEC.md, section 8)")
     for L in data.get("layers") or []:
         for g in (L.get("groups") or []) + ((L.get("panel") or {}).get("groups") or []):
             for c in g.get("chips") or []:
                 where = f"layer '{L.get('id')}' > group '{g.get('id')}' > chip '{c.get('id')}'"
-                has_one, has_many = "source" in c, "sources" in c
-                if not has_one and not has_many:
-                    err(LAYERS_FILE, where, "has no source. Every chip needs `source` (one link) or `sources` (a tree of two or more links): see SPEC.md section 4")
-                if has_one and has_many:
-                    err(LAYERS_FILE, where, "has both `source` and `sources`; use only one")
-                if has_many and isinstance(c["sources"], list) and len(c["sources"]) == 1:
-                    err(LAYERS_FILE, where, "has a single entry under `sources`; use `source` for one link")
-                if has_many and isinstance(c["sources"], list):
-                    urls = [s.get("url") for s in c["sources"] if isinstance(s, dict)]
-                    if len(urls) != len(set(urls)):
-                        err(LAYERS_FILE, where, "lists the same url twice in `sources`")
+                srcs = c.get("sources")
+                if "source" in c:
+                    err(LAYERS_FILE, where, "uses `source`, which chips no longer have in spec 0.2: list the links under `sources` (at least two)")
+                if srcs is None and "source" not in c:
+                    err(LAYERS_FILE, where, "has no sources: every chip needs `sources` with at least two links (SPEC.md section 4)")
+                if isinstance(srcs, list):
+                    n = len(srcs)
+                    if n < 2:
+                        err(LAYERS_FILE, where, f"has {n} link(s); every chip needs at least 2 sources with distinct urls (SPEC.md section 4). Add a second source or move the chip to the waiting list in README.md")
+                    urls = [s.get("url") for s in srcs if isinstance(s, dict)]
+                    dups = sorted({u for u in urls if urls.count(u) > 1})
+                    if dups:
+                        err(LAYERS_FILE, where, f"lists the same url more than once ({n} links, {len(set(urls))} distinct): {', '.join(dups)}")
+                    groups = {s.get("group") for s in srcs if isinstance(s, dict)}
+                    if n >= 2 and len(groups) < 2:
+                        warn(LAYERS_FILE, where, f"all {n} sources are in the same group ({next(iter(groups)) or 'no group'}); prefer sources of different kinds (docs + code, docs + spec, ...)")
 
 
 def semantic(data, today):
@@ -118,7 +125,7 @@ def semantic(data, today):
                 cw = f"{gw} > chip '{c.get('id')}'"
                 dup("chip", c.get("id"), cw)
                 expected.update({f"chip.{c.get('id')}", f"desc.{c.get('id')}"})
-                for s in ([c["source"]] if "source" in c else []) + (c.get("sources") or []):
+                for s in (c.get("sources") or []):
                     if isinstance(s, dict):
                         fresh(s, cw)
 
@@ -185,13 +192,17 @@ def main():
         names[tx.get("lang.name")] = rel
 
     n_chips = len(seen["chip"])
-    for w in warnings:
+    same = [w for w in warnings if "same group" in w]
+    other = [w for w in warnings if "same group" not in w]
+    for w in other + (same if "--verbose" in sys.argv else []):
         print("warning:", w)
+    if same and "--verbose" not in sys.argv:
+        print(f"note: {len(same)} chips have all their sources in one group (docs + code, docs + spec, ... is better); --verbose lists them")
     if errors:
         print(f"{len(errors)} problem(s):")
         print("\n".join(" - " + e for e in errors))
         sys.exit(1)
-    print(f"ok: {len(seen['layer'])} layers, {len(seen['group'])} groups, {n_chips} chips, {len(files)} languages, spec 0.1")
+    print(f"ok: {len(seen['layer'])} layers, {len(seen['group'])} groups, {n_chips} chips, {len(files)} languages, spec 0.2")
 
 
 if __name__ == "__main__":

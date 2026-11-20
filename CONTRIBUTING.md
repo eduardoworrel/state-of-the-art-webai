@@ -13,33 +13,27 @@ python3 build.py             # refreshes docs/index.html, README.md and README.p
 
 ## Add or change a chip
 
-1. Find the group in `data/layers.yml` and add the chip. A chip has **one source** or **a tree of sources**:
+1. Find the group in `data/layers.yml` and add the chip with **at least two sources**, with distinct urls and, preferably, of different kinds:
 
    ```yaml
-   - id: opfs                    # lowercase, digits and dashes; unique; never renamed
-     source:
-       url: https://developer.mozilla.org/en-US/docs/Web/API/File_System_API/Origin_private_file_system
-       accessed: "2026-11-19"    # the day you read the page, quoted
-       level: primary            # primary | trusted | calculation
-
-   - id: webgpu                  # two or more links: a tree, optionally with labels
+   - id: webgpu                  # lowercase, digits and dashes; unique; never renamed
      sources:
        - url: https://developer.mozilla.org/en-US/docs/Web/API/WebGPU_API
-         accessed: "2026-11-19"
-         level: primary
+         accessed: "2026-11-20"  # the day you read the page, quoted
+         level: primary          # primary | trusted | calculation
          title: "MDN: WebGPU API"
-         group: docs             # docs | spec | code | papers | blog | status (optional)
+         group: docs             # docs | spec | code | papers | blog | status
        - url: https://www.w3.org/TR/webgpu/
-         accessed: "2026-11-19"
+         accessed: "2026-11-20"
          level: primary
          title: "W3C: WebGPU"
          group: spec
    ```
 
-   A chip without a source is not accepted. One link opens directly; two or more open a menu.
+   A chip with fewer than two sources is not accepted. If you can only find one trustworthy source, open a pull request that adds the chip to the "Open items" list in `README.md` instead, and say what you found.
 
 2. Add its texts to **every** file in `i18n/`: `chip.<id>` (the name, up to 28 characters) and `desc.<id>` (one line saying what it is, 10 to 140 characters). If you only speak one language, write the English and open the pull request: the check lists what the other languages still need.
-3. Run the check and the build.
+3. Run the check and the build. `python3 scripts/linkcheck.py` opens every link (it needs network and is not run in CI).
 
 ### What counts as a chip
 
@@ -53,7 +47,7 @@ A short noun phrase: a runtime, a library, a format, a technique, a browser feat
 | `trusted` | An engineering post or an issue from the people who maintain the project or the browser. |
 | `calculation` | A figure that is derived (for example, parameters times bytes per parameter). Explain the arithmetic in the pull request. |
 
-The source must say what the chip and its description say. Open the page; do not cite a search result. Put the day you read it in `accessed`. A source older than 180 days earns a warning and older than 365 days fails the check: re-read it and update the date, or remove the chip.
+The source must say what the chip and its description say. Open the page and read it; do not cite a search result or a url you guessed. Every url must answer 200: if it redirects, use the final one. Put the day you read it in `accessed`. A source older than 180 days earns a warning and older than 365 days fails the check: re-read it and update the date, or remove the chip.
 
 ### Status
 

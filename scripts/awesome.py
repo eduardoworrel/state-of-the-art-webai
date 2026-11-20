@@ -19,7 +19,7 @@ SRC_ORDER = ["docs", "spec", "code", "papers", "blog", "status"]
 
 
 def sources(chip):
-    return [chip["source"]] if "source" in chip else chip["sources"]
+    return chip["sources"]
 
 
 def link(s, tx):
@@ -30,10 +30,7 @@ def link(s, tx):
 def chip_lines(c, tx):
     name = tx[f"chip.{c['id']}"]
     state = f" · *{tx['ui.status.' + c['status']]}*" if c.get("status") else ""
-    desc = f" — {tx['desc.' + c['id']]}"
-    if "source" in c:
-        return [f"- [{name}]({c['source']['url']}){state}{desc}"]
-    out = [f"- **{name}**{state}{desc}"]
+    out = [f"- **{name}**{state} — {tx['desc.' + c['id']]}"]
     ungrouped = [s for s in c["sources"] if not s.get("group")]
     if ungrouped:
         out.append("  - " + ", ".join(link(s, tx) for s in ungrouped))

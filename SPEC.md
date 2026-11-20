@@ -1,6 +1,6 @@
 # State of the Art of WebAI: specification
 
-**Version 0.1** (draft). The words MUST, SHOULD and MAY are used as in RFC 2119.
+**Version 0.2** (draft). The words MUST, SHOULD and MAY are used as in RFC 2119.
 
 This document defines the data a contribution is made of, what makes an entry valid, how texts are translated, how entries are kept fresh, and how the page, the PNG and the awesome list are generated from the same data. `schema/*.json` and `scripts/check.py` implement it; if they disagree with this text, that is a bug in one of them.
 
@@ -18,15 +18,14 @@ This document defines the data a contribution is made of, what makes an entry va
 ## 2. Data model
 
 ```
-layer ── group ── chip ── source (one link)
-  │                  └── sources (a tree of two or more links, optionally grouped by label)
+layer ── group ── chip ── sources (two or more links, optionally grouped by label)
   ├── where   (only in a layer with layout "rows"; each item has one source)
   └── panel ── group ── chip ...
 ```
 
 - A **layer** is a stage of the work between a model and a person. Layers are numbered and shown in a column.
 - A **group** is a labelled set of chips inside a layer (for example "Format" or "Method").
-- A **chip** is one technology, technique, feature, limit or practice. It is the unit of curation: it has a name, a one-line description, an optional status and one or more sources.
+- A **chip** is one technology, technique, feature, limit or practice. It is the unit of curation: it has a name, a one-line description, an optional status and at least two sources.
 - A **source** is a page someone read, with the day they read it and how much it can be trusted.
 - A **where item** names a place a model can run (browser, desktop, mobile, edge). A **panel** is a highlighted set of groups, used for the limits.
 
@@ -38,7 +37,7 @@ Unknown fields are errors. "R" means required.
 
 | Field | R | Type | Rule |
 |---|---|---|---|
-| `spec` | yes | string | Exactly `"0.1"` for this version. |
+| `spec` | yes | string | Exactly `"0.2"` for this version. |
 | `layers` | yes | list | At least one layer. |
 
 ### 3.2 Layer
@@ -69,14 +68,13 @@ Unknown fields are errors. "R" means required.
 |---|---|---|---|
 | `id` | yes | id | Unique among chips. Stable: once published it is never renamed (translations and links depend on it). |
 | `status` | no | status | See 4.4. |
-| `source` | one of | source | One link (4.2). |
-| `sources` | one of | list of tree sources | Two to twelve links (4.3). |
+| `sources` | yes | list of sources | Two to twelve sources, with distinct urls (section 4). |
 
-Exactly one of `source` and `sources` MUST be present.
+There is no `source` key on a chip: a chip with fewer than two sources is invalid.
 
 ### 3.5 Where item and panel
 
-A where item has `id`, `icon` and `source` (one link). A panel has `id`, `icon` and `groups` (groups with `col` 0 to 2).
+A where item is an index entry, not a chip: it has `id`, `icon` and `source` (exactly one link, 4.2), and its name is a plain link on the page. A panel has `id`, `icon` and `groups` (groups with `col` 0 to 2).
 
 ### 3.6 Types and limits
 
@@ -89,81 +87,58 @@ A where item has `id`, `icon` and `source` (one link). A panel has `id`, `icon` 
 
 ## 4. Sources
 
-### 4.1 The three forms
+### 4.1 The rule: at least two, distinct
 
-A chip without a source is **invalid**: it does not enter the map. A chip that has sources is in one of two forms.
+Every chip MUST have at least two sources, with **distinct urls**. Sources SHOULD be of different kinds (the `group` of 4.3): documentation and code, documentation and specification, documentation and status page, a paper and its code. A chip that cannot get a second trustworthy source does not enter the map: it waits in the "Open items" list of `README.md` until one exists. Do not pad a chip with a weak link to reach two.
 
-| Form | Field | How the page behaves | Use it when |
-|---|---|---|---|
-| none | (nothing) | invalid | never |
-| link | `source` | the chip is a link; click or tap opens the page | one page says it all |
-| tree | `sources` (2 or more) | the chip opens a menu with the links, optionally under labels | several pages are needed: the spec and the docs, the proposal and each browser's position, two papers |
+| Sources | Result |
+|---|---|
+| none, one, or the same url twice | invalid: the check fails and says how many links the chip has |
+| two or more distinct urls | valid; the chip opens a menu with the links on the page |
 
-A tree with labels is **not a third form**: grouping by label is an optional capability of the tree.
+A source tree can carry labels (`group`) or not. Labels are an optional capability of the list, not a different form.
 
-### 4.2 `source` (link)
-
-```yaml
-- id: opfs
-  source:
-    url: https://developer.mozilla.org/en-US/docs/Web/API/File_System_API/Origin_private_file_system
-    accessed: "2026-11-19"
-    level: primary
-```
-
-| Field | R | Rule |
-|---|---|---|
-| `url` | yes | See 3.6. |
-| `accessed` | yes | The day the page was read, not the day it was published. |
-| `level` | yes | `primary`, `trusted` or `calculation` (4.5). |
-| `title` | no | A short label, up to 60 characters. Not shown for a link chip. |
-
-### 4.3 `sources` (tree)
+### 4.2 A source
 
 ```yaml
 - id: webgpu
   sources:
     - url: https://developer.mozilla.org/en-US/docs/Web/API/WebGPU_API
-      accessed: "2026-11-19"
+      accessed: "2026-11-20"
       level: primary
       title: "MDN: WebGPU API"
       group: docs
     - url: https://www.w3.org/TR/webgpu/
-      accessed: "2026-11-19"
+      accessed: "2026-11-20"
       level: primary
       title: "W3C: WebGPU"
       group: spec
     - url: https://web.dev/blog/webgpu-supported-major-browsers
-      accessed: "2026-11-19"
+      accessed: "2026-11-20"
       level: primary
       title: "web.dev: browser support"
       group: status
 ```
 
-A tree without labels simply leaves out `group`; the links are then listed flat:
-
-```yaml
-- id: distillation
-  sources:
-    - url: https://arxiv.org/abs/1503.02531
-      accessed: "2026-11-19"
-      level: primary
-      title: "Distilling the knowledge in a neural network"
-    - url: https://arxiv.org/abs/1910.01108
-      accessed: "2026-11-19"
-      level: primary
-      title: "DistilBERT"
-```
-
 | Field | R | Rule |
 |---|---|---|
-| `url`, `accessed`, `level` | yes | As in 4.2. The same `url` MUST NOT appear twice in one chip. |
+| `url` | yes | See 3.6. It MUST answer HTTP 200 when you open it (after redirects). If the page moved, use the final url. |
+| `accessed` | yes | The day the page was read, not the day it was published. |
+| `level` | yes | `primary`, `trusted` or `calculation` (4.4). |
 | `title` | yes | A short label, 2 to 60 characters, written in English. It names the page; it is not translated. |
-| `group` | no | One of `docs`, `spec`, `code`, `papers`, `blog`, `status`. Links without `group` are listed first. The label shown is the translation of `srcgroup.<group>`. |
+| `group` | no, recommended | One of the source groups (4.3). Links without `group` are listed first. |
 
-Source groups: `docs` (official documentation), `spec` (specification, explainer or standard), `code` (repository, README or issue), `papers` (papers), `blog` (engineering or announcement post), `status` (where a thing stands: standards positions, support tables, trials).
+A where item's `source` has the same fields, except that `title` is optional and `group` is not allowed.
 
-### 4.4 Status
+You MUST have opened and read the page. The page must say what the chip and its description say; a search result, a URL guessed from a pattern, or memory is not a source. `scripts/linkcheck.py` (network, not run in CI) opens every url and reports what does not answer 200 or that redirects.
+
+### 4.3 Source groups
+
+`docs` (official documentation), `spec` (specification, explainer or standard), `code` (repository, README, issue or package page), `papers` (papers), `blog` (engineering or announcement post), `status` (where a thing stands: standards positions, support tables, trials). The label shown is the translation of `srcgroup.<group>`.
+
+### 4.4 Level and status
+
+#### Status
 
 An optional `status` tells the reader that a chip is not plainly "available". Use it only for what the source says.
 
@@ -178,7 +153,7 @@ An optional `status` tells the reader that a chip is not plainly "available". Us
 
 Rules: the value MUST be what the source says on `accessed`. Never infer a version number, a platform list or "stable"/"deprecated" from other pages. When the official page gives different states for different contexts, leave `status` out and say so in the chip's description.
 
-### 4.5 Level
+#### Level
 
 | Value | Use it for |
 |---|---|
@@ -234,7 +209,7 @@ The page uses the language in `?lang=`, then the stored choice, then the browser
 
 - Counts use `ui.sources.<category>` with the CLDR categories `zero`, `one`, `two`, `few`, `many`, `other` and the placeholder `{n}`. `other` is required in every language and `one` in `en`; the page picks the category with `Intl.PluralRules(<lang>)` and falls back to `other`.
 - Limits count characters in the language written. Chips and group labels have little room: when a translation does not fit, shorten the text (a shorter synonym or an abbreviation), do not change the limit.
-- Right-to-left languages are not supported in 0.1.
+- Right-to-left languages are not supported in 0.2.
 - Source `title` values and technology names are not translated.
 
 ## 7. Curation
@@ -243,7 +218,7 @@ The page uses the language in `?lang=`, then the stored choice, then the browser
 
 A chip enters when all of these hold:
 
-1. **A source says it.** At least one page, read by the contributor, states what the chip and its description state. A search result, a social post or memory is not a source.
+1. **Two sources say it.** At least two distinct pages, opened and read by the contributor, state what the chip and its description state (section 4). A search result, a social post, a guessed url or memory is not a source.
 2. **It belongs on the map.** It is a technology, technique, feature, limit or practice that a person shipping a model to a browser, phone or edge device meets. Not a product pitch, a benchmark number or an opinion.
 3. **Its state is told.** If it is a proposal, experimental, in trial, in preview or an open question, `status` says so (4.4).
 4. **It fits.** The name is at most 28 characters in every language and the description is one line.
@@ -283,31 +258,33 @@ A chip leaves when its source is gone and no other source says it, when it is re
 
 | Output | Command | Rule |
 |---|---|---|
-| `docs/index.html` | `python3 build.py` | One static page with all languages inside. Link chips open their source; tree chips open the source menu. `?lang=`, `?theme=light|dark`, `?fit=0` (full width) and `?export=1` (board only) are supported. |
+| `docs/index.html` | `python3 build.py` | One static page with all languages inside. Every chip opens a menu with its sources. `?lang=`, `?theme=light|dark`, `?fit=0` (full width) and `?export=1` (board only) are supported. |
 | `docs/figure-<lang>.png` | `python3 export.py` | Full-width board, headless Chrome. |
 | awesome list | `python3 build.py` (or `python3 scripts/awesome.py`) | Written between `<!-- awesome:start -->` and `<!-- awesome:end -->` in `README.md` (en) and `README.pt.md` (pt). Never edit between the markers. |
 
-The awesome list has one section per layer and, inside it, one block per group (and per panel). A link chip is one line: `- [name](url) · *state* — description`. A tree chip is one line followed by its links, ungrouped links first and then one line per source group: `  - Docs: [title](url), [title](url)`. The where items follow the groups of their layer. The header line carries the counts and the most recent review date.
+The awesome list has one section per layer and, inside it, one block per group (and per panel). A chip is one line, `- **name** · *state* — description`, followed by its links: ungrouped links first and then one line per source group, `  - Docs: [title](url), [title](url)`. The where items follow the groups of their layer, one link each. The header line carries the counts and the most recent review date.
 
 CI runs `python3 scripts/check.py`, then `python3 build.py`, and fails if `docs/index.html`, `README.md` or `README.pt.md` change, so the committed outputs are always current.
 
 ## 10. Page behaviour (informative)
 
-- **Chips.** A link chip is an `<a>`. A tree chip is a `<button aria-haspopup="menu" aria-expanded>` that opens a `role="menu"` list of `role="menuitem"` links, with `role="group"` for the labelled groups. Enter, Space or a tap opens it; Arrow keys, Home and End move; Escape closes and returns focus to the chip; Tab or a click outside closes it.
-- **Preview.** With a mouse (or keyboard focus) a chip shows a short preview: name, status, review date and either the number of sources or the host and level.
+- **Chips.** A chip is a `<button aria-haspopup="menu" aria-expanded>` that opens a `role="menu"` list of `role="menuitem"` links, with `role="group"` for the labelled groups. There is no direct-link chip. The where items (browser, desktop, mobile, edge) are plain links. Enter, Space or a tap opens it; Arrow keys, Home and End move; Escape closes and returns focus to the chip; Tab or a click outside closes it.
+- **Preview.** With a mouse (or keyboard focus) a chip shows a short preview: name, status, review date and the number of sources.
 - **Themes.** Automatic (follows the system), light or dark. The choice is remembered in `localStorage` (the page works without it).
 - **Demo width.** `docs/index.html` limits the board to fit a laptop screen. `?fit=0` and the PNG export keep the full layout.
 
-## Decisions waiting for approval (0.1)
+## Decisions waiting for approval (0.2)
 
-1. Source keys: `source` (one link) and `sources` (two or more), exactly one per chip.
-2. Source groups are a closed list of six: `docs`, `spec`, `code`, `papers`, `blog`, `status`.
-3. Status values: `proposal`, `experimental`, `origin-trial`, `preview`, `stable`, `open-question`; each only as the source says on the day.
-4. Ageing: warning after 180 days, error after 365 days.
-5. A one-line `desc.<chip id>` is required in every language.
-6. Platform-managed models live in Integrate, never in Run (section 5).
-7. The demo page fits a laptop by default; `?fit=0` restores the full width.
+1. One key, `sources`, with at least two entries and distinct urls; no `source` on a chip, and no direct-link chip on the page. (Where items keep a single `source`: they are index entries, not chips.)
+2. "Preferably different groups" is a note in `check.py`, not an error.
+3. Source groups are a closed list of six: `docs`, `spec`, `code`, `papers`, `blog`, `status`.
+4. Status values: `proposal`, `experimental`, `origin-trial`, `preview`, `stable`, `open-question`; each only as the source says on the day.
+5. Ageing: warning after 180 days, error after 365 days.
+6. A one-line `desc.<chip id>` is required in every language.
+7. Platform-managed models live in Integrate, never in Run (section 5).
+8. The demo page fits a laptop by default; `?fit=0` restores the full width.
 
 ## Changelog
 
 - **0.1** (2026-11-19): first draft.
+- **0.2** (2026-11-20): every chip needs at least two sources with distinct urls (`source` is removed from chips; `sources` has a minimum of two); every source carries `title` and, preferably, `group`; the page has no direct-link chip. Migration: `source:` blocks become the first entry of `sources:`, plus a second source. `scripts/linkcheck.py` added.
