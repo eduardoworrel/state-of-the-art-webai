@@ -161,39 +161,38 @@ def card(L, tx):
             f'<div class="decision" data-t="decision.{i}">{escape(tx[f"decision.{i}"])}</div></article>')
 
 
-def menus(tx):
+SHARE_ICON = ('<svg class="ic" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><circle cx="12" cy="3.5" r="2" fill="currentColor"/><circle cx="4" cy="8" r="2" fill="currentColor"/>'
+              '<circle cx="12" cy="12.5" r="2" fill="currentColor"/><path d="M5.8 7l4.4-2.5M5.8 9l4.4 2.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>')
+
+
+def share_button(tx):
+    return (f'<button type="button" class="btn share" aria-haspopup="dialog" aria-expanded="false" aria-controls="pop-share" data-menu-btn="share">'
+            f'{SHARE_ICON}<span data-t="ui.share">{escape(tx["ui.share"])}</span></button>')
+
+
+def menus(tx, reviewed):
+    """ONE popover behind the Share button: share, embed (four types with Copy), download, suggest."""
     t_ = lambda k: escape(tx[k])
-    def item_a(attr, key, extra=""):
-        return f'<a role="menuitem" tabindex="-1" {attr} target="_blank" rel="noopener noreferrer" {extra}><span data-t="{key}">{t_(key)}</span></a>'
-    share = (f'<div class="pop pop-sm" id="pop-share" hidden><div role="menu" id="menu-share" aria-label="{t_("ui.share")}" data-al="ui.share">'
-             f'<button type="button" role="menuitem" tabindex="-1" data-act="native" hidden><span data-t="ui.share.native">{t_("ui.share.native")}</span></button>'
-             f'<button type="button" role="menuitem" tabindex="-1" data-act="copy"><span data-t="ui.share.copy">{t_("ui.share.copy")}</span></button>'
-             + item_a('data-share="linkedin" href="#"', "ui.share.linkedin") + item_a('data-share="x" href="#"', "ui.share.x") + item_a('data-share="email" href="#"', "ui.share.email") + "</div></div>")
-    dl = "".join(f'<a role="menuitem" tabindex="-1" data-dl="{fmt}-{th}" href="#" download>{fmt.upper()} · <span data-t="ui.theme.{th}">{t_("ui.theme." + th)}</span></a>' for fmt in ("png", "svg") for th in ("light", "dark"))
-    download = f'<div class="pop pop-sm" id="pop-download" hidden><div role="menu" id="menu-download" aria-label="{t_("ui.download")}" data-al="ui.download">{dl}</div></div>'
-    suggest = (f'<div class="pop pop-sm" id="pop-suggest" hidden><div role="menu" id="menu-suggest" aria-label="{t_("ui.suggest")}" data-al="ui.suggest">'
-               + item_a('data-suggest="" href="#"', "ui.suggest.issue") + item_a('data-edit="" href="#"', "ui.suggest.edit") + "</div></div>")
+    def pill(attr, key):
+        return f'<a class="btn sm" {attr} target="_blank" rel="noopener noreferrer"><span data-t="{key}">{t_(key)}</span></a>'
     def row(kind):
         return (f'<div class="emb-row"><div class="emb-txt"><b data-t="ui.embed.t.{kind}">{t_("ui.embed.t." + kind)}</b>'
-                f'<p data-t="ui.embed.d.{kind}">{t_("ui.embed.d." + kind)}</p><code class="pv" data-preview="{kind}"></code></div>'
+                f'<p data-t="ui.embed.d.{kind}">{t_("ui.embed.d." + kind)}</p></div>'
                 f'<button type="button" class="btn copy" data-copy-snippet="{kind}"><span data-t="ui.embed.copy">{t_("ui.embed.copy")}</span></button></div>')
-    embed = (f'<div class="pop pop-embed" id="pop-embed" role="dialog" aria-modal="false" aria-labelledby="embed-title" hidden>'
-             f'<div class="emb-head"><h2 id="embed-title" data-t="ui.embed.title">{t_("ui.embed.title")}</h2>'
-             f'<button type="button" class="btn sm" data-close-pop aria-label="{t_("ui.embed.close")}" data-al="ui.embed.close"><span data-t="ui.embed.close">{t_("ui.embed.close")}</span></button></div>'
-             f'<p class="emb-help"><span data-t="ui.embed.help">{t_("ui.embed.help")}</span> <a href="https://github.com/{SITE["repo"]}#the-page" target="_blank" rel="noopener noreferrer" data-how><span data-t="ui.embed.how">{t_("ui.embed.how")}</span></a></p>'
-             + row("iframe") + row("component") + row("image") + row("badge")
-             + '<div class="sr" role="status" aria-live="polite" id="emb-live"></div></div>')
-    return share + download + suggest + embed
-
-
-def actions_bar(tx, reviewed):
-    t_ = lambda k: escape(tx[k])
-    def mbtn(key, pop, extra=""):
-        return (f'<button type="button" class="btn" aria-haspopup="menu" aria-expanded="false" aria-controls="menu-{pop}" data-menu-btn="{pop}" {extra}>'
-                f'<span data-t="ui.{key}">{t_("ui." + key)}</span>{CARET}</button>')
-    embed = (f'<button type="button" class="btn" aria-haspopup="dialog" aria-expanded="false" aria-controls="pop-embed" data-menu-btn="embed"><span data-t="ui.embed">{t_("ui.embed")}</span></button>')
-    return (f'<div class="actions" role="group" aria-label="{t_("ui.actions")}" data-al="ui.actions">{mbtn("share", "share")}{embed}{mbtn("download", "download")}{mbtn("suggest", "suggest")}'
-            f'<span class="reviewed"><span data-t="ui.reviewed.short">{t_("ui.reviewed.short")}</span> <time datetime="{reviewed}">{reviewed}</time></span></div>')
+    return (f'<div class="pop pop-share" id="pop-share" role="dialog" aria-modal="false" aria-label="{t_("ui.share")}" data-al="ui.share" hidden>'
+            f'<div class="sh-top"><button type="button" class="btn sm" data-close-pop aria-label="{t_("ui.embed.close")}" data-al="ui.embed.close"><span data-t="ui.embed.close">{t_("ui.embed.close")}</span></button></div>'
+            f'<section class="sh-sec"><h3 data-t="ui.share">{t_("ui.share")}</h3><div class="sh-links">'
+            f'<button type="button" class="btn sm" data-act="native" hidden><span data-t="ui.share.native">{t_("ui.share.native")}</span></button>'
+            f'<button type="button" class="btn sm" data-act="copy"><span data-t="ui.share.copy">{t_("ui.share.copy")}</span></button>'
+            + pill('data-share="linkedin" href="#"', "ui.share.linkedin") + pill('data-share="x" href="#"', "ui.share.x") + pill('data-share="email" href="#"', "ui.share.email") + '</div></section>'
+            f'<section class="sh-sec"><h3 data-t="ui.embed">{t_("ui.embed")}</h3>'
+            f'<p class="emb-help"><span data-t="ui.embed.help">{t_("ui.embed.help")}</span> <a href="https://github.com/{SITE["repo"]}#the-page" target="_blank" rel="noopener noreferrer" data-how><span data-t="ui.embed.how">{t_("ui.embed.how")}</span></a></p>'
+            + row("iframe") + row("component") + row("image") + row("badge") + '</section>'
+            f'<section class="sh-sec"><h3 data-t="ui.download">{t_("ui.download")}</h3><div class="sh-links">'
+            f'<a class="btn sm" data-dl="png" href="#" download>PNG</a><a class="btn sm" data-dl="svg" href="#" download>SVG</a></div></section>'
+            f'<div class="sh-foot"><a data-suggest href="#" target="_blank" rel="noopener noreferrer"><span data-t="ui.suggest">{t_("ui.suggest")}</span></a>'
+            f'<span class="reviewed"><span data-t="ui.reviewed.short">{t_("ui.reviewed.short")}</span> <time datetime="{reviewed}">{reviewed}</time></span></div>'
+            '<div class="sr" role="status" aria-live="polite" id="emb-live"></div></div>')
 
 
 def render(embed=False):
@@ -206,8 +205,6 @@ def render(embed=False):
     buttons = "".join(f'<button type="button" data-lang="{k}" aria-pressed="{str(k == DEFAULT).lower()}">{escape(v["lang.name"])}</button>' for k, v in langs.items())
     themes = "".join(f'<button type="button" data-theme-choice="{k}" aria-pressed="{str(k == "auto").lower()}" aria-label="{escape(tx["ui.theme." + k])}" data-al="ui.theme.{k}" '
                      f'title="{escape(tx["ui.theme." + k])}" data-tl="ui.theme.{k}">{THEME_ICONS[k]}</button>' for k in ("auto", "light", "dark"))
-    sizes = "".join(f'<button type="button" data-size-choice="{k}" aria-pressed="{str(k == "fit").lower()}" aria-label="{escape(tx["ui.size." + k])}" data-al="ui.size.{k}" '
-                    f'title="{escape(tx["ui.size." + k])}" data-tl="ui.size.{k}"><span data-t="ui.size.{k}.short">{escape(tx["ui.size." + k + ".short"])}</span></button>' for k in ("fit", "normal", "large"))
     board = (f'<div class="board" role="group" aria-label="{escape(tx["site.title"])}">'
              f'<span class="tag-end" id="tag-model" data-t="label.model">{escape(tx["label.model"])}</span><span class="tag-end" id="tag-person" data-t="label.person">{escape(tx["label.person"])}</span>'
              f'<div class="cols"><div class="col">{cols["left"]}</div><div class="col">{cols["center"]}</div><div class="col">{cols["right"]}</div></div></div>')
@@ -223,10 +220,9 @@ def render(embed=False):
         head_extra = (f'<link rel="canonical" href="{BASE}">{alt}<meta property="og:type" content="website"><meta property="og:title" content="{escape(tx["site.title"])}">'
                       f'<meta property="og:description" content="{escape(tx["site.tagline"])}"><meta property="og:url" content="{BASE}"><meta property="og:image" content="{BASE}figure-en.png">')
         header = (f'<header class="top"><div class="intro"><h1 data-t="site.title">{escape(tx["site.title"])}</h1><p data-t="site.tagline">{escape(tx["site.tagline"])}</p></div>'
-                  f'<div class="tools"><div class="tools-row"><div class="seg sizes" role="group" aria-label="{escape(tx["ui.size"])}" data-al="ui.size">{sizes}</div>'
-                  f'<div class="seg themes" role="group" aria-label="{escape(tx["ui.theme"])}" data-al="ui.theme">{themes}</div>'
-                  f'<div class="seg langs" role="group" aria-label="{escape(tx["ui.language"])}" data-al="ui.language">{buttons}</div></div>'
-                  f'{actions_bar(tx, reviewed)}<span class="small-window" role="status" hidden data-t="ui.small">{escape(tx["ui.small"])}</span></div></header>')
+                  f'<div class="bar"><div class="seg langs" role="group" aria-label="{escape(tx["ui.language"])}" data-al="ui.language">{buttons}</div>'
+                  f'<div class="seg themes" role="group" aria-label="{escape(tx["ui.theme"])}" data-al="ui.theme">{themes}</div>{share_button(tx)}</div>'
+                  f'<span class="small-window" role="status" hidden data-t="ui.small">{escape(tx["ui.small"])}</span></header>')
         footer = (f'<footer class="foot"><p data-t="ui.legend">{escape(tx["ui.legend"])}</p>'
                   f'<p><span data-t="ui.reviewed">{escape(tx["ui.reviewed"])}</span>: {reviewed}</p><p data-t="ui.license">{escape(tx["ui.license"])}</p></footer>')
     return f"""<!doctype html>
@@ -240,8 +236,7 @@ def render(embed=False):
 <script>
 (function () {{ try {{ var q = new URLSearchParams(location.search), r = document.documentElement;
   var th = q.get("theme") || localStorage.getItem("webai-theme"); if (th === "light" || th === "dark") r.setAttribute("data-theme", th);
-  if (!q.get("export")) {{ var z = q.get("size") || (q.get("fit") === "0" ? "large" : localStorage.getItem("webai-size"));
-    r.classList.add("sized"); r.setAttribute("data-size", z === "normal" || z === "large" ? z : "fit"); }} }} catch (e) {{ document.documentElement.classList.add("sized"); document.documentElement.setAttribute("data-size", "fit"); }} }})();
+  if (q.get("fit") === "0") r.setAttribute("data-size", "large"); }} catch (e) {{}} }})();
 </script>
 <style>
 {css}
@@ -253,7 +248,7 @@ def render(embed=False):
 {board}
 {footer}
 </div>
-{'' if embed else menus(tx)}
+{'' if embed else menus(tx, reviewed)}
 <div id="tip" role="tooltip" hidden></div>
 <script>window.__I18N__ = {json.dumps(langs, ensure_ascii=False)}; window.__SITE__ = {json.dumps(site)};</script>
 <script>

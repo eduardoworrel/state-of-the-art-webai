@@ -165,9 +165,8 @@
         : k === "x" ? "https://x.com/intent/post?text=" + enc(title) + "&url=" + enc(url)
         : "mailto:?subject=" + enc(title) + "&body=" + enc(t("site.tagline") + "\n\n" + url);
     });
-    set("[data-dl]", function (a) { var p = a.getAttribute("data-dl").split("-"); a.href = SITE.base + "figure-" + lang + (p[1] === "dark" ? "-dark" : "") + "." + p[0]; a.setAttribute("download", "state-of-the-art-webai-" + lang + "-" + p[1] + "." + p[0]); });
+    set("[data-dl]", function (a) { var ext = a.getAttribute("data-dl"), th = curTheme(); a.href = SITE.base + "figure-" + lang + (th === "dark" ? "-dark" : "") + "." + ext; a.setAttribute("download", "state-of-the-art-webai-" + lang + "-" + th + "." + ext); });
     set("[data-suggest]", function (a) { a.href = issueUrl(); });
-    set("[data-edit]", function (a) { a.href = "https://github.com/" + SITE.repo + "/edit/" + SITE.branch + "/data/layers.yml"; });
     var nat = document.querySelector('[data-act="native"]'); if (nat) nat.hidden = !navigator.share;
   }
   function curTheme() { var th = root.getAttribute("data-theme"); return th || (window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"); }
@@ -242,20 +241,6 @@
   var lastW = window.innerWidth;
   window.addEventListener("resize", function () { if (window.innerWidth !== lastW) { lastW = window.innerWidth; close(false); hideTip(); } });  // phones resize when the address bar hides
   window.addEventListener("hashchange", openChipFromHash);
-
-  /* ---------- size: Fit to screen / Normal / Large (what each means is in arrange() below) ---------- */
-  function applySize(s) {
-    root.classList.add("sized"); root.setAttribute("data-size", s);
-    document.querySelectorAll("[data-size-choice]").forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.sizeChoice === s)); });
-    state.sz = null; arrange(false);
-  }
-  document.querySelectorAll("[data-size-choice]").forEach(function (b) {
-    b.addEventListener("click", function () {
-      store(false, "webai-size", b.dataset.sizeChoice);
-      var u = new URL(location.href); u.searchParams.set("size", b.dataset.sizeChoice); u.searchParams.delete("fit"); history.replaceState(null, "", u);
-      applySize(b.dataset.sizeChoice);
-    });
-  });
 
   /* ---------- embed: tell the parent page how tall we are (the parent validates the origin; so do we) ---------- */
   var embedded = root.classList.contains("embed") && window.parent !== window;
@@ -345,7 +330,9 @@
     el.classList.add("js");
     el.style.gridTemplateColumns = (weights || w).map(function (x) { return "minmax(0," + x + "fr)"; }).join(" ");
   }
-  function heightOf(board, sz, u) { board.style.setProperty("--u", u + "px"); setColumns(sz); return board.offsetHeight; }
+  var S_BASE = 2.2, S_RATE = 0.45;   // non-text sizes (padding, gaps, icons) scale slower than the text: s = 2.2px + 0.45 u
+  function setUnit(board, u) { board.style.setProperty("--u", u + "px"); board.style.setProperty("--s", (S_BASE + S_RATE * u).toFixed(2) + "px"); }
+  function heightOf(board, sz, u) { setUnit(board, u); setColumns(sz); return board.offsetHeight; }
   function maxU(board, k) { var W = board.clientWidth; return W / (k * 24 + (k - 1) * 1.9); }          // the narrowest a column may get is 24 units
   function candidates(board, u, phone) {
     var kmax = phone ? 1 : Math.max(1, Math.min(5, Math.floor((board.clientWidth + u * 1.9) / (u * 24 + u * 1.9))));
@@ -358,8 +345,8 @@
   // quick: this arrangement only. Walk the font up from where it was while it fits, or down until it does.
   function fitOne(board, sz, avail, u) {
     var cap = Math.min(U_MAX, maxU(board, sz.length)); u = Math.min(cap, Math.max(U_MIN, u));
-    if (heightOf(board, sz, u) <= avail + 1) { for (var i = 0; i < 12 && u / STEP <= cap; i++) { var up = u / STEP; if (heightOf(board, sz, up) > avail + 1) break; u = up; } return u; }
-    while (u > U_MIN) { u = Math.max(U_MIN, u * STEP); if (heightOf(board, sz, u) <= avail + 1) return u; }
+    if (heightOf(board, sz, u) <= avail) { for (var i = 0; i < 12 && u / STEP <= cap; i++) { var up = u / STEP; if (heightOf(board, sz, up) > avail) break; u = up; } return u; }
+    while (u > U_MIN) { u = Math.max(U_MIN, u * STEP); if (heightOf(board, sz, u) <= avail) return u; }
     return 0;
   }
   // full: every arrangement. From the largest font that could possibly fit, step down until some arrangement fits; that is the largest scale.
@@ -372,22 +359,20 @@
       candidates(board, u, false).forEach(function (sz) {
         if (u > maxU(board, sz.length)) return;
         var h = heightOf(board, sz, u);
-        if (h <= avail + 1 && (!fit || h > fit.h)) fit = { sz: sz, h: h };          // of those that fit, the one that needs the least stretching
+        if (h <= avail && (!fit || h > fit.h)) fit = { sz: sz, h: h };          // of those that fit, the one that needs the least stretching
       });
-      if (fit) {
-        if (state.sz && !sameSz(fit.sz, state.sz)) {                                  // hysteresis: keep the current arrangement if it fits at a font up to 4% smaller
-          for (var v = u; v >= u * 0.95; v *= STEP) { if (v <= maxU(board, state.sz.length) && heightOf(board, state.sz, v) <= avail + 1) return { sz: state.sz, u: v }; }
-        }
-        var finer = fitOne(board, fit.sz, avail, u);                                  // the coarse search found the arrangement; walk its font up in small steps
-        return { sz: fit.sz, u: finer > 0 ? Math.max(u, finer) : u };
+      if (fit) {                                                                     // the coarse step found the neighbourhood: now every arrangement, in small steps
+        var fine = candidates(board, u, false).map(function (sz) { return { sz: sz, u: fitOne(board, sz, avail, u) }; }).filter(function (r) { return r.u > 0; }).sort(function (x, y) { return y.u - x.u; });
+        var best = fine[0], keep = state.sz && fine.filter(function (r) { return sameSz(r.sz, state.sz); })[0];
+        return keep && keep.u >= best.u * 0.96 ? keep : best;                        // hysteresis: keep the current arrangement unless another is clearly bigger
       }
     }
     return null;
   }
   function geometry(board, embed) {
-    var foot = document.querySelector(".foot"), top = board.getBoundingClientRect().top + window.pageYOffset;
-    var below = embed ? 0 : (foot ? foot.offsetHeight + 12 : 0) + parseFloat(getComputedStyle(document.querySelector(".page")).paddingBottom) + 2;
-    return { avail: embed ? Infinity : window.innerHeight - top - below };
+    var foot = document.querySelector(".foot"), page = document.querySelector(".page"), top = board.getBoundingClientRect().top + window.pageYOffset;
+    var below = embed ? 0 : (foot ? foot.getBoundingClientRect().height + parseFloat(getComputedStyle(foot).marginTop) : 0) + parseFloat(getComputedStyle(page).paddingBottom);
+    return { avail: embed ? Infinity : Math.floor(document.documentElement.clientHeight - top - below) };   // exact: the layout viewport, nothing rounded up
   }
   /* Fit to screen (the default): the largest scale at which some arrangement fits the available rectangle without scrolling. Every arrangement is
      measured, the best few are solved for their largest font, the biggest wins (the previous one is kept unless the new one is clearly better:
@@ -399,11 +384,14 @@
     var el = board.querySelector(".cols");
     cards = cards || Array.prototype.slice.call(el.querySelectorAll(".card")).sort(function (a, b) { return a.dataset.n - b.dataset.n; });
     if (root.classList.contains("export")) { setColumns([2, 1, 2], [1, 1.43, 1]); drawFlow(); return; }   // the static figure keeps the classic layout
-    var vw = window.innerWidth, mode = root.getAttribute("data-size") || "fit", embed = root.classList.contains("embed"), phone = vw <= 700;
+    var vw = window.innerWidth, mode = root.getAttribute("data-size") === "large" ? "large" : "fit", embed = root.classList.contains("embed"), phone = vw <= 700;
+    var fitMode = !phone && !embed && mode === "fit";
+    root.classList.remove("fitted");
+    if (fitMode) root.classList.add("fitting");                         // no scrollbars while measuring: the width is the final one
     board.style.minHeight = "";
     var t0 = performance.now(), notice = false, pick, u, fits = false, g = geometry(board, embed);
     if (phone || embed || mode !== "fit") {
-      u = phone ? 14 : embed ? Math.min(18, Math.max(12, 13 + Math.min(vw - 1440, 480) * 0.00104)) : mode === "large" ? Math.min(U_MAX, Math.max(15, 15 + (vw - 1440) * 0.004)) : 13;
+      u = phone ? 14 : embed ? Math.min(18, Math.max(12, 13 + Math.min(vw - 1440, 480) * 0.00104)) : Math.min(U_MAX, Math.max(15, 15 + (vw - 1440) * 0.004));
       var small = null;
       candidates(board, u, phone).forEach(function (sz) { var h = heightOf(board, sz, u); if (!small || h < small.h) small = { sz: sz, h: h }; });
       pick = small.sz;
@@ -420,7 +408,8 @@
     }
     state.sz = pick; state.u = u;
     heightOf(board, pick, u);
-    if (fits) board.style.minHeight = Math.max(0, g.avail) + "px";    // fill the room: the cards stretch evenly
+    root.classList.remove("fitting");
+    if (fits && fitMode) root.classList.add("fitted");               // the page is exactly one viewport tall: the board fills what is left and nothing scrolls
     var sw = document.querySelector(".small-window"); if (sw) sw.hidden = !(notice || (!phone && !embed && mode === "fit" && u < U_NOTICE));
     drawFlow(); postHeight();
     var chip = board.querySelector(".chip"), se = document.scrollingElement;
@@ -456,10 +445,11 @@
     document.getElementById("xhtml").textContent = x;
   }
 
+  setTimeout(function () { root.classList.add("settled"); }, 2200);   // the entrance animation runs once; moving cards between columns must not replay it
+
   /* ---------- start ---------- */
   applyLang(pickLang());
   applyMotion();
-  document.querySelectorAll("[data-size-choice]").forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.sizeChoice === root.getAttribute("data-size"))); });
   window.addEventListener("load", function () {
     arrange();
     applyMotion();

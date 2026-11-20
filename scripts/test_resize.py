@@ -2,12 +2,15 @@
 """Acceptance test: the map follows the window continuously. Drives Chrome through the DevTools Protocol (no libraries), resizes the
 window many times WITHOUT reloading and measures the chip font, the number of columns, the size of the map and the page scroll after each change.
 
-    python3 scripts/test_resize.py                  # tests docs/index.html (default size mode)
-    python3 scripts/test_resize.py --size normal    # another size mode
+    python3 scripts/test_resize.py                  # the whole matrix: EN/PT x light/dark x overlay/classic scrollbars
+    python3 scripts/test_resize.py --quick          # one combination (EN, light, overlay scrollbars)
+    python3 scripts/test_resize.py --verbose        # also print scrollHeight, clientHeight, footer, page height, scrollbar width
     python3 scripts/test_resize.py --url URL        # another page
 
-Checks (Fit to screen, the default): the scale (chip font) changed with the window, and the page does not scroll in windows of 1000x600 or more.
-With --size normal or large (a fixed font, may scroll) the table is printed and nothing is checked.
+Checks: the scale (chip font) changed with the window, and in every window of 1000x600 or more the content is EXACTLY as tall as the visible area
+(scrollHeight == clientHeight, 0 px of tolerance) and as wide (scrollWidth == clientWidth). The sizes include short windows such as 1440x820 and 1536x730,
+as when the browser's address bar and dock take height. Text-size targets: chips of 12 px or more at 1440x900 and 14 px or more at 1920x1080.
+Phones (700 px or less) scroll by design and are not checked.
 Exit code 1 if a check fails. Needs Chrome or Chromium (CHROME=/path/to/chrome).
 """
 import argparse
@@ -26,11 +29,14 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 CANDIDATES = ["/Applications/Google Chrome.app/Contents/MacOS/Google Chrome", "google-chrome", "google-chrome-stable", "chromium", "chromium-browser", "chrome"]
-SIZES = [(1920, 1080), (1440, 900), (1280, 720), (1000, 700), (1600, 1200), (2560, 900), (1000, 1200), (1366, 768), (1000, 600), (1920, 1080)]
+SIZES = [(1920, 1080), (1440, 900), (1440, 820), (1280, 720), (1000, 700), (1600, 1200), (2560, 900), (1000, 1200), (1366, 768), (1536, 864), (1536, 730), (1000, 600), (1920, 950), (1111, 777), (1920, 1080)]
 JS = """(function(){var b=document.querySelector('.board'),c=b.querySelector('.chip'),se=document.scrollingElement,
  cols=[].filter.call(b.querySelectorAll('.cols > .col'),function(x){return x.firstElementChild}).length,r=b.getBoundingClientRect();
  return JSON.stringify({w:innerWidth,h:innerHeight,font:parseFloat(getComputedStyle(c).fontSize),cols:cols,bw:Math.round(r.width),bh:Math.round(r.height),
   bottom:Math.round(r.bottom+pageYOffset),scrollY:se.scrollHeight-se.clientHeight,scrollX:se.scrollWidth-se.clientWidth,
+  sh:se.scrollHeight,ch:se.clientHeight,foot:(function(f){return f?Math.round(f.getBoundingClientRect().height*10)/10:0})(document.querySelector('.foot')),
+  page:Math.round(document.querySelector('.page').getBoundingClientRect().height*10)/10,vsw:innerWidth-document.documentElement.clientWidth,
+  fitted:document.documentElement.classList.contains('fitted'),
   notice:!!document.querySelector('.small-window:not([hidden])')})})()"""
 
 
@@ -99,67 +105,78 @@ def find_chrome():
     sys.exit("Chrome not found: set CHROME=/path/to/chrome")
 
 
+def run_once(a, lang, theme, classic):
+    url = a.url + ("?" if "?" not in a.url else "&") + f"lang={lang}&theme={theme}"
+    tmp = tempfile.mkdtemp()
+    proc = subprocess.Popen([find_chrome(), "--headless=new", "--disable-gpu", f"--remote-debugging-port={a.port}", f"--user-data-dir={tmp}", "about:blank"],
+                            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    rows = []
+    try:
+        target = None
+        for _ in range(50):
+            try:
+                c = http.client.HTTPConnection("127.0.0.1", a.port, timeout=2)
+                c.request("GET", "/json")
+                pages = [t for t in json.loads(c.getresponse().read()) if t.get("type") == "page"]
+                if pages:
+                    target = pages[0]
+                    break
+            except OSError:
+                pass
+            time.sleep(0.2)
+        if not target:
+            sys.exit("could not reach Chrome")
+        ws = WS("127.0.0.1", a.port, target["webSocketDebuggerUrl"].split(str(a.port), 1)[1])
+        ws.call("Page.enable")
+        ws.call("Emulation.setScrollbarsHidden", hidden=not classic)
+        ws.call("Emulation.setDeviceMetricsOverride", width=SIZES[0][0], height=SIZES[0][1], deviceScaleFactor=1, mobile=False)
+        ws.call("Page.navigate", url=url)
+        for _ in range(60):
+            if ws.call("Runtime.evaluate", expression="document.readyState === 'complete' && !!document.querySelector('.cols.js')")["result"].get("value"):
+                break
+            time.sleep(0.2)
+        time.sleep(a.settle)
+        for w, h in SIZES:
+            ws.call("Emulation.setDeviceMetricsOverride", width=w, height=h, deviceScaleFactor=1, mobile=False)   # a resize, no reload
+            time.sleep(a.settle)
+            rows.append(json.loads(ws.call("Runtime.evaluate", expression=JS)["result"]["value"]))
+    finally:
+        proc.terminate()
+        try:
+            proc.wait(timeout=10)
+        except subprocess.TimeoutExpired:
+            proc.kill()
+        shutil.rmtree(tmp, ignore_errors=True)
+    return rows
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--url", default=(ROOT / "docs" / "index.html").as_uri())
-    ap.add_argument("--size", default="", help="fit | normal | large (default: the page's own default)")
+    ap.add_argument("--quick", action="store_true", help="one combination only")
+    ap.add_argument("--verbose", action="store_true")
     ap.add_argument("--port", type=int, default=9333)
     ap.add_argument("--settle", type=float, default=0.7, help="seconds to wait after each resize")
     a = ap.parse_args()
-    url = a.url + ("?" if "?" not in a.url else "&") + "lang=en" + (f"&size={a.size}" if a.size else "")
-    tmp = tempfile.mkdtemp()
-    if True:
-        proc = subprocess.Popen([find_chrome(), "--headless=new", "--disable-gpu", f"--remote-debugging-port={a.port}", f"--user-data-dir={tmp}", "about:blank"],
-                                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        try:
-            target = None
-            for _ in range(50):
-                try:
-                    c = http.client.HTTPConnection("127.0.0.1", a.port, timeout=2)
-                    c.request("GET", "/json")
-                    pages = [t for t in json.loads(c.getresponse().read()) if t.get("type") == "page"]
-                    if pages:
-                        target = pages[0]
-                        break
-                except OSError:
-                    pass
-                time.sleep(0.2)
-            if not target:
-                sys.exit("could not reach Chrome")
-            ws = WS("127.0.0.1", a.port, target["webSocketDebuggerUrl"].split(str(a.port), 1)[1])
-            ws.call("Page.enable")
-            ws.call("Emulation.setDeviceMetricsOverride", width=SIZES[0][0], height=SIZES[0][1], deviceScaleFactor=1, mobile=False)
-            ws.call("Page.navigate", url=url)
-            for _ in range(60):
-                if ws.call("Runtime.evaluate", expression="document.readyState === 'complete' && !!document.querySelector('.cols.js')")["result"].get("value"):
-                    break
-                time.sleep(0.2)
-            time.sleep(a.settle)
-            rows = []
-            for w, h in SIZES:
-                ws.call("Emulation.setDeviceMetricsOverride", width=w, height=h, deviceScaleFactor=1, mobile=False)   # a resize, no reload
-                time.sleep(a.settle)
-                rows.append(json.loads(ws.call("Runtime.evaluate", expression=JS)["result"]["value"]))
-        finally:
-            proc.terminate()
-            try:
-                proc.wait(timeout=10)
-            except subprocess.TimeoutExpired:
-                proc.kill()
-            shutil.rmtree(tmp, ignore_errors=True)
-    print(f"{'window':>10} {'font':>6} {'cols':>4} {'board':>11} {'bottom':>6} {'scrollY':>7} {'scrollX':>7}")
-    for r in rows:
-        print(f"{r['w']}x{r['h']:<5} {r['font']:6.1f} {r['cols']:4d} {r['bw']}x{r['bh']:<6} {r['bottom']:6d} {r['scrollY']:7d} {r['scrollX']:7d}" + ("  small-window notice" if r["notice"] else ""))
-    if a.size in ("normal", "large"):
-        print("\n(fixed-font mode: measurements only)")
-        sys.exit(0)
-    fonts = {round(r["font"], 1) for r in rows}
+    combos = [("en", "light", False)] if a.quick else [(l, th, c) for c in (False, True) for l in ("en", "pt") for th in ("light", "dark")]
     bad = []
-    if len(fonts) < 4:
-        bad.append(f"the scale did not follow the window: only {len(fonts)} different chip fonts in {len(rows)} sizes")
-    for r in rows:
-        if r["w"] >= 1000 and r["h"] >= 600 and (r["scrollY"] > 0 or r["scrollX"] > 0):
-            bad.append(f"{r['w']}x{r['h']}: the page scrolls (vertical {r['scrollY']}px, horizontal {r['scrollX']}px)")
+    for lang, theme, classic in combos:
+        name = f"{lang} {theme} {'classic' if classic else 'overlay'} scrollbars"
+        rows = run_once(a, lang, theme, classic)
+        print(f"\n== {name}")
+        print(f"{'window':>10} {'font':>6} {'cols':>4} {'board':>11} {'scrollH':>7} {'clientH':>7} {'extra':>5} {'foot':>5} {'page':>7} {'vbar':>4} {'fitted':>6}")
+        for r in rows:
+            print(f"{r['w']}x{r['h']:<5} {r['font']:6.1f} {r['cols']:4d} {r['bw']}x{r['bh']:<6} {r['sh']:7d} {r['ch']:7d} {r['scrollY']:5d} {r['foot']:5.1f} {r['page']:7.1f} {r['vsw']:4d} {str(r['fitted']):>6}" + ("  small-window notice" if r["notice"] else ""))
+        by = {(r['w'], r['h']): r['font'] for r in rows}
+        for (w, h), need in (((1440, 900), 12.0), ((1920, 1080), 14.0)):
+            if by[(w, h)] < need:
+                bad.append(f"{name}, {w}x{h}: chips are {by[(w, h)]:.1f}px, the target is {need:.0f}px or more")
+        fonts = {round(r["font"], 1) for r in rows}
+        if len(fonts) < 6:
+            bad.append(f"{name}: the scale did not follow the window: only {len(fonts)} different chip fonts in {len(rows)} sizes")
+        for r in rows:
+            if r["w"] >= 1000 and r["h"] >= 600 and (r["sh"] != r["ch"] or r["scrollX"] != 0 or not r["fitted"]):
+                bad.append(f"{name}, {r['w']}x{r['h']}: scrollHeight {r['sh']} vs clientHeight {r['ch']} (extra {r['scrollY']}px), horizontal extra {r['scrollX']}px, fitted {r['fitted']}")
     print("\n" + ("PASS" if not bad else "FAIL\n - " + "\n - ".join(bad)))
     sys.exit(1 if bad else 0)
 
