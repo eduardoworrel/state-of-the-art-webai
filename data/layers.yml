@@ -134,6 +134,30 @@ layers:
                 level: primary
                 title: "LiteRT repository"
                 group: code
+          - id: litertlm-format
+            sources:
+              - url: https://github.com/google-ai-edge/LiteRT
+                accessed: "2026-11-23"
+                level: primary
+                title: "LiteRT repository (.tflite and .litertlm)"
+                group: code
+              - url: https://github.com/google-ai-edge/litert-torch
+                accessed: "2026-11-23"
+                level: primary
+                title: "litert-torch: packaging into .litertlm"
+                group: code
+          - id: tfjs-format
+            sources:
+              - url: https://www.tensorflow.org/js/guide/conversion
+                accessed: "2026-11-23"
+                level: primary
+                title: "TensorFlow.js: model conversion"
+                group: docs
+              - url: https://www.tensorflow.org/js/guide/save_load
+                accessed: "2026-11-23"
+                level: primary
+                title: "TensorFlow.js: save and load models"
+                group: docs
           - id: coreml-format
             sources:
               - url: https://developer.apple.com/documentation/coreml

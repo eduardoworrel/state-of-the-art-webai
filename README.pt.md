@@ -54,7 +54,7 @@ Código: MIT ([LICENSE-CODE](LICENSE-CODE)). Dados e textos: CC BY 4.0 ([LICENSE
 ## A lista
 
 <!-- awesome:start -->
-_97 chips, 210 links de fonte. Última revisão: 2026-11-20. Gerado a partir de `data/layers.yml`: não edite à mão._
+_99 chips, 214 links de fonte. Última revisão: 2026-11-23. Gerado a partir de `data/layers.yml`: não edite à mão._
 
 ### 1. Escolher e adaptar
 _Qual tarefa e qual base?_
@@ -94,6 +94,10 @@ _Qual precisão?_
 - **.tflite** — Formato de modelo do LiteRT, antigo TensorFlow Lite, para inferência no aparelho.
   - Documentação: [LiteRT documentation](https://developers.google.com/edge/litert)
   - Código: [LiteRT repository](https://github.com/google-ai-edge/LiteRT)
+- **.litertlm** — Contêiner do LiteRT para LLMs: um modelo .tflite empacotado com o seu tokenizador.
+  - Código: [LiteRT repository (.tflite and .litertlm)](https://github.com/google-ai-edge/LiteRT), [litert-torch: packaging into .litertlm](https://github.com/google-ai-edge/litert-torch)
+- **TF.js model.json** — Formato do TensorFlow.js: topologia em model.json mais pesos binários em partes de cerca de 4 MB.
+  - Documentação: [TensorFlow.js: model conversion](https://www.tensorflow.org/js/guide/conversion), [TensorFlow.js: save and load models](https://www.tensorflow.org/js/guide/save_load)
 - **Core ML** — Formato de modelo da Apple para inferência no aparelho; o coremltools quantiza pesos e ativações.
   - Documentação: [Apple: Core ML](https://developer.apple.com/documentation/coreml), [coremltools guide](https://apple.github.io/coremltools/docs-guides/)
 
