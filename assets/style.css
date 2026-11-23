@@ -92,9 +92,9 @@ html.export .board { --u: 14.4px; width: 1552px; margin: 0; }
 .chip { font-family: inherit; cursor: pointer; text-align: left; }
 .chip:hover { border-color: var(--acc); }
 .chip:focus-visible { border-color: var(--acc); outline: 2px solid var(--acc); outline-offset: 2px; }
-.chip[data-kind="tree"] .caret { width: 0.7em; height: 0.42em; flex: none; color: var(--muted); transition: transform 0.12s; }
+.chip[data-kind="tree"] .caret { width: 0.95em; height: 0.95em; flex: none; color: var(--muted); transition: color 0.12s; }
 .chip[aria-expanded="true"] { border-color: var(--acc); background: var(--soft); }
-.chip[aria-expanded="true"] .caret { transform: rotate(180deg); color: var(--acc); }
+.chip[aria-expanded="true"] .caret { color: var(--acc); }
 .chip[data-status]:not([data-status="stable"]) { border-style: dashed; border-color: var(--acc); }
 .chip[data-status="stable"] em { color: var(--ink2); }
 .chips li { min-width: 0; max-width: 100%; }
