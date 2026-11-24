@@ -1,5 +1,5 @@
 /* Language (?lang=xx), theme (auto/light/dark, ?theme=), export mode (?export=1), fit mode (default; ?fit=0 for full width),
-   hover preview and source menus on chips, size control, share / embed / download / suggest actions, #chip-id deep links.
+   source menus on chips (click or keyboard; no hover preview), contributor mode (?contribuir=1), size control, share / embed / download / suggest actions, #chip-id deep links.
    Static, no tracking, no dependencies. */
 (function () {
   var I18N = window.__I18N__, DEFAULT = "en";
@@ -37,7 +37,6 @@
     });
     document.querySelectorAll("[data-lang]").forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.lang === l)); });
     document.title = t("site.title");
-    hideTip();
     refreshLinks(); fillSnippets(); arrange();
     var page = document.querySelector(".page");
     if (page) document.body.setAttribute("data-board-h", Math.ceil(page.getBoundingClientRect().height));
@@ -76,51 +75,15 @@
     el.style.left = x + "px"; el.style.top = y + "px"; el.style.visibility = "";
   }
 
-  /* ---------- hover preview: the head of the chip's menu (name, state, description, review, sources) and its alert ---------- */
-  var tip = document.getElementById("tip"), tipTimer = null;
-  var canHover = window.matchMedia && window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+  /* ---------- contributor mode (?contribuir=1 or ?contribute=1): shows what the reader does not see, the broken-link alerts and their evidence ---------- */
+  var contrib = q.get("contribuir") === "1" || q.get("contribute") === "1";
   function popOf(btn) { var m = document.getElementById(btn.getAttribute("aria-controls")); return m && (m.closest(".pop") || m); }
-  function clean(node) {
-    var c = node.cloneNode(true);
-    c.querySelectorAll("[id]").forEach(function (e) { e.removeAttribute("id"); });
-    c.removeAttribute("aria-labelledby");
-    return c;
+  if (contrib && !root.classList.contains("export")) {
+    root.classList.add("contrib");
+    document.querySelectorAll("[data-contrib-only]").forEach(function (e) { e.hidden = false; });
+    document.querySelectorAll("[data-alert-c]").forEach(function (e) { e.setAttribute("data-alert", e.getAttribute("data-alert-c")); });
+    var cn = document.querySelector(".contrib-note"); if (cn) cn.hidden = false;
   }
-  function showTip(chip) {
-    var pop = chip.dataset.kind === "tree" ? popOf(chip) : null, parts = [];
-    if (pop) {
-      parts.push(clean(pop.querySelector(".pop-head")));
-      var al = pop.querySelector(".pop-alert");
-      if (al) parts.push(clean(al));
-      if (pop.dataset.alert) tip.setAttribute("data-alert", pop.dataset.alert); else tip.removeAttribute("data-alert");
-    } else {                                  // where-it-runs items: one link, no menu
-      var d = chip.dataset, line = document.createElement("div");
-      line.className = "pop-head";
-      line.innerHTML = "<div class='ph-top'><strong></strong></div><p class='ph-meta'></p>";
-      line.querySelector("strong").textContent = chip.textContent;
-      line.querySelector(".ph-meta").textContent = t("ui.reviewed.short") + " " + d.date + " · " + d.host + " · " + t("ui.level." + d.level);
-      parts.push(line); tip.removeAttribute("data-alert");
-    }
-    tip.replaceChildren.apply(tip, parts);
-    place(tip, chip);
-  }
-  function hideTip() { clearTimeout(tipTimer); if (tip) tip.hidden = true; }
-  if (canHover) {
-    document.addEventListener("mouseover", function (e) {
-      var c = e.target.closest && e.target.closest("[data-kind]");
-      if (!c || c.getAttribute("aria-expanded") === "true") return;
-      clearTimeout(tipTimer); tipTimer = setTimeout(function () { showTip(c); }, 150);
-    });
-    document.addEventListener("mouseout", function (e) {
-      var c = e.target.closest && e.target.closest("[data-kind]");
-      if (c && !c.contains(e.relatedTarget)) hideTip();
-    });
-  }
-  document.addEventListener("focusin", function (e) {
-    var c = e.target.closest && e.target.closest("[data-kind]");
-    if (c && c.matches(":focus-visible") && c.getAttribute("aria-expanded") !== "true") showTip(c); else if (!c) hideTip();
-  });
-  document.addEventListener("focusout", hideTip);
 
   /* ---------- menus and panels: chips (sources), Share, Download, Suggest, and the Embed panel ---------- */
   var openBtn = null;
@@ -133,7 +96,7 @@
     if (returnFocus) btn.focus();
   }
   function open(btn, focusFirst) {
-    close(false); hideTip();
+    close(false);
     var pop = popOf(btn);
     refreshLinks(); fillSnippets();
     btn.setAttribute("aria-expanded", "true");
@@ -220,7 +183,7 @@
   document.addEventListener("keydown", function (e) {
     var btn = e.target.closest && e.target.closest("button[aria-haspopup][aria-controls]");
     if (btn && btn.getAttribute("aria-haspopup") === "menu" && (e.key === "ArrowDown" || e.key === "ArrowUp")) { e.preventDefault(); open(btn, true); return; }
-    if (e.key === "Escape") { if (openBtn) { e.preventDefault(); close(true); } hideTip(); return; }
+    if (e.key === "Escape") { if (openBtn) { e.preventDefault(); close(true); } return; }
     var pop = e.target.closest && e.target.closest(".pop");
     if (!pop) return;
     if (pop.getAttribute("role") === "dialog") {          // the embed panel: Tab stays inside it
@@ -237,9 +200,9 @@
     else if (e.key === "End") { e.preventDefault(); list[list.length - 1].focus(); }
     else if (e.key === "Tab") close(false);
   });
-  window.addEventListener("scroll", function (e) { if (e.target.closest && e.target.closest(".pop")) return; close(false); hideTip(); }, true);   // scrolling inside a menu keeps it open
+  window.addEventListener("scroll", function (e) { if (e.target.closest && e.target.closest(".pop")) return; close(false); }, true);   // scrolling inside a menu keeps it open
   var lastW = window.innerWidth;
-  window.addEventListener("resize", function () { if (window.innerWidth !== lastW) { lastW = window.innerWidth; close(false); hideTip(); } });  // phones resize when the address bar hides
+  window.addEventListener("resize", function () { if (window.innerWidth !== lastW) { lastW = window.innerWidth; close(false); } });  // phones resize when the address bar hides
   window.addEventListener("hashchange", openChipFromHash);
 
   /* ---------- embed: tell the parent page how tall we are (the parent validates the origin; so do we) ---------- */
@@ -460,9 +423,8 @@
     applyMotion();
     postHeight(); openChipFromHash();
     if (q.get("xhtml")) exportXhtml();
-    var want = q.get("open"), tipFor = q.get("tip");  // deep links, handy for screenshots
+    var want = q.get("open");  // deep links, handy for screenshots
     if (want) { var b = document.querySelector('[data-id="' + want + '"]'); if (b && b.dataset.kind === "tree") open(b, false); }
-    if (tipFor) { var c = document.querySelector('[data-id="' + tipFor + '"]'); if (c) showTip(c); }
     var mn = q.get("menu"); if (mn) { var mb = document.querySelector('[data-menu-btn="' + mn + '"]'); if (mb) open(mb, false); }
   }
 })();

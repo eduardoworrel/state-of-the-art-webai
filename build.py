@@ -20,6 +20,8 @@ DEFAULT = "en"
 SITE = tomllib.loads((ROOT / "site.toml").read_text(encoding="utf-8"))
 BASE = SITE["base_url"]
 assert BASE.endswith("/"), "base_url in site.toml must end with a slash"
+# Alert kinds the reader never sees: the source is broken, which helps whoever contributes, not whoever reads. They show with ?contribuir=1 (or ?contribute=1).
+READER_HIDDEN = {"broken-link"}
 SRC_ORDER = ["docs", "spec", "code", "papers", "blog", "status"]
 CARET = '<svg class="caret" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><circle cx="8" cy="8" r="6.6" fill="none" stroke="currentColor" stroke-width="1.3"/><circle cx="8" cy="4.9" r="0.95" fill="currentColor"/><path d="M8 7.4v4.2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>'
 THEME_ICONS = {
@@ -79,13 +81,14 @@ def popover(c, tx, pid):
             f'<p class="ph-desc" data-t="desc.{cid}">{escape(tx[f"desc.{cid}"])}</p>'
             f'<p class="ph-meta" data-date="{date}" data-n="{len(srcs)}">{escape(tx["ui.reviewed.short"])} {date} · {len(srcs)} {escape(tx["ui.sources.other"].replace("{n} ", ""))}</p></div>')
     alert, evidence = "", ""
+    co = " hidden data-contrib-only" if a and a["kind"] in READER_HIDDEN else ""
     if a:
-        alert = (f'<div class="pop-alert" role="group" aria-labelledby="al-{cid}"><div class="al-title" id="al-{cid}"><span class="al" data-level="{a["level"]}">{ALERT_ICONS[a["level"]]}</span>'
+        alert = (f'<div class="pop-alert"{co} role="group" aria-labelledby="al-{cid}"><div class="al-title" id="al-{cid}"><span class="al" data-level="{a["level"]}">{ALERT_ICONS[a["level"]]}</span>'
                  f'<span class="sr" data-t="ui.alert">{escape(tx["ui.alert"])}: </span>{alert_title(a, tx)}</div>'
                  f'<p class="al-text" data-t="alert.{cid}">{escape(tx[f"alert.{cid}"])}</p>'
                  f'<p class="al-meta"><span data-t="ui.alert.observed">{escape(tx["ui.alert.observed"])}</span> <time datetime="{a["observed"]}">{a["observed"]}</time></p></div>')
         ev = "".join(f'<a role="menuitem" tabindex="-1" class="ev" href="{escape(u)}" target="_blank" rel="noopener">{escape(short(u))}</a>' for u in a["evidence"])
-        evidence = (f'<div role="group" aria-label="{escape(tx["ui.alert.evidence"])}" data-al="ui.alert.evidence" class="ev-group">'
+        evidence = (f'<div{co} role="group" aria-label="{escape(tx["ui.alert.evidence"])}" data-al="ui.alert.evidence" class="ev-group">'
                     f'<div class="pg" aria-hidden="true" data-t="ui.alert.evidence">{escape(tx["ui.alert.evidence"])}</div>{ev}</div>')
     body = "".join(menu_item(s_, tx) for s_ in srcs if not s_.get("group"))
     for g in SRC_ORDER:
@@ -95,7 +98,7 @@ def popover(c, tx, pid):
             body += (f'<div role="group" aria-label="{label}" data-al="srcgroup.{g}"><div class="pg" aria-hidden="true" data-t="srcgroup.{g}">{label}</div>'
                      f'{"".join(menu_item(s_, tx) for s_ in items)}</div>')
     label = escape(tx["ui.menu"].replace("{name}", name))
-    lvl = f' data-alert="{a["level"]}"' if a else ""
+    lvl = f' data-alert{"-c" if co else ""}="{a["level"]}"' if a else ""
     return (f'<div class="pop" id="{pid}" data-menu="{cid}"{lvl} hidden>{head}{alert}'
             f'<div role="menu" id="menu-{cid}" aria-label="{label}" data-menu-label="{cid}">{evidence}{body}</div></div>')
 
@@ -105,11 +108,12 @@ def chip(c, tx):
     cid, name, status, a = c["id"], escape(tx[f"chip.{c['id']}"]), c.get("status"), c.get("alert")
     tag = f'<em class="tag" data-t="ui.status.{status}">{escape(tx[f"ui.status.{status}"])}</em>' if status else ""
     date = max(s["accessed"] for s in srcs)
-    attrs = f'data-id="{cid}" data-n="{len(srcs)}" data-date="{date}"' + (f' data-status="{status}"' if status else "") + (f' data-alert="{a["level"]}"' if a else "")
+    co = " hidden data-contrib-only" if a and a["kind"] in READER_HIDDEN else ""
+    attrs = f'data-id="{cid}" data-n="{len(srcs)}" data-date="{date}"' + (f' data-status="{status}"' if status else "") + (f' data-alert{"-c" if co else ""}="{a["level"]}"' if a else "")
     mark = ""
     if a:
-        mark = (f'<span class="al" data-level="{a["level"]}">{ALERT_ICONS[a["level"]]}</span>'
-                f'<span class="sr"><span data-t="ui.alert">{escape(tx["ui.alert"])}</span>: {alert_title(a, tx)}. </span>')
+        mark = (f'<span class="al"{co} data-level="{a["level"]}">{ALERT_ICONS[a["level"]]}</span>'
+                f'<span class="sr"{co}><span data-t="ui.alert">{escape(tx["ui.alert"])}</span>: {alert_title(a, tx)}. </span>')
     label = f'{mark}<span class="n" data-t="chip.{cid}">{name}</span>{tag}'
     return (f'<li><button type="button" class="chip" data-kind="tree" aria-haspopup="menu" aria-expanded="false" aria-controls="menu-{cid}" {attrs}>{label}{CARET}</button>'
             f'{popover(c, tx, "pop-" + cid)}</li>')
@@ -232,7 +236,8 @@ def render(embed=False):
         header = (f'<header class="top"><div class="intro"><h1 data-t="site.title">{escape(tx["site.title"])}</h1><p data-t="site.tagline">{escape(tx["site.tagline"])}</p></div>'
                   f'<div class="bar"><div class="seg langs" role="group" aria-label="{escape(tx["ui.language"])}" data-al="ui.language">{buttons}</div>'
                   f'<div class="seg themes" role="group" aria-label="{escape(tx["ui.theme"])}" data-al="ui.theme">{themes}</div>{share_button(tx)}</div>'
-                  f'<span class="small-window" role="status" hidden data-t="ui.small">{escape(tx["ui.small"])}</span></header>')
+                  f'<span class="small-window" role="status" hidden data-t="ui.small">{escape(tx["ui.small"])}</span>'
+                  f'<p class="contrib-note" role="status" hidden data-t="ui.contrib">{escape(tx["ui.contrib"])}</p></header>')
         footer = (f'<footer class="foot"><p data-t="ui.legend">{escape(tx["ui.legend"])}</p>'
                   f'<p><span data-t="ui.reviewed">{escape(tx["ui.reviewed"])}</span>: {reviewed}</p><p data-t="ui.license">{escape(tx["ui.license"])}</p></footer>')
     return f"""<!doctype html>
@@ -260,7 +265,6 @@ def render(embed=False):
 {footer}
 </div>
 {'' if embed else menus(tx, reviewed)}
-<div id="tip" role="tooltip" hidden></div>
 <script>window.__I18N__ = {json.dumps(langs, ensure_ascii=False)}; window.__SITE__ = {json.dumps(site)};</script>
 <script>
 {(ROOT / "assets" / "app.js").read_text(encoding="utf-8")}

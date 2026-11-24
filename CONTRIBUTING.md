@@ -82,6 +82,10 @@ A chip can carry an `alert`: a problem **you observed**, on a day, with evidence
 
 Then write `alert.<chip id>` in every language, saying **only what you saw, with the date**: "the repository answers 404 on 2026-11-20". Do not write that a project is abandoned, dead or unmaintained, and do not guess a cause, unless a source says it (then quote and link it). A broken link does not count as one of the two sources: add a working one and keep the broken one as evidence. After 30 days the check warns: look again, then update `observed` and the text, or remove the alert. `python3 scripts/linkcheck.py` opens the evidence for you.
 
+### Contributor mode
+
+The page hides the alerts of kind `broken-link` from readers (marker, alert box and the broken evidence links): they help whoever maintains the data, not whoever reads. To see everything as maintainer, open the page with `?contribuir=1` (or `?contribute=1`), for example `docs/index.html?lang=en&contribute=1`; a note in the header says the mode is on. Alerts of the other kinds (removed, deprecated, superseded, moved) show to everyone. The alerts stay in `data/layers.yml`, in the README lists and in `scripts/linkcheck.py`; which kinds are hidden is `READER_HIDDEN` in `build.py`.
+
 ### Models managed by the platform
 
 Some entries are not about running a model you ship: you call an API, and the browser or the system downloads, updates and removes the model (the built-in browser APIs such as the Prompt API, AICore on Android, Foundation Models on Apple platforms). These live in **Integrate in the app** (groups *Browser API* and *Native SDK*), not in **Run**, where you bring the model. Write "the browser (or the system) manages the model". Do not write "shared between sites" unless an official page says so.

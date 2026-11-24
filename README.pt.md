@@ -2,7 +2,7 @@
 
 Um mapa de tudo o que existe entre um modelo e uma pessoa quando o modelo roda no navegador, no celular ou numa placa de borda: escolher e adaptar o modelo, converter e quantizar, rodar, integrar no app e testar.
 
-É uma lista "awesome" e uma paisagem (landscape) numa figura só. Cada chip é uma tecnologia, técnica ou limite e abre ao menos duas fontes em que se apoia, com a data em que foram lidas. Um chip pode ter um alerta datado (link quebrado, descontinuação) com a sua evidência.
+É uma lista "awesome" e uma paisagem (landscape) numa figura só. Cada chip é uma tecnologia, técnica ou limite e abre ao menos duas fontes em que se apoia, com a data em que foram lidas. Um chip pode ter um alerta datado (link quebrado, descontinuação) com a sua evidência. A página esconde dos leitores os alertas de link quebrado; acrescente `?contribuir=1` ao endereço para vê-los (veja CONTRIBUTING.md).
 
 ![As cinco camadas do WebAI](docs/figure-pt.png)
 

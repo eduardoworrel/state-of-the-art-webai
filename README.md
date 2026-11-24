@@ -2,7 +2,7 @@
 
 A map of everything between a model and a person when the model runs in a browser, on a phone or on an edge board: choosing and adapting the model, converting and quantizing it, running it, putting it inside an app, and testing it.
 
-It is an awesome list and a landscape in one picture. Every chip is a technology, a technique or a limit, and every chip opens at least two sources it rests on, with the date they were read. A chip can carry a dated alert (a broken link, a deprecation) with its evidence.
+It is an awesome list and a landscape in one picture. Every chip is a technology, a technique or a limit, and every chip opens at least two sources it rests on, with the date they were read. A chip can carry a dated alert (a broken link, a deprecation) with its evidence. The page hides broken-link alerts from readers; add `?contribute=1` to the address to see them (see CONTRIBUTING.md).
 
 ![The five layers of WebAI](docs/figure-en.png)
 

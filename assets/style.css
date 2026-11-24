@@ -40,7 +40,9 @@ a { color: inherit; }
 .page { --m: clamp(12px, 1.1vw, 16px); max-width: none; margin: 0 auto; padding: 8px var(--m) 8px; }
 .top { display: flex; flex-wrap: wrap; gap: 8px 24px; align-items: center; justify-content: space-between; margin-bottom: 4px; }
 .top h1 { margin: 0; font-size: 20px; letter-spacing: -0.01em; line-height: 1.2; }
-.top p { margin: 0; color: var(--ink2); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.top p { margin: 4px 0 0; color: var(--ink2); font-size: 12px; line-height: 1.4; max-width: 90ch; }
+[data-contrib-only][hidden] { display: none !important; }
+.contrib-note { flex: 1 0 100%; padding: 4px 10px; border: 1px dashed var(--al-warn-bd); border-radius: 8px; background: var(--al-warn-bg); color: var(--al-warn-tx) !important; }
 .seg { display: inline-flex; border: 1px solid var(--edge); border-radius: 999px; overflow: hidden; background: var(--card); }
 .seg button { font: inherit; font-weight: 600; font-size: 13px; padding: 6px 14px; border: 0; background: transparent; color: var(--ink2); cursor: pointer; display: inline-flex; align-items: center; }
 .seg button:hover { color: var(--ink); }
@@ -124,7 +126,7 @@ html.export .board { --u: 14.4px; width: 1552px; margin: 0; }
 [data-f="track"] { fill: var(--track); } [data-s="track"] { stroke: var(--track); }
 [data-f="muted"] { fill: var(--muted); } [data-s="muted"] { stroke: var(--muted); }
 
-/* source menu, hover preview, alerts */
+/* source menu, alerts */
 .sr { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 .al { display: inline-flex; flex: none; width: 1.05em; height: 1.05em; }
 .al .ai { width: 100%; height: 100%; display: block; }
@@ -132,9 +134,8 @@ html.export .board { --u: 14.4px; width: 1552px; margin: 0; }
 .al[data-level="critical"] { color: var(--al-crit); } .al[data-level="warning"] { color: var(--al-warn); } .al[data-level="info"] { color: var(--al-info); }
 .chip[data-alert="critical"] { border-color: var(--al-crit-bd); } .chip[data-alert="warning"] { border-color: var(--al-warn-bd); } .chip[data-alert="info"] { border-color: var(--al-info-bd); }
 .chip[data-alert] { border-style: solid; }
-.pop, #tip { background: var(--paper); color: var(--ink); border: 1px solid var(--edge); border-radius: 12px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18); font-size: 13px; line-height: 1.4; }
+.pop { background: var(--paper); color: var(--ink); border: 1px solid var(--edge); border-radius: 12px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18); font-size: 13px; line-height: 1.4; }
 .pop { position: fixed; z-index: 60; width: min(360px, calc(100vw - 16px)); max-height: min(86vh, 640px); overflow: auto; padding: 6px; }
-#tip { position: fixed; z-index: 70; width: min(320px, calc(100vw - 16px)); padding: 6px; pointer-events: none; }
 .pop-head, .pop-alert { padding: 7px 10px; }
 .pop-head .ph-top { display: flex; align-items: baseline; gap: 8px; }
 .pop-head strong { font-size: 14px; }
@@ -145,9 +146,9 @@ html.export .board { --u: 14.4px; width: 1552px; margin: 0; }
 .pop-alert .al-title { display: flex; align-items: center; gap: 6px; font-weight: 700; }
 .pop-alert .al-text { margin: 4px 0 0; color: var(--ink); }
 .pop-alert .al-meta { margin: 5px 0 0; font-size: 11.5px; color: var(--ink2); font-variant-numeric: tabular-nums; }
-.pop[data-alert="critical"], #tip[data-alert="critical"] { background: var(--al-crit-bg); border-color: var(--al-crit-bd); }
-.pop[data-alert="warning"], #tip[data-alert="warning"] { background: var(--al-warn-bg); border-color: var(--al-warn-bd); }
-.pop[data-alert="info"], #tip[data-alert="info"] { background: var(--al-info-bg); border-color: var(--al-info-bd); }
+.pop[data-alert="critical"] { background: var(--al-crit-bg); border-color: var(--al-crit-bd); }
+.pop[data-alert="warning"] { background: var(--al-warn-bg); border-color: var(--al-warn-bd); }
+.pop[data-alert="info"] { background: var(--al-info-bg); border-color: var(--al-info-bd); }
 [data-alert="critical"] .al-title { color: var(--al-crit-tx); } [data-alert="warning"] .al-title { color: var(--al-warn-tx); } [data-alert="info"] .al-title { color: var(--al-info-tx); }
 .pop a { display: flex; flex-direction: column; gap: 1px; padding: 7px 10px; border-radius: 8px; text-decoration: none; }
 .pop a:hover, .pop a:focus-visible { background: var(--soft); outline: none; }
@@ -157,7 +158,6 @@ html.export .board { --u: 14.4px; width: 1552px; margin: 0; }
 .pop .ev-group .pg { width: 100%; padding: 6px 0 2px; }
 .pop a.ev { display: inline-block; font-size: 12px; padding: 2px 6px; margin-left: -6px; word-break: break-all; text-decoration: underline; text-underline-offset: 2px; }
 .pop[data-alert] { width: min(430px, calc(100vw - 16px)); }
-#tip .al-text { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
 .pop .t { font-weight: 600; }
 .pop .m { display: flex; gap: 8px; align-items: baseline; color: var(--ink2); font-size: 11.5px; }
 .pop .m em { font-style: normal; } .pop .m time { margin-left: auto; font-variant-numeric: tabular-nums; white-space: nowrap; }
@@ -165,7 +165,6 @@ html.export .board { --u: 14.4px; width: 1552px; margin: 0; }
 .pop [role="group"] { border-top: 1px solid var(--edge); margin-top: 4px; }
 .pop [role="menu"] > [role="group"]:first-child { margin-top: 2px; }
 .pop[data-alert] [role="group"] { border-top-color: var(--edge); }
-#tip .pop-head { padding: 5px 8px; } #tip .pop-alert { margin: 2px 0 0; padding: 5px 8px; }
 
 /* The board's size on the page is decided by app.js (see arrange()): Normal = the target font; Large = a bigger font; Fit = the smallest
    font (never below 12px) with which the whole map fits the window. The cards are re-arranged to use the width and the height. */
@@ -242,8 +241,6 @@ html.flow .turn { border-color: transparent !important; }
 @keyframes led { 0% { opacity: 1; } 50% { opacity: 0.22; } }
 html.motion .fl-path { animation: march 1.8s linear infinite; }
 html.motion:not(.settled) .where-item { animation: wi-in 0.55s cubic-bezier(0.2, 0.7, 0.2, 1) both; animation-delay: calc(var(--i, 0) * 140ms + 200ms); }
-html.motion .where-item .glyph { transition: transform 0.18s ease; }
-html.motion .where-item:hover .glyph, html.motion .where-item:focus-within .glyph { transform: translateY(-3px) scale(1.07); }
 html.motion .where-item .m-cursor { animation: blink 1.1s steps(1) infinite; animation-delay: calc(var(--i, 0) * 0.3s); }
 html.motion .where-item .m-glow { animation: glow 3.2s ease-in-out infinite alternate; }
 html.motion .where-item .m-pulse { animation: glow 2.4s ease-in-out infinite alternate; }
