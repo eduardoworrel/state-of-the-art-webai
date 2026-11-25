@@ -437,7 +437,7 @@ _E se não houver GPU?_
   - Especificação: [WebMCP draft specification](https://webmachinelearning.github.io/webmcp/)
   - Código: [WebMCP repository](https://github.com/webmachinelearning/webmcp)
   - Estado: [blink-dev: Intent to Experiment](https://groups.google.com/a/chromium.org/g/blink-dev/c/gmYffo5WOE8), [web-features: document.modelContext](https://web-platform-dx.github.io/web-features-explorer/features/document-modelcontext)
-- **MCP-B** — Liga o document.modelContext ao Model Context Protocol; não é um projeto oficial do W3C nem do MCP.
+- **MCP-B** — Polyfill do document.modelContext que conecta as ferramentas WebMCP das páginas a clientes do Model Context Protocol; projeto da comunidade.
   - Código: [MCP-B packages README](https://github.com/WebMCP-org/npm-packages), [MCP-B documentation repository](https://github.com/WebMCP-org/docs)
 
 ### 5. Avaliar e testar
