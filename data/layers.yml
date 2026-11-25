@@ -1256,6 +1256,42 @@ layers:
                 level: primary
                 title: "@litertjs/core on npm"
                 group: code
+          - id: mast-ai
+            sources:
+              - url: https://github.com/andreban/mast-ai
+                accessed: "2026-11-25"
+                level: primary
+                title: "MAST README"
+                group: code
+              - url: https://github.com/andreban/mast-ai/blob/main/docs/SPEC.md
+                accessed: "2026-11-25"
+                level: primary
+                title: "MAST specification"
+                group: spec
+          - id: web-ai-sdk
+            sources:
+              - url: https://github.com/obetomuniz/web-ai-sdk
+                accessed: "2026-11-25"
+                level: primary
+                title: "web-ai-sdk README"
+                group: code
+              - url: https://web-ai-sdk.dev
+                accessed: "2026-11-25"
+                level: primary
+                title: "web-ai-sdk site"
+                group: docs
+          - id: s1s2
+            sources:
+              - url: https://github.com/eduardoworrel/s1s2.js
+                accessed: "2026-11-25"
+                level: primary
+                title: "s1s2.js README"
+                group: code
+              - url: https://github.com/eduardoworrel/s1s2.js/blob/main/docs/reference.md
+                accessed: "2026-11-25"
+                level: primary
+                title: "s1s2.js reference"
+                group: docs
       - id: packaging
         col: 0
         chips:
@@ -1444,6 +1480,44 @@ layers:
                 level: primary
                 title: "LiteRT-LM overview"
                 group: docs
+      - id: agent-tools
+        col: 1
+        chips:
+          - id: webmcp
+            status: experimental
+            sources:
+              - url: https://webmachinelearning.github.io/webmcp/
+                accessed: "2026-11-25"
+                level: primary
+                title: "WebMCP draft specification"
+                group: spec
+              - url: https://github.com/webmachinelearning/webmcp
+                accessed: "2026-11-25"
+                level: primary
+                title: "WebMCP repository"
+                group: code
+              - url: https://groups.google.com/a/chromium.org/g/blink-dev/c/gmYffo5WOE8
+                accessed: "2026-11-25"
+                level: trusted
+                title: "blink-dev: Intent to Experiment"
+                group: status
+              - url: https://web-platform-dx.github.io/web-features-explorer/features/document-modelcontext
+                accessed: "2026-11-25"
+                level: primary
+                title: "web-features: document.modelContext"
+                group: status
+          - id: mcp-b
+            sources:
+              - url: https://github.com/WebMCP-org/npm-packages
+                accessed: "2026-11-25"
+                level: primary
+                title: "MCP-B packages README"
+                group: code
+              - url: https://github.com/WebMCP-org/docs
+                accessed: "2026-11-25"
+                level: primary
+                title: "MCP-B documentation repository"
+                group: code
   - id: evaluate
     n: 5
     icon: evaluate
@@ -1477,6 +1551,18 @@ layers:
                 level: primary
                 title: "WebNN: operation implementation status"
                 group: status
+          - id: tool-calling-evals
+            sources:
+              - url: https://github.com/GoogleChromeLabs/webmcp-tools/tree/main/webmcp-evals
+                accessed: "2026-11-25"
+                level: primary
+                title: "WebMCP Evals README"
+                group: code
+              - url: https://github.com/andreban/outputschema-eval
+                accessed: "2026-11-25"
+                level: primary
+                title: "outputschema-eval README"
+                group: code
       - id: performance
         col: 1
         chips:
