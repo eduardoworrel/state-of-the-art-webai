@@ -57,7 +57,7 @@ Code: MIT ([LICENSE-CODE](LICENSE-CODE)). Data and texts: CC BY 4.0 ([LICENSE-DA
 ## The list
 
 <!-- awesome:start -->
-_99 chips, 214 source links. Last reviewed: 2026-11-23. Generated from `data/layers.yml`: do not edit by hand._
+_105 chips, 228 source links. Last reviewed: 2026-11-25. Generated from `data/layers.yml`: do not edit by hand._
 
 ### 1. Choose and adapt
 _Which task, which base?_
@@ -379,6 +379,15 @@ _No GPU, now what?_
 - **LiteRT.js** — LiteRT for the web, from Google AI Edge.
   - Docs: [LiteRT for the web](https://developers.google.com/edge/litert/web)
   - Code: [@litertjs/core on npm](https://www.npmjs.com/package/@litertjs/core)
+- **MAST** — TypeScript library that runs the agent loop in the browser, with tools written as plain functions.
+  - Spec: [MAST specification](https://github.com/andreban/mast-ai/blob/main/docs/SPEC.md)
+  - Code: [MAST README](https://github.com/andreban/mast-ai)
+- **web-ai-sdk** — TypeScript SDK with one package per built-in browser AI API (Prompt, Summarizer, Translator, WebMCP and more).
+  - Docs: [web-ai-sdk site](https://web-ai-sdk.dev)
+  - Code: [web-ai-sdk README](https://github.com/obetomuniz/web-ai-sdk)
+- **s1s2.js** — Typed decisions (predicate, choice, score) from one forward pass of a small model in the browser; the README says alpha.
+  - Docs: [s1s2.js reference](https://github.com/eduardoworrel/s1s2.js/blob/main/docs/reference.md)
+  - Code: [s1s2.js README](https://github.com/eduardoworrel/s1s2.js)
 
 **Packaging**
 
@@ -425,6 +434,15 @@ _No GPU, now what?_
   - Docs: [LiteRT-LM overview](https://developers.google.com/edge/litert-lm/overview)
   - Code: [LiteRT-LM on GitHub](https://github.com/google-ai-edge/LiteRT-LM)
 
+**Agent tools**
+
+- **WebMCP** · *experimental* — Pages register tools that browser agents can call through document.modelContext; a W3C Community Group draft.
+  - Spec: [WebMCP draft specification](https://webmachinelearning.github.io/webmcp/)
+  - Code: [WebMCP repository](https://github.com/webmachinelearning/webmcp)
+  - Status: [blink-dev: Intent to Experiment](https://groups.google.com/a/chromium.org/g/blink-dev/c/gmYffo5WOE8), [web-features: document.modelContext](https://web-platform-dx.github.io/web-features-explorer/features/document-modelcontext)
+- **MCP-B** — Bridges document.modelContext to the Model Context Protocol; not an official W3C or MCP project.
+  - Code: [MCP-B packages README](https://github.com/WebMCP-org/npm-packages), [MCP-B documentation repository](https://github.com/WebMCP-org/docs)
+
 ### 5. Evaluate and test
 _Same as the original?_
 
@@ -436,6 +454,8 @@ _Same as the original?_
 - **operator coverage** — WebGPU, WebGL and WebNN support only a subset of ONNX operators; WebAssembly supports all.
   - Docs: [ONNX Runtime Web: tutorials](https://onnxruntime.ai/docs/tutorials/web/)
   - Status: [WebNN: operation implementation status](https://webmachinelearning.github.io/webnn-status/)
+- **tool-calling evals** — Check that an agent picks the right tool and arguments; WebMCP Evals compares its calls with the expected ones.
+  - Code: [WebMCP Evals README](https://github.com/GoogleChromeLabs/webmcp-tools/tree/main/webmcp-evals), [outputschema-eval README](https://github.com/andreban/outputschema-eval)
 
 **Performance**
 
