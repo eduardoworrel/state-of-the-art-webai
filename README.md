@@ -4,7 +4,7 @@ A map of everything between a model and a person when the model runs in a browse
 
 It is an awesome list and a landscape in one picture. Every chip is a technology, a technique or a limit, and every chip opens at least two sources it rests on, with the date they were read. A chip can carry a dated alert (a broken link, a deprecation) with its evidence. The page hides broken-link alerts from readers; add `?contribute=1` to the address to see them (see CONTRIBUTING.md).
 
-![The five layers of WebAI](docs/figure-en.png)
+![The three lanes of WebAI: build, use, agent-ready](docs/figure-en.png)
 
 **Live page:** `docs/index.html` (it adapts to the window; static; switch language with the buttons or `?lang=pt`, theme with the sun and moon buttons). [Português](README.pt.md).
 
@@ -12,7 +12,7 @@ It is an awesome list and a landscape in one picture. Every chip is a technology
 
 | File | What it is |
 |---|---|
-| [SPEC.md](SPEC.md) | The specification (version 0.4): data model, rules, i18n, curation, versioning. |
+| [SPEC.md](SPEC.md) | The specification (version 0.5): data model, rules, i18n, curation, versioning. |
 | `data/layers.yml` | The layers, groups and chips. Each chip has `sources` (at least two distinct links) and, when something was observed, an `alert`. |
 | `i18n/en.yml`, `i18n/pt.yml` | One text per id. English is the reference language. |
 | `schema/` | JSON Schemas for the two kinds of file. |
@@ -38,7 +38,7 @@ Add a chip, fix a source, or translate the whole map. See [CONTRIBUTING.md](CONT
 
 ## The page
 
-- **Size.** The map follows the window continuously: drag the window edge and it re-fits, with no reload. It looks for the largest *text* size at which some arrangement of the five cards (1 to 5 columns, stacked or side by side) fits the free width and height exactly, so the page never scrolls: spacing, icons and padding scale more slowly than the text, so the chips and labels get the room (chips are 12 px or more at 1440×900 and 14 px or more at 1920×1080). Below about 9 px it says "Small window: scroll"; at the smallest scale (5 px) the page scrolls. Phones get one column. `?fit=0` keeps a full-width layout (used for the repo). `scripts/test_resize.py` drives Chrome through the DevTools Protocol, resizes the window, and checks that the text follows, that the content is exactly as tall as the window (0 px of scroll) in EN and PT, light and dark, with overlay and classic scrollbars, and the text-size targets.
+- **Size.** The map follows the window continuously: drag the window edge and it re-fits, with no reload. It looks for the largest *text* size at which the three lanes (build, use, agent-ready) fit the free width and height exactly, so the page never scrolls: spacing, icons and padding scale more slowly than the text, so the chips and labels get the room (chips are 12 px or more at 1440×900 and 14 px or more at 1920×1080). Below about 9 px it says "Small window: scroll"; at the smallest scale (5 px) the page scrolls. Phones get one column. `?fit=0` keeps a full-width layout (used for the repo). `scripts/test_resize.py` drives Chrome through the DevTools Protocol, resizes the window, and checks that the text follows, that the content is exactly as tall as the window (0 px of scroll) in EN and PT, light and dark, with overlay and classic scrollbars, and the text-size targets.
 - **Share.** One button, one popover: *Share* (copy the link, LinkedIn, X, e-mail, and the system share sheet when there is one), *Embed* (four types, each with a one-line explanation and a Copy button: an `<iframe>` whose height adjusts itself (`docs/embed/`, with `?lang=` and `?theme=`), the web component `<state-of-the-art-webai lang="pt" theme="auto">` from `embed.js` (always the current map; about 2 KB, no dependencies), the static figure (CC BY 4.0: keep the credit) and a Markdown badge; the code goes to the clipboard in the page's current language and theme), *Download* (PNG and SVG of the figure, in the current language and theme; the SVG holds the board as HTML inside a `foreignObject`, so it opens in any modern browser and in `<img>` but is not a path drawing) and *Suggest or correct* (a GitHub issue). A link ending in `#chip-id` (for example `#olive`) opens that chip's sources on load.
 - Everything is static: no tracking, no cookies, no library. The public address lives in one place, `site.toml` (`base_url`); the share links, the embed snippets, the canonical link and `docs/sitemap.xml` are generated from it. `?fit=0` is the same as `?size=large`.
 
@@ -59,7 +59,7 @@ Code: MIT ([LICENSE-CODE](LICENSE-CODE)). Data and texts: CC BY 4.0 ([LICENSE-DA
 <!-- awesome:start -->
 _105 chips, 228 source links. Last reviewed: 2026-11-25. Generated from `data/layers.yml`: do not edit by hand._
 
-### 1. Choose and adapt
+### A1. Choose and adapt
 _Which task, which base?_
 
 **Starting point**
@@ -81,7 +81,7 @@ _Which task, which base?_
 - **distillation** — Squeezes a larger model into a smaller one; DistilBERT is 40% smaller and 60% faster.
   - Papers: [Distilling the knowledge in a neural network](https://arxiv.org/abs/1503.02531), [DistilBERT](https://arxiv.org/abs/1910.01108)
 
-### 2. Convert and quantize
+### A2. Convert and quantize
 _How low can I go?_
 
 **Format**
@@ -207,8 +207,20 @@ _Also exists (not drawn on the figure):_
   - Code: [KIVI reference code](https://github.com/jy-yuan/KIVI)
   - Papers: [KIVI paper](https://arxiv.org/abs/2402.02750)
 
-### 3. Run
-_Which accelerator, which limit?_
+### A3. Evaluate and test
+_Same as the original?_
+
+**Quality**
+
+- **fidelity** — Quantization can degrade performance, so measure the quantized model against the original.
+  - Docs: [ONNX Runtime: quantization](https://onnxruntime.ai/docs/performance/model-optimizations/quantization.html)
+  - Posts: [Google: Gemma 3 QAT](https://developers.googleblog.com/en/gemma-3-quantized-aware-trained-state-of-the-art-ai-to-consumer-gpus/)
+- **operator coverage** — WebGPU, WebGL and WebNN support only a subset of ONNX operators; WebAssembly supports all.
+  - Docs: [ONNX Runtime Web: tutorials](https://onnxruntime.ai/docs/tutorials/web/)
+  - Status: [WebNN: operation implementation status](https://webmachinelearning.github.io/webnn-status/)
+
+### B1. Run
+_Which runtime, which limit?_
 
 **Acceleration**
 
@@ -355,7 +367,15 @@ _Also exists (not drawn on the figure):_
 - **COOP and COEP** — Cross-origin isolation is required for WebAssembly threads.
   - Docs: [MDN: crossOriginIsolated](https://developer.mozilla.org/en-US/docs/Web/API/Window/crossOriginIsolated), [ONNX Runtime: env flags](https://onnxruntime.ai/docs/tutorials/web/env-flags-and-session-options.html)
 
-### 4. Integrate in the app
+**Performance**
+
+- **battery** · *open* — Papers measure phone energy; no comparable, agreed measurement exists yet.
+  - Papers: [On-device vs server energy](https://arxiv.org/abs/2609.11940), [Phone battery and launch time](https://arxiv.org/abs/2410.03613)
+- **background tab** — Background tabs are throttled; timers slow down in Chrome 88 and later.
+  - Docs: [MDN: setTimeout (inactive tabs)](https://developer.mozilla.org/en-US/docs/Web/API/Window/setTimeout)
+  - Posts: [Chrome: timer throttling](https://developer.chrome.com/blog/timer-throttling-in-chrome-88)
+
+### B2. Integrate in the app
 _No GPU, now what?_
 
 **Web library**
@@ -434,6 +454,9 @@ _No GPU, now what?_
   - Docs: [LiteRT-LM overview](https://developers.google.com/edge/litert-lm/overview)
   - Code: [LiteRT-LM on GitHub](https://github.com/google-ai-edge/LiteRT-LM)
 
+### C1. Expose tools
+_What can an agent call?_
+
 **Agent tools**
 
 - **WebMCP** · *experimental* — Pages register tools that browser agents can call through document.modelContext; a W3C Community Group draft.
@@ -443,25 +466,11 @@ _No GPU, now what?_
 - **MCP-B** — Polyfill for document.modelContext that connects the WebMCP tools of pages to Model Context Protocol clients; a community project.
   - Code: [MCP-B packages README](https://github.com/WebMCP-org/npm-packages), [MCP-B documentation repository](https://github.com/WebMCP-org/docs)
 
-### 5. Evaluate and test
-_Same as the original?_
+### C2. Evaluate tool calls
+_Right tool, right arguments?_
 
-**Quality**
+**Tool calls**
 
-- **fidelity** — Quantization can degrade performance, so measure the quantized model against the original.
-  - Docs: [ONNX Runtime: quantization](https://onnxruntime.ai/docs/performance/model-optimizations/quantization.html)
-  - Posts: [Google: Gemma 3 QAT](https://developers.googleblog.com/en/gemma-3-quantized-aware-trained-state-of-the-art-ai-to-consumer-gpus/)
-- **operator coverage** — WebGPU, WebGL and WebNN support only a subset of ONNX operators; WebAssembly supports all.
-  - Docs: [ONNX Runtime Web: tutorials](https://onnxruntime.ai/docs/tutorials/web/)
-  - Status: [WebNN: operation implementation status](https://webmachinelearning.github.io/webnn-status/)
 - **tool-calling evals** — Check that an agent picks the right tool and arguments; WebMCP Evals compares its calls with the expected ones.
   - Code: [WebMCP Evals README](https://github.com/GoogleChromeLabs/webmcp-tools/tree/main/webmcp-evals), [outputschema-eval README](https://github.com/andreban/outputschema-eval)
-
-**Performance**
-
-- **battery** · *open* — Papers measure phone energy; no comparable, agreed measurement exists yet.
-  - Papers: [On-device vs server energy](https://arxiv.org/abs/2609.11940), [Phone battery and launch time](https://arxiv.org/abs/2410.03613)
-- **background tab** — Background tabs are throttled; timers slow down in Chrome 88 and later.
-  - Docs: [MDN: setTimeout (inactive tabs)](https://developer.mozilla.org/en-US/docs/Web/API/Window/setTimeout)
-  - Posts: [Chrome: timer throttling](https://developer.chrome.com/blog/timer-throttling-in-chrome-88)
 <!-- awesome:end -->
