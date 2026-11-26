@@ -20,9 +20,10 @@ import miniyaml  # noqa: E402
 import minischema  # noqa: E402
 
 LAYERS_FILE = "data/layers.yml"
-STATIC_KEYS = (["lang.name", "site.title", "site.tagline", "label.model", "label.person", "ui.source", "ui.accessed", "ui.language", "ui.where", "ui.legend",
+STATIC_KEYS = (["lang.name", "site.title", "site.tagline", "ui.source", "ui.accessed", "ui.language", "ui.where", "ui.legend",
                 "ui.contribute", "ui.reviewed", "ui.reviewed.short", "ui.license", "ui.theme", "ui.theme.auto", "ui.theme.light", "ui.theme.dark",
                 "ui.sources.one", "ui.sources.other", "ui.menu", "ui.opens", "ui.alert", "ui.alert.observed", "ui.alert.evidence", "ui.also", "ui.small", "ui.contrib",
+                "ui.lane.build", "ui.lane.use", "ui.lane.agents", "ui.band.accel", "ui.band.bridge", "ui.band.bridge.note",
                 "ui.share", "ui.share.native", "ui.share.copy", "ui.share.copied", "ui.share.linkedin", "ui.share.x", "ui.share.email", "ui.embed", "ui.embed.help", "ui.embed.how", "ui.embed.t.iframe", "ui.embed.d.iframe", "ui.embed.t.component", "ui.embed.d.component", "ui.embed.t.image", "ui.embed.d.image", "ui.embed.t.badge", "ui.embed.d.badge", "ui.embed.copy", "ui.embed.copied", "ui.embed.close", "ui.embed.credit", "ui.download", "ui.suggest"]
                + [f"ui.alert.level.{x}" for x in ("critical", "warning", "info")]
                + [f"ui.alert.kind.{x}" for x in ("broken-link", "removed", "deprecated", "superseded", "moved")]
@@ -70,15 +71,15 @@ def describe(data, path):
 
 def pre_checks(data):
     """Friendly messages for the most common mistakes, before the schema speaks."""
-    if isinstance(data, dict) and data.get("spec") not in (None, "0.4"):
-        err(LAYERS_FILE, "spec", f"declares spec {data.get('spec')!r}; this checker implements 0.4 (see SPEC.md, section 8)")
+    if isinstance(data, dict) and data.get("spec") not in (None, "0.5"):
+        err(LAYERS_FILE, "spec", f"declares spec {data.get('spec')!r}; this checker implements 0.5 (see SPEC.md, section 8)")
     for L in data.get("layers") or []:
         for g in (L.get("groups") or []) + ((L.get("panel") or {}).get("groups") or []):
             for c in g.get("chips") or []:
                 where = f"layer '{L.get('id')}' > group '{g.get('id')}' > chip '{c.get('id')}'"
                 srcs = c.get("sources")
                 if "source" in c:
-                    err(LAYERS_FILE, where, "uses `source`, which chips no longer have in spec 0.4: list the links under `sources` (at least two)")
+                    err(LAYERS_FILE, where, "uses `source`, which chips no longer have in spec 0.2 and later: list the links under `sources` (at least two)")
                 if srcs is None and "source" not in c:
                     err(LAYERS_FILE, where, "has no sources: every chip needs `sources` with at least two links (SPEC.md section 4)")
                 if isinstance(srcs, list):
@@ -143,12 +144,15 @@ def semantic(data, today):
         w = f"layer '{L.get('id')}'"
         dup("layer", L.get("id"), w)
         expected.update({f"layer.{L.get('id')}", f"decision.{L.get('id')}"})
-        if L.get("n") in numbers:
-            err(LAYERS_FILE, w, f"layer number n={L.get('n')} is used twice")
-        numbers.add(L.get("n"))
+        key = (L.get("lane"), L.get("n"))
+        if key in numbers:
+            err(LAYERS_FILE, w, f"layer number n={L.get('n')} is used twice in lane '{L.get('lane')}'")
+        numbers.add(key)
         if L.get("icon") not in icons:
             err(LAYERS_FILE, w, f"icon '{L.get('icon')}' not found in assets/icons/")
         groups(L.get("groups") or [], w, L.get("layout"))
+        if L.get("groups") and all(g.get("band") for g in L["groups"]):
+            err(LAYERS_FILE, w, "every group has a `band`, so the layer would be an empty card: keep at least one group without it (SPEC.md section 3.7)")
         for it in L.get("where") or []:
             ww = f"{w} > where '{it.get('id')}'"
             dup("where", it.get("id"), ww)
@@ -234,7 +238,7 @@ def main():
         print(f"{len(errors)} problem(s):")
         print("\n".join(" - " + e for e in errors))
         sys.exit(1)
-    print(f"ok: {len(seen['layer'])} layers, {len(seen['group'])} groups, {n_chips} chips, {len(files)} languages, spec 0.4")
+    print(f"ok: {len(seen['layer'])} layers, {len(seen['group'])} groups, {n_chips} chips, {len(files)} languages, spec 0.5")
 
 
 if __name__ == "__main__":

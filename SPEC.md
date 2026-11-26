@@ -1,6 +1,6 @@
 # State of the Art of WebAI: specification
 
-**Version 0.4** (draft). The words MUST, SHOULD and MAY are used as in RFC 2119.
+**Version 0.5** (draft). The words MUST, SHOULD and MAY are used as in RFC 2119.
 
 This document defines the data a contribution is made of, what makes an entry valid, how texts are translated, how entries are kept fresh, and how the page, the PNG and the awesome list are generated from the same data. `schema/*.json` and `scripts/check.py` implement it; if they disagree with this text, that is a bug in one of them.
 
@@ -24,7 +24,7 @@ layer ── group ── chip ── sources (two or more links, optionally gro
   └── panel ── group ── chip ...
 ```
 
-- A **layer** is a stage of the work between a model and a person. Layers are numbered and shown in a column.
+- A **layer** is a stage of the work between a model and a person. Layers are numbered and shown in a column. Each layer belongs to a **lane** (the audience it serves, 3.7).
 - A **group** is a labelled set of chips inside a layer (for example "Format" or "Method").
 - A **chip** is one technology, technique, feature, limit or practice. It is the unit of curation: it has a name, a one-line description, an optional status and at least two sources.
 - A **source** is a page someone read, with the day they read it and how much it can be trusted.
@@ -38,7 +38,7 @@ Unknown fields are errors. "R" means required.
 
 | Field | R | Type | Rule |
 |---|---|---|---|
-| `spec` | yes | string | Exactly `"0.4"` for this version. |
+| `spec` | yes | string | Exactly `"0.5"` for this version. |
 | `layers` | yes | list | At least one layer. |
 
 ### 3.2 Layer
@@ -46,9 +46,9 @@ Unknown fields are errors. "R" means required.
 | Field | R | Type | Rule |
 |---|---|---|---|
 | `id` | yes | id | Unique among layers. |
-| `n` | yes | integer 1 to 20 | The number shown on the badge. Unique. |
+| `n` | yes | integer 1 to 20 | The step number shown on the badge: the place of the layer in its lane, from left to right. Unique within the lane. |
 | `icon` | yes | id | A file `assets/icons/<icon>.svg`. |
-| `column` | yes | `left`, `center` or `right` | Where the layer is drawn. |
+| `lane` | yes | `build`, `use` or `agents` | The lane (audience) the layer belongs to (3.7). |
 | `layout` | yes | `cols` or `rows` | `cols`: groups carry `col` (0 or 1). `rows`: groups carry `row` (1 to 3); the layer may have `where` and `panel`. |
 | `groups` | yes | list | At least one group. |
 | `where` | no | list | Only with `rows`. |
@@ -60,6 +60,7 @@ Unknown fields are errors. "R" means required.
 |---|---|---|---|
 | `id` | yes | id | Unique among groups, across all layers and panels. |
 | `col` | with `cols` and in panels | integer 0 to 2 | The column inside the card or panel. |
+| `band` | no | `accel` or `bridge` | The group leaves its layer's card and is drawn in a link band between two lanes (3.7). |
 | `row` | with `rows` | integer 1 to 3 | The row inside the layer. |
 | `chips` | yes | list | 1 to 12 chips. |
 
@@ -87,6 +88,23 @@ A where item is an index entry, not a chip: it has `id`, `icon` and `source` (ex
 | date | ISO 8601 calendar date `YYYY-MM-DD`, quoted in YAML. |
 | url | `https://`, no spaces, at most 300 characters. A link to a page, not to a search result. |
 | text limits | See section 6.5. |
+
+### 3.7 Lanes and bands
+
+The map is three horizontal **lanes**, one per audience. A lane is a row of steps (layers) read from left to right; the layers of a lane are shown in the order of `n`. Link **bands** sit between lanes.
+
+| Lane | Who | Steps (layers) |
+|---|---|---|
+| `build` (A) | Whoever builds or adapts a model | Choose and adapt, Convert and quantize, Evaluate and test (fidelity) |
+| `use` (B) | Whoever uses a model in an app | Run (its limits panel is drawn beside it), Integrate in the app |
+| `agents` (C) | Whoever prepares a site for agents. The site runs no model; the agent does | Expose tools (WebMCP, MCP-B), Evaluate tool calls |
+
+| Band | Between | Holds |
+|---|---|---|
+| `accel` | build and use | The group `acceleration` (WebGPU, WebAssembly, WebNN, NPU), which serves both |
+| `bridge` | use and agents | The group `browser-api` (Prompt API, Summarizer, Translator): where an agent may find a model that the browser, not the site, manages |
+
+`lane` on a layer is required. `band` on a group is optional: the group stays in its layer in `data/layers.yml` (the README list, the ids and the translations do not move) and the page and figure draw it in the band, once. A layer needs at least one group without `band`. Layers are named by lane and step: A1, A2, A3, B1, B2, C1, C2. Chip ids never depend on the lane.
 
 ## 4. Sources
 
@@ -240,6 +258,7 @@ One key per id, derived from the data; there are no free-form keys besides the f
 | `where.<id>.name`, `where.<id>.desc` | Place and what runs there | 20, 60 |
 | `srcgroup.<group>` | Label of a source group | 20 |
 | `alert.<chip id>` | What was observed, with the date (4.5) | 600 |
+| `ui.lane.<lane>`, `ui.band.<band>`, `ui.band.bridge.note` | Lane and band titles and their notes | 220 |
 | `ui.*`, `label.*`, `site.*`, `lang.name` | Interface texts, listed in `scripts/check.py` | 220 |
 
 Every key that the data needs MUST exist in every language; a key nothing refers to MUST be removed.
@@ -323,7 +342,7 @@ CI runs `python3 scripts/check.py`, then `python3 build.py`, and fails if `docs/
 - **No hover handling.** Nothing opens or changes on mouse hover (a phone has no hover): a chip shows the same panel, with the full information (name, status, description, review date, sources and, if there is one, the alert), when clicked, tapped or opened with the keyboard. The pictograms are decoration and do not react to the pointer.
 - **Themes.** Automatic (follows the system), light or dark. The choice is remembered in `localStorage` (the page works without it).
 - **Motion.** Decoration only. The model line and the "Where it runs" icons may move; no information depends on it. Off with `prefers-reduced-motion`, `?motion=0` and in the PNG export (`?export=1`).
-- **Size.** `docs/index.html` follows the window continuously (resize, visual viewport, a viewport-sized sentinel; no reload). It finds the largest text size (chip font between 5 and 20 px) at which one of the arrangements of the five cards (1 to 5 columns) fits the free width and height exactly: the page is then exactly one viewport tall and nothing scrolls. Non-text sizes (padding, gaps, icons) grow more slowly than the text. Arrangements are measured, the largest text wins, the current arrangement is kept unless another is clearly bigger (hysteresis); while dragging only the current arrangement is re-fitted. Below 9 px a notice says the window is small; at the 5 px floor the page scrolls. Menus and previews keep a fixed readable size. Phones (700 px or less) get one column and scroll. `?fit=0` gives a full-width layout with a fixed font. The PNG and SVG exports keep the classic three-column figure.
+- **Size.** `docs/index.html` follows the window continuously (resize, visual viewport, a viewport-sized sentinel; no reload). It finds the largest text size (chip font between 5 and 20 px) at which the three lanes fit the free width and height exactly: the page is then exactly one viewport tall and nothing scrolls. Non-text sizes (padding, gaps, icons) grow more slowly than the text. Below 9 px a notice says the window is small; at the 5 px floor the page scrolls. Menus and previews keep a fixed readable size. Phones (700 px or less) get one column and scroll. `?fit=0` gives a full-width layout with a fixed font. The PNG and SVG exports keep a fixed layout. The board is three lanes (rows) with a label on the left; the layers of a lane sit side by side with an arrow between them; the link bands sit between lanes. The arrangement is fixed, so the fit only searches the chip font; on a phone the lanes stack and the arrows point down.
 
 ## Decisions waiting for approval (0.4)
 
@@ -331,6 +350,7 @@ CI runs `python3 scripts/check.py`, then `python3 build.py`, and fails if `docs/
 2. Tool groups: "Export with" and "Quantize with" (layer 2). Libraries that wrap a generation loop sit in Run > Runtime.
 3. An alert needs one of five kinds; a README notice such as "new feature development is minimized" (torchao) fits none, so it is written in the description, not as an alert. Add a kind (for example `reduced`) if you want those flagged.
 4. Earlier decisions (0.3 and 0.2) still stand: alert as its own field with `level` following `kind`, 30-day expiry warning, a broken link does not count as a source, two or more sources per chip, six source groups, status values, ageing 180/365 days, one-line `desc`.
+
 
 ## Changelog
 
@@ -341,3 +361,4 @@ CI runs `python3 scripts/check.py`, then `python3 build.py`, and fails if `docs/
 - **0.4** (2026-11-20, addendum): decorative motion (SVG model line, `?motion=0`, reduced motion respected); no data change.
 - **0.4** (2026-11-20, addendum): demo scale-to-fit; the Run layer's Runtime group moved to its own row (`row: 2`, Cache `row: 3`) and KV cache to the first column; no rule change.
 - **0.4** (2026-11-20, addendum): the page adapts to the window instead of scaling (continuous fit, exact height, text-first spacing); one Share button with a popover (share, embed, download, suggest); `#chip-id` deep links; `site.toml`; `docs/embed/`, `embed.js`, `badge.svg`, `sitemap.xml`; SVG and dark PNG exports. No data rule changed.
+- **0.5** (2026-11-26): three lanes. Required `lane` (`build`, `use` or `agents`) on a layer replaces `column`; `n` is now the step within the lane; optional `band` (`accel` or `bridge`) on a group draws it in a link band between lanes. New layers `expose` (group `agent-tools`: WebMCP, MCP-B) and `agent-evaluate` (new group `agent-quality`: tool-calling-evals), both in lane `agents`. The group `performance` moved from `evaluate` to the Limits panel of `run`. Migration: `spec: "0.5"`; remove `column`; add `lane`; renumber `n` per lane. Chip, group and layer ids unchanged (one new group id, `agent-quality`).

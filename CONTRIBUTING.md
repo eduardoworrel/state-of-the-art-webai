@@ -35,6 +35,10 @@ python3 build.py             # refreshes docs/index.html, README.md and README.p
 2. Add its texts to **every** file in `i18n/`: `chip.<id>` (the name, up to 28 characters) and `desc.<id>` (one line saying what it is, 10 to 140 characters). If you only speak one language, write the English and open the pull request: the check lists what the other languages still need.
 3. Run the check and the build. `python3 scripts/linkcheck.py` opens every link and every alert evidence url (it needs network and is not run in CI).
 
+### Lanes
+
+Every layer belongs to a lane (`build`, `use` or `agents`: who needs it) and has a step number `n` in it. A group may carry `band: accel` or `band: bridge`: it stays in its layer in the data and is drawn once, in the band between two lanes. Do not add a lane to a chip, and never change an id. See SPEC.md 3.7.
+
 ### What counts as a chip
 
 A short noun phrase: a runtime, a library, a format, a technique, a browser feature, a limit or a practice. Not a product pitch, a benchmark number or an opinion.

@@ -1,14 +1,14 @@
-# State of the Art of WebAI: layers, groups and chips. Format: SPEC.md (version 0.4); schema: schema/layers.schema.json
+# State of the Art of WebAI: layers, groups and chips. Format: SPEC.md (version 0.5); schema: schema/layers.schema.json
 # Texts live in i18n/<lang>.yml keyed by id. Every chip has `sources`: at least two distinct links, optionally grouped by label.
 # A chip may have an `alert` (a dated, evidenced problem; SPEC.md section 4.5), separate from `status`, and `featured: false`
 # (not drawn on the figure; listed in the README under 'Also exists').
 
-spec: "0.4"
+spec: "0.5"
 layers:
   - id: choose
     n: 1
     icon: model
-    column: left
+    lane: build
     layout: cols
     groups:
       - id: start
@@ -80,7 +80,7 @@ layers:
   - id: convert
     n: 2
     icon: bits
-    column: left
+    lane: build
     layout: cols
     groups:
       - id: format
@@ -562,13 +562,47 @@ layers:
                 level: primary
                 title: "KIVI reference code"
                 group: code
-  - id: run
+  - id: evaluate
     n: 3
+    icon: evaluate
+    lane: build
+    layout: cols
+    groups:
+      - id: quality
+        col: 0
+        chips:
+          - id: fidelity
+            sources:
+              - url: https://developers.googleblog.com/en/gemma-3-quantized-aware-trained-state-of-the-art-ai-to-consumer-gpus/
+                accessed: "2026-11-19"
+                level: trusted
+                title: "Google: Gemma 3 QAT"
+                group: blog
+              - url: https://onnxruntime.ai/docs/performance/model-optimizations/quantization.html
+                accessed: "2026-11-20"
+                level: primary
+                title: "ONNX Runtime: quantization"
+                group: docs
+          - id: op-coverage
+            sources:
+              - url: https://onnxruntime.ai/docs/tutorials/web/
+                accessed: "2026-11-19"
+                level: primary
+                title: "ONNX Runtime Web: tutorials"
+                group: docs
+              - url: https://webmachinelearning.github.io/webnn-status/
+                accessed: "2026-11-20"
+                level: primary
+                title: "WebNN: operation implementation status"
+                group: status
+  - id: run
+    n: 1
     icon: chip
-    column: center
+    lane: use
     layout: rows
     groups:
       - id: acceleration
+        band: accel
         row: 1
         chips:
           - id: webgpu
@@ -1163,10 +1197,38 @@ layers:
                   level: primary
                   title: "ONNX Runtime: env flags"
                   group: docs
+        - id: performance
+          col: 1
+          chips:
+            - id: energy-battery
+              status: open-question
+              sources:
+                - url: https://arxiv.org/abs/2609.11940
+                  accessed: "2026-11-19"
+                  level: primary
+                  title: "On-device vs server energy"
+                  group: papers
+                - url: https://arxiv.org/abs/2410.03613
+                  accessed: "2026-11-19"
+                  level: primary
+                  title: "Phone battery and launch time"
+                  group: papers
+            - id: background-tab
+              sources:
+                - url: https://developer.chrome.com/blog/timer-throttling-in-chrome-88
+                  accessed: "2026-11-19"
+                  level: primary
+                  title: "Chrome: timer throttling"
+                  group: blog
+                - url: https://developer.mozilla.org/en-US/docs/Web/API/Window/setTimeout
+                  accessed: "2026-11-20"
+                  level: primary
+                  title: "MDN: setTimeout (inactive tabs)"
+                  group: docs
   - id: integrate
-    n: 4
+    n: 2
     icon: app
-    column: right
+    lane: use
     layout: cols
     groups:
       - id: web-library
@@ -1359,6 +1421,7 @@ layers:
                 title: "llama.cpp: grammars"
                 group: code
       - id: browser-api
+        band: bridge
         col: 1
         chips:
           - id: prompt-api
@@ -1480,8 +1543,14 @@ layers:
                 level: primary
                 title: "LiteRT-LM overview"
                 group: docs
+  - id: expose
+    n: 1
+    icon: app
+    lane: agents
+    layout: cols
+    groups:
       - id: agent-tools
-        col: 1
+        col: 0
         chips:
           - id: webmcp
             status: experimental
@@ -1518,39 +1587,15 @@ layers:
                 level: primary
                 title: "MCP-B documentation repository"
                 group: code
-  - id: evaluate
-    n: 5
+  - id: agent-evaluate
+    n: 2
     icon: evaluate
-    column: right
+    lane: agents
     layout: cols
     groups:
-      - id: quality
+      - id: agent-quality
         col: 0
         chips:
-          - id: fidelity
-            sources:
-              - url: https://developers.googleblog.com/en/gemma-3-quantized-aware-trained-state-of-the-art-ai-to-consumer-gpus/
-                accessed: "2026-11-19"
-                level: trusted
-                title: "Google: Gemma 3 QAT"
-                group: blog
-              - url: https://onnxruntime.ai/docs/performance/model-optimizations/quantization.html
-                accessed: "2026-11-20"
-                level: primary
-                title: "ONNX Runtime: quantization"
-                group: docs
-          - id: op-coverage
-            sources:
-              - url: https://onnxruntime.ai/docs/tutorials/web/
-                accessed: "2026-11-19"
-                level: primary
-                title: "ONNX Runtime Web: tutorials"
-                group: docs
-              - url: https://webmachinelearning.github.io/webnn-status/
-                accessed: "2026-11-20"
-                level: primary
-                title: "WebNN: operation implementation status"
-                group: status
           - id: tool-calling-evals
             sources:
               - url: https://github.com/GoogleChromeLabs/webmcp-tools/tree/main/webmcp-evals
@@ -1563,31 +1608,3 @@ layers:
                 level: primary
                 title: "outputschema-eval README"
                 group: code
-      - id: performance
-        col: 1
-        chips:
-          - id: energy-battery
-            status: open-question
-            sources:
-              - url: https://arxiv.org/abs/2609.11940
-                accessed: "2026-11-19"
-                level: primary
-                title: "On-device vs server energy"
-                group: papers
-              - url: https://arxiv.org/abs/2410.03613
-                accessed: "2026-11-19"
-                level: primary
-                title: "Phone battery and launch time"
-                group: papers
-          - id: background-tab
-            sources:
-              - url: https://developer.chrome.com/blog/timer-throttling-in-chrome-88
-                accessed: "2026-11-19"
-                level: primary
-                title: "Chrome: timer throttling"
-                group: blog
-              - url: https://developer.mozilla.org/en-US/docs/Web/API/Window/setTimeout
-                accessed: "2026-11-20"
-                level: primary
-                title: "MDN: setTimeout (inactive tabs)"
-                group: docs

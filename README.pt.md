@@ -4,7 +4,7 @@ Um mapa de tudo o que existe entre um modelo e uma pessoa quando o modelo roda n
 
 É uma lista "awesome" e uma paisagem (landscape) numa figura só. Cada chip é uma tecnologia, técnica ou limite e abre ao menos duas fontes em que se apoia, com a data em que foram lidas. Um chip pode ter um alerta datado (link quebrado, descontinuação) com a sua evidência. A página esconde dos leitores os alertas de link quebrado; acrescente `?contribuir=1` ao endereço para vê-los (veja CONTRIBUTING.md).
 
-![As cinco camadas do WebAI](docs/figure-pt.png)
+![As três faixas do WebAI: construir, usar, site pronto para agentes](docs/figure-pt.png)
 
 **Página:** `docs/index.html` (adapta-se à janela; estática; troque o idioma pelos botões ou `?lang=pt`, e o tema pelos botões de sol e lua). [English](README.md).
 
@@ -12,7 +12,7 @@ Um mapa de tudo o que existe entre um modelo e uma pessoa quando o modelo roda n
 
 | Arquivo | O que é |
 |---|---|
-| [SPEC.md](SPEC.md) | A especificação (versão 0.4), em inglês: modelo de dados, regras, i18n, curadoria, versionamento. |
+| [SPEC.md](SPEC.md) | A especificação (versão 0.5), em inglês: modelo de dados, regras, i18n, curadoria, versionamento. |
 | `data/layers.yml` | As camadas, grupos e chips. Cada chip tem `sources` (no mínimo dois links distintos) e, quando algo foi observado, um `alert`. |
 | `i18n/en.yml`, `i18n/pt.yml` | Um texto por id. O inglês é o idioma de referência. |
 | `schema/` | JSON Schemas dos dois tipos de arquivo. |
@@ -35,7 +35,7 @@ Adicione um chip, corrija uma fonte ou traduza o mapa inteiro. Veja o [CONTRIBUT
 
 ## A página
 
-- **Tamanho.** O mapa acompanha a janela de forma contínua: arraste a borda e ele se reajusta, sem recarregar. Ele procura o maior tamanho de *texto* com o qual alguma disposição dos cinco cartões (1 a 5 colunas, empilhados ou lado a lado) cabe exatamente na largura e na altura livres, então a página nunca rola: espaçamentos, ícones e paddings escalam mais devagar que o texto, e os chips e legendas ficam com o espaço (chips com 12 px ou mais a 1440×900 e 14 px ou mais a 1920×1080). Abaixo de cerca de 9 px aparece "Janela pequena: role"; na escala mínima (5 px) a página rola. No celular, uma coluna. `?fit=0` mantém um layout de largura cheia (usado no repositório). O `scripts/test_resize.py` dirige o Chrome pelo DevTools Protocol, redimensiona a janela e confere que o texto acompanha, que o conteúdo tem exatamente a altura da janela (0 px de rolagem) em EN e PT, claro e escuro, com barras de rolagem sobrepostas e clássicas, e as metas de tamanho do texto.
+- **Tamanho.** O mapa acompanha a janela de forma contínua: arraste a borda e ele se reajusta, sem recarregar. Ele procura o maior tamanho de *texto* com o qual as três faixas (construir, usar, pronto para agentes) cabem exatamente na largura e na altura livres, então a página nunca rola: espaçamentos, ícones e paddings escalam mais devagar que o texto, e os chips e legendas ficam com o espaço (chips com 12 px ou mais a 1440×900 e 14 px ou mais a 1920×1080). Abaixo de cerca de 9 px aparece "Janela pequena: role"; na escala mínima (5 px) a página rola. No celular, uma coluna. `?fit=0` mantém um layout de largura cheia (usado no repositório). O `scripts/test_resize.py` dirige o Chrome pelo DevTools Protocol, redimensiona a janela e confere que o texto acompanha, que o conteúdo tem exatamente a altura da janela (0 px de rolagem) em EN e PT, claro e escuro, com barras de rolagem sobrepostas e clássicas, e as metas de tamanho do texto.
 - **Compartilhar.** Um botão, um popover: *Compartilhar* (copiar o link, LinkedIn, X, e-mail e a folha de compartilhar do sistema quando existe), *Integrar* (quatro tipos, cada um com uma frase e um botão Copiar: um `<iframe>` que ajusta a própria altura (`docs/embed/`, com `?lang=` e `?theme=`), o web component `<state-of-the-art-webai lang="pt" theme="auto">` do `embed.js` (sempre o mapa atual; cerca de 2 KB, sem dependências), a figura estática (CC BY 4.0: mantenha o crédito) e um selo em Markdown; o código vai para a área de transferência, no idioma e no tema atuais da página), *Baixar* (PNG e SVG da figura, no idioma e no tema atuais; o SVG guarda o quadro como HTML dentro de um `foreignObject`, então abre em qualquer navegador moderno e em `<img>`, mas não é um desenho de caminhos) e *Sugerir ou corrigir* (uma issue no GitHub). Um link terminado em `#id-do-chip` (por exemplo `#olive`) abre as fontes daquele chip ao carregar.
 - Tudo é estático: sem rastreamento, sem cookies, sem biblioteca. O endereço público fica num só lugar, `site.toml` (`base_url`); os links de compartilhar, os trechos de integração, o link canônico e o `docs/sitemap.xml` saem dele. `?fit=0` equivale a `?size=large`.
 
@@ -56,7 +56,7 @@ Código: MIT ([LICENSE-CODE](LICENSE-CODE)). Dados e textos: CC BY 4.0 ([LICENSE
 <!-- awesome:start -->
 _105 chips, 228 links de fonte. Última revisão: 2026-11-25. Gerado a partir de `data/layers.yml`: não edite à mão._
 
-### 1. Escolher e adaptar
+### A1. Escolher e adaptar
 _Qual tarefa e qual base?_
 
 **Ponto de partida**
@@ -78,7 +78,7 @@ _Qual tarefa e qual base?_
 - **destilação** — Espreme um modelo maior num menor; o DistilBERT é 40% menor e 60% mais rápido.
   - Artigos: [Distilling the knowledge in a neural network](https://arxiv.org/abs/1503.02531), [DistilBERT](https://arxiv.org/abs/1910.01108)
 
-### 2. Converter e quantizar
+### A2. Converter e quantizar
 _Qual precisão?_
 
 **Formato**
@@ -204,8 +204,20 @@ _Também existe (fora da figura):_
   - Código: [KIVI reference code](https://github.com/jy-yuan/KIVI)
   - Artigos: [KIVI paper](https://arxiv.org/abs/2402.02750)
 
-### 3. Rodar
-_Qual aceleração, qual limite?_
+### A3. Avaliar e testar
+_Decide igual ao original?_
+
+**Qualidade**
+
+- **fidelidade** — A quantização pode degradar o desempenho, então meça o modelo quantizado contra o original.
+  - Documentação: [ONNX Runtime: quantization](https://onnxruntime.ai/docs/performance/model-optimizations/quantization.html)
+  - Posts: [Google: Gemma 3 QAT](https://developers.googleblog.com/en/gemma-3-quantized-aware-trained-state-of-the-art-ai-to-consumer-gpus/)
+- **operadores** — WebGPU, WebGL e WebNN suportam só parte dos operadores ONNX; o WebAssembly suporta todos.
+  - Documentação: [ONNX Runtime Web: tutorials](https://onnxruntime.ai/docs/tutorials/web/)
+  - Estado: [WebNN: operation implementation status](https://webmachinelearning.github.io/webnn-status/)
+
+### B1. Rodar
+_Qual runtime, qual limite?_
 
 **Aceleração**
 
@@ -352,7 +364,15 @@ _Também existe (fora da figura):_
 - **COOP e COEP** — O isolamento de origem cruzada é necessário para threads de WebAssembly.
   - Documentação: [MDN: crossOriginIsolated](https://developer.mozilla.org/en-US/docs/Web/API/Window/crossOriginIsolated), [ONNX Runtime: env flags](https://onnxruntime.ai/docs/tutorials/web/env-flags-and-session-options.html)
 
-### 4. Integrar no app
+**Desempenho**
+
+- **bateria** · *aberto* — Artigos medem a energia em celulares; ainda não há uma medida comparável e consolidada.
+  - Artigos: [On-device vs server energy](https://arxiv.org/abs/2609.11940), [Phone battery and launch time](https://arxiv.org/abs/2410.03613)
+- **segundo plano** — Abas em segundo plano são limitadas; os timers ficam mais lentos a partir do Chrome 88.
+  - Documentação: [MDN: setTimeout (inactive tabs)](https://developer.mozilla.org/en-US/docs/Web/API/Window/setTimeout)
+  - Posts: [Chrome: timer throttling](https://developer.chrome.com/blog/timer-throttling-in-chrome-88)
+
+### B2. Integrar no app
 _E se não houver GPU?_
 
 **Biblioteca web**
@@ -431,6 +451,9 @@ _E se não houver GPU?_
   - Documentação: [LiteRT-LM overview](https://developers.google.com/edge/litert-lm/overview)
   - Código: [LiteRT-LM on GitHub](https://github.com/google-ai-edge/LiteRT-LM)
 
+### C1. Expor ferramentas
+_O que um agente pode chamar?_
+
 **Ferramentas de agente**
 
 - **WebMCP** · *experimental* — Páginas registram ferramentas que agentes do navegador podem chamar pelo document.modelContext; rascunho de um Community Group do W3C.
@@ -440,25 +463,11 @@ _E se não houver GPU?_
 - **MCP-B** — Polyfill do document.modelContext que conecta as ferramentas WebMCP das páginas a clientes do Model Context Protocol; projeto da comunidade.
   - Código: [MCP-B packages README](https://github.com/WebMCP-org/npm-packages), [MCP-B documentation repository](https://github.com/WebMCP-org/docs)
 
-### 5. Avaliar e testar
-_Decide igual ao original?_
+### C2. Avaliar as chamadas
+_Ferramenta e argumentos certos?_
 
-**Qualidade**
+**Chamadas**
 
-- **fidelidade** — A quantização pode degradar o desempenho, então meça o modelo quantizado contra o original.
-  - Documentação: [ONNX Runtime: quantization](https://onnxruntime.ai/docs/performance/model-optimizations/quantization.html)
-  - Posts: [Google: Gemma 3 QAT](https://developers.googleblog.com/en/gemma-3-quantized-aware-trained-state-of-the-art-ai-to-consumer-gpus/)
-- **operadores** — WebGPU, WebGL e WebNN suportam só parte dos operadores ONNX; o WebAssembly suporta todos.
-  - Documentação: [ONNX Runtime Web: tutorials](https://onnxruntime.ai/docs/tutorials/web/)
-  - Estado: [WebNN: operation implementation status](https://webmachinelearning.github.io/webnn-status/)
 - **testes de ferramentas** — Confira se o agente escolhe a ferramenta e os argumentos certos; o WebMCP Evals compara as chamadas com as esperadas.
   - Código: [WebMCP Evals README](https://github.com/GoogleChromeLabs/webmcp-tools/tree/main/webmcp-evals), [outputschema-eval README](https://github.com/andreban/outputschema-eval)
-
-**Desempenho**
-
-- **bateria** · *aberto* — Artigos medem a energia em celulares; ainda não há uma medida comparável e consolidada.
-  - Artigos: [On-device vs server energy](https://arxiv.org/abs/2609.11940), [Phone battery and launch time](https://arxiv.org/abs/2410.03613)
-- **segundo plano** — Abas em segundo plano são limitadas; os timers ficam mais lentos a partir do Chrome 88.
-  - Documentação: [MDN: setTimeout (inactive tabs)](https://developer.mozilla.org/en-US/docs/Web/API/Window/setTimeout)
-  - Posts: [Chrome: timer throttling](https://developer.chrome.com/blog/timer-throttling-in-chrome-88)
 <!-- awesome:end -->

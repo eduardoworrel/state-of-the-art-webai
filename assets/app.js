@@ -224,85 +224,18 @@
      Motion is decoration only: off with prefers-reduced-motion, with ?motion=0, and in the PNG export. ---------- */
   var NS = "http://www.w3.org/2000/svg", reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)");
   function motionOn() { return !root.classList.contains("export") && q.get("motion") !== "0" && !(reduce && reduce.matches); }
-  function drawFlow() {
-    var board = document.querySelector(".board");
-    if (!board) return;
-    var b = board.getBoundingClientRect(), W = Math.round(b.width), H = Math.round(b.height);
-    var svg = board.querySelector("svg.flow");
-    if (!svg) {
-      svg = document.createElementNS(NS, "svg"); svg.setAttribute("class", "flow"); svg.setAttribute("aria-hidden", "true");
-      svg.appendChild(document.createElementNS(NS, "path")).setAttribute("class", "fl-path");
-      board.appendChild(svg);
-    }
-    svg.setAttribute("width", W); svg.setAttribute("height", H); svg.setAttribute("viewBox", "0 0 " + W + " " + H);
-    var cols = Array.prototype.slice.call(board.querySelectorAll(".cols > .col")).filter(function (c) { return c.firstElementChild; });
-    if (!cols.length) return;
-    var xs = cols.map(function (c) { var r = c.querySelector(".badge").getBoundingClientRect(); return r.left + r.width / 2 - b.left; });
-    var cr = board.querySelector(".cols").getBoundingClientRect(), u = parseFloat(getComputedStyle(board).fontSize) || 13, r = 1.5 * u;
-    var yTop = (cr.top - b.top) / 2, yBot = (cr.bottom - b.top) + (b.bottom - cr.bottom) / 2, k = xs.length;
-    // the model goes down the first column's gutter, turns along the bottom, goes up the next, turns along the top, and so on
-    var d = "M" + xs[0] + ",0";
-    for (var i = 0; i < k; i++) {
-      var down = i % 2 === 0, x = xs[i];
-      if (i === k - 1) { d += " L" + x + "," + (down ? H : 0); break; }
-      var nx = xs[i + 1], yt = down ? yBot : yTop, dy = down ? -r : r;
-      d += " L" + x + "," + (yt + dy) + " Q" + x + "," + yt + " " + (x + r) + "," + yt + " L" + (nx - r) + "," + yt + " Q" + nx + "," + yt + " " + nx + "," + (yt + dy);
-    }
-    var tm = document.getElementById("tag-model"), tp = document.getElementById("tag-person"), endsDown = (k - 1) % 2 === 0;
-    if (tm) { tm.style.left = (xs[0] + 0.7 * u) + "px"; tm.style.top = "2px"; }
-    if (tp) { tp.style.left = (xs[k - 1] + 0.7 * u) + "px"; tp.style.top = endsDown ? (H - 1.5 * u - 2) + "px" : "2px"; }
-    svg.querySelector(".fl-path").setAttribute("d", d);
-    root.classList.add("flow");
-    var dot = svg.querySelector(".fl-dot");
-    if (motionOn()) {
-      if (!dot) {
-        dot = document.createElementNS(NS, "g"); dot.setAttribute("class", "fl-dot");
-        var h = dot.appendChild(document.createElementNS(NS, "circle")); h.setAttribute("class", "halo"); h.setAttribute("r", 9);
-        dot.appendChild(document.createElementNS(NS, "circle")).setAttribute("r", 4.5);
-        var m = dot.appendChild(document.createElementNS(NS, "animateMotion")); m.setAttribute("dur", "18s"); m.setAttribute("repeatCount", "indefinite");
-        svg.appendChild(dot);
-      }
-      dot.querySelector("animateMotion").setAttribute("path", d);
-    } else if (dot) { dot.remove(); }
-  }
+  function drawFlow() {}   // the model line of the single-path map is gone: lanes carry their own arrows (CSS)
 
-  /* ---------- layout: the board uses the window. It picks the chip font and how the five cards are arranged in columns.
-     Normal: the target font (about 13px at 1440 wide, 14px at 1920), Large: a bigger font, Fit to screen: the biggest font, never below 12px,
-     with which the whole map fits without scrolling. The cards are re-arranged (1 to 5 columns, stacked or side by side) and stretch to fill
-     the width and the height; if nothing fits at the smallest font the page scrolls instead of shrinking the text. ---------- */
-  var cards = null, CARD_W = [1.0, 1.25, 1.9, 1.15, 0.95];   // how wide each card likes to be, relative to the others
-  var U_MIN = 5, U_NOTICE = 9, U_MAX = 20, state = { sz: null, u: 13 };      // chip font limits (px) and the last choice (for hysteresis)
-  function compositions(n, k) {                                // every way to cut n consecutive cards into k columns
-    var out = [];
-    (function rec(left, parts, cur) {
-      if (parts === 1) { out.push(cur.concat(left)); return; }
-      for (var i = 1; i <= left - parts + 1; i++) rec(left - i, parts - 1, cur.concat(i));
-    })(n, k, []);
-    return out;
-  }
-  function setColumns(sizes, weights) {
-    var el = document.querySelector(".board .cols"), at = 0;
-    while (el.children.length < sizes.length) { var c = document.createElement("div"); c.className = "col"; el.appendChild(c); }
-    var w = [];
-    sizes.forEach(function (n, ci) {
-      var m = 0;
-      for (var j = 0; j < n; j++) { el.children[ci].appendChild(cards[at]); m = Math.max(m, CARD_W[at]); at++; }
-      w.push(m);
-    });
-    while (el.children.length > sizes.length) el.removeChild(el.lastChild);
-    el.classList.add("js");
-    el.style.gridTemplateColumns = (weights || w).map(function (x) { return "minmax(0," + x + "fr)"; }).join(" ");
-  }
+  /* ---------- layout: the board uses the window. It has three lanes (rows) with a fixed arrangement, so only the chip font is searched:
+     Normal: the target font (about 13px at 1440 wide, 14px at 1920), Large: a bigger font, Fit to screen: the biggest font, never below 12px if it can,
+     with which the whole map fits without scrolling; the lanes stretch to fill the height. If nothing fits at the smallest font the page scrolls. ---------- */
+  var U_MIN = 5, U_NOTICE = 9, U_MAX = 20, state = { sz: [1], u: 13 };      // chip font limits (px) and the last choice. The arrangement is fixed (three lanes): only the font is searched.
+  function setColumns() {}
   var S_BASE = 2.2, S_RATE = 0.45;   // non-text sizes (padding, gaps, icons) scale slower than the text: s = 2.2px + 0.45 u
   function setUnit(board, u) { board.style.setProperty("--u", u + "px"); board.style.setProperty("--s", (S_BASE + S_RATE * u).toFixed(2) + "px"); }
   function heightOf(board, sz, u) { setUnit(board, u); setColumns(sz); return board.offsetHeight; }
-  function maxU(board, k) { var W = board.clientWidth; return W / (k * 24 + (k - 1) * 1.9); }          // the narrowest a column may get is 24 units
-  function candidates(board, u, phone) {
-    var kmax = phone ? 1 : Math.max(1, Math.min(5, Math.floor((board.clientWidth + u * 1.9) / (u * 24 + u * 1.9))));
-    var out = [];
-    for (var k = 1; k <= kmax; k++) out = out.concat(compositions(5, k));
-    return out;
-  }
+  function maxU(board, k) { return U_MAX; }          // the narrowest a column may get is 24 units
+  function candidates() { return [[1]]; }
   function sameSz(a, b) { return a && b && a.join("+") === b.join("+"); }
   var STEP = 0.975, STEP_ALL = 0.94;   // font steps of 2.5% between tries: continuous enough, and a layout measure is cheap
   // quick: this arrangement only. Walk the font up from where it was while it fits, or down until it does.
@@ -341,12 +274,20 @@
      measured, the best few are solved for their largest font, the biggest wins (the previous one is kept unless the new one is clearly better:
      hysteresis). `quick` re-solves only the current arrangement (cheap, run on every frame while the window is dragged); the full search runs
      when the window stops. Normal: a fixed 13px font. Large: a bigger font. Both reflow and may scroll. */
+  // marks the group that starts each column of a card or panel, so the dotted separator above a group is not drawn at the top of a column
+  function markFirst() {
+    document.querySelectorAll(".card .groups, .panel .groups").forEach(function (g) {
+      var gs = Array.prototype.slice.call(g.children), top = gs.length ? gs[0].getBoundingClientRect().top : 0;
+      gs.forEach(function (x) { x.classList.toggle("first", x.getBoundingClientRect().top - top < 3); });
+    });
+  }
   function arrange(quick) {
+    arrange2(quick); markFirst();
+  }
+  function arrange2(quick) {
     var board = document.querySelector(".board");
     if (!board) return;
-    var el = board.querySelector(".cols");
-    cards = cards || Array.prototype.slice.call(el.querySelectorAll(".card")).sort(function (a, b) { return a.dataset.n - b.dataset.n; });
-    if (root.classList.contains("export")) { setColumns([2, 1, 2], [1, 1.43, 1]); drawFlow(); return; }   // the static figure keeps the classic layout
+    if (root.classList.contains("export")) return;   // the static figure keeps the classic layout (--u set in CSS)
     var vw = window.innerWidth, mode = root.getAttribute("data-size") === "large" ? "large" : "fit", embed = root.classList.contains("embed"), phone = vw <= 700;
     var fitMode = !phone && !embed && mode === "fit";
     root.classList.remove("fitted");
@@ -376,7 +317,7 @@
     var sw = document.querySelector(".small-window"); if (sw) sw.hidden = !(notice || (!phone && !embed && mode === "fit" && u < U_NOTICE));
     drawFlow(); postHeight();
     var chip = board.querySelector(".chip"), se = document.scrollingElement;
-    document.body.setAttribute("data-fit", "unit " + (Math.round(u * 100) / 100) + "px; chip " + (chip ? getComputedStyle(chip).fontSize : "?") + "; columns " + pick.join("+") + "; board " + board.offsetWidth + "x" + board.offsetHeight +
+    document.body.setAttribute("data-fit", "unit " + (Math.round(u * 100) / 100) + "px; chip " + (chip ? getComputedStyle(chip).fontSize : "?") + "; lanes 3" + "; board " + board.offsetWidth + "x" + board.offsetHeight +
       "; window " + vw + "x" + window.innerHeight + "; board bottom at " + Math.round(board.getBoundingClientRect().bottom + window.pageYOffset) + " of " + window.innerHeight + "; fits " + fits + "; " + (quick ? "quick" : "full") + " fit took " + Math.round(performance.now() - t0) + " ms; page scrolls vertically " + (se.scrollHeight > se.clientHeight) + ", horizontally " + (se.scrollWidth > se.clientWidth));
   }
   // follow the window continuously: resize, the visual viewport (zoom), and a fixed sentinel that is as big as the viewport
@@ -408,7 +349,7 @@
     document.getElementById("xhtml").textContent = x;
   }
 
-  setTimeout(function () { root.classList.add("settled"); }, 2200);   // the entrance animation runs once; moving cards between columns must not replay it
+  setTimeout(function () { root.classList.add("settled"); }, 2200);   // the entrance animation runs once; a re-fit must not replay it
 
   /* ---------- start ---------- */
   applyLang(pickLang());

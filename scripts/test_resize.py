@@ -31,7 +31,7 @@ ROOT = Path(__file__).resolve().parent.parent
 CANDIDATES = ["/Applications/Google Chrome.app/Contents/MacOS/Google Chrome", "google-chrome", "google-chrome-stable", "chromium", "chromium-browser", "chrome"]
 SIZES = [(1920, 1080), (1440, 900), (1440, 820), (1280, 720), (1000, 700), (1600, 1200), (2560, 900), (1000, 1200), (1366, 768), (1536, 864), (1536, 730), (1000, 600), (1920, 950), (1111, 777), (1920, 1080)]
 JS = """(function(){var b=document.querySelector('.board'),c=b.querySelector('.chip'),se=document.scrollingElement,
- cols=[].filter.call(b.querySelectorAll('.cols > .col'),function(x){return x.firstElementChild}).length,r=b.getBoundingClientRect();
+ cols=[].filter.call(b.querySelectorAll('.lane'),function(x){return x.firstElementChild}).length,r=b.getBoundingClientRect();
  return JSON.stringify({w:innerWidth,h:innerHeight,font:parseFloat(getComputedStyle(c).fontSize),cols:cols,bw:Math.round(r.width),bh:Math.round(r.height),
   bottom:Math.round(r.bottom+pageYOffset),scrollY:se.scrollHeight-se.clientHeight,scrollX:se.scrollWidth-se.clientWidth,
   sh:se.scrollHeight,ch:se.clientHeight,foot:(function(f){return f?Math.round(f.getBoundingClientRect().height*10)/10:0})(document.querySelector('.foot')),
@@ -132,7 +132,7 @@ def run_once(a, lang, theme, classic):
         ws.call("Emulation.setDeviceMetricsOverride", width=SIZES[0][0], height=SIZES[0][1], deviceScaleFactor=1, mobile=False)
         ws.call("Page.navigate", url=url)
         for _ in range(60):
-            if ws.call("Runtime.evaluate", expression="document.readyState === 'complete' && !!document.querySelector('.cols.js')")["result"].get("value"):
+            if ws.call("Runtime.evaluate", expression="document.readyState === 'complete' && !!document.body.getAttribute('data-fit')")["result"].get("value"):
                 break
             time.sleep(0.2)
         time.sleep(a.settle)
@@ -164,9 +164,9 @@ def main():
         name = f"{lang} {theme} {'classic' if classic else 'overlay'} scrollbars"
         rows = run_once(a, lang, theme, classic)
         print(f"\n== {name}")
-        print(f"{'window':>10} {'font':>6} {'cols':>4} {'board':>11} {'scrollH':>7} {'clientH':>7} {'extra':>5} {'foot':>5} {'page':>7} {'vbar':>4} {'fitted':>6}")
+        print(f"{'window':>10} {'font':>6} {'lanes':>5} {'board':>11} {'scrollH':>7} {'clientH':>7} {'extra':>5} {'foot':>5} {'page':>7} {'vbar':>4} {'fitted':>6}")
         for r in rows:
-            print(f"{r['w']}x{r['h']:<5} {r['font']:6.1f} {r['cols']:4d} {r['bw']}x{r['bh']:<6} {r['sh']:7d} {r['ch']:7d} {r['scrollY']:5d} {r['foot']:5.1f} {r['page']:7.1f} {r['vsw']:4d} {str(r['fitted']):>6}" + ("  small-window notice" if r["notice"] else ""))
+            print(f"{r['w']}x{r['h']:<5} {r['font']:6.1f} {r['cols']:5d} {r['bw']}x{r['bh']:<6} {r['sh']:7d} {r['ch']:7d} {r['scrollY']:5d} {r['foot']:5.1f} {r['page']:7.1f} {r['vsw']:4d} {str(r['fitted']):>6}" + ("  small-window notice" if r["notice"] else ""))
         by = {(r['w'], r['h']): r['font'] for r in rows}
         for (w, h), need in (((1440, 900), 12.0), ((1920, 1080), 14.0)):
             if by[(w, h)] < need:
