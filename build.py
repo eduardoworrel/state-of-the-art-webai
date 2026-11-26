@@ -130,13 +130,6 @@ def group(g, tx):
             f'<ul class="chips">{"".join(chip(c, tx) for c in shown(g))}</ul></div>')
 
 
-def columns(groups, tx, n, cls):
-    cols = [[] for _ in range(n)]
-    for g in groups:
-        cols[g.get("col", 0)].append(group(g, tx))
-    return f'<div class="{cls}">' + "".join(f'<div class="gcol">{"".join(c)}</div>' for c in cols) + "</div>"
-
-
 def where(items, tx):
     out = []
     for w in items:
@@ -148,21 +141,51 @@ def where(items, tx):
     return f'<div class="where"><h3 data-t="ui.where">{escape(tx["ui.where"])}</h3><div class="where-grid">{"".join(out)}</div></div>'
 
 
+LANES = ("build", "use", "agents")
+LETTER = {"build": "A", "use": "B", "agents": "C"}
+VARROW = ('<svg class="varrow" viewBox="0 0 20 32" aria-hidden="true" focusable="false"><path d="M10 3v26M4.5 9 10 3l5.5 6M4.5 23 10 29l5.5-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>')
+
+
+def band(layers, kind, tx):
+    """A link band between two lanes (spec 0.5: group `band` accel or bridge). The chips are the groups' own: nothing is copied."""
+    gs = [g for L in layers for g in L["groups"] if g.get("band") == kind and shown(g)]
+    if not gs:
+        return ""
+    note = f'<p class="band-note" data-t="ui.band.{kind}.note">{escape(tx[f"ui.band.{kind}.note"])}</p>' if f"ui.band.{kind}.note" in tx else ""
+    return (f'<section class="band" data-band="{kind}">{VARROW}<div class="band-h"><h3 data-t="ui.band.{kind}">{escape(tx[f"ui.band.{kind}"])}</h3>{note}</div>'
+            f'<div class="groups">{"".join(group(g, tx) for g in gs)}</div></section>')
+
+
+def n_chips_of(gs):
+    return sum(len(shown(g)) for g in gs)
+
+
 def card(L, tx):
     i = L["id"]
-    body = f'<div class="groups">{"".join(group(g, tx) for g in L["groups"])}</div>'
-    if L["layout"] == "rows":
-        if L.get("where"):
-            body += where(L["where"], tx)
-        if L.get("panel"):
-            p = L["panel"]
-            body += (f'<section class="panel"><div class="panel-h"><h3 data-t="panel.{p["id"]}">{escape(tx[f"panel.{p["id"]}"])}</h3>'
-                     f'<span class="icon">{icon(p["icon"])}</span></div><div class="groups">{"".join(group(g, tx) for g in p["groups"])}</div></section>')
-    n_chips = sum(len(shown(g)) for g in L["groups"] + (L.get("panel") or {}).get("groups", []))
-    return (f'<article class="card" id="layer-{i}" data-n="{L["n"]}" style="flex-grow:{n_chips + 8}"><span class="badge">{L["n"]}</span>'
-            f'<div class="card-h"><h2 data-t="layer.{i}">{escape(tx[f"layer.{i}"])}</h2><span class="icon">{icon(L["icon"])}</span></div>'
+    own = [g for g in L["groups"] if not g.get("band")]
+    body = f'<div class="groups">{"".join(group(g, tx) for g in own)}</div>'
+    if L["layout"] == "rows" and L.get("where"):
+        body += where(L["where"], tx)
+    return (f'<article class="card" id="layer-{i}" data-n="{L["n"]}" style="flex-grow:{n_chips_of(own) + 8 + 3 * len(L.get("where") or [])}">'
+            f'<div class="card-h"><span class="badge">{L["n"]}</span><h2 data-t="layer.{i}">{escape(tx[f"layer.{i}"])}</h2><span class="icon">{icon(L["icon"])}</span></div>'
             f'<div class="body">{body}</div>'
             f'<div class="decision" data-t="decision.{i}">{escape(tx[f"decision.{i}"])}</div></article>')
+
+
+def panel_step(L, tx):
+    """The limits panel of a layer, drawn beside its card as a step of the same lane."""
+    p = L.get("panel")
+    if not p:
+        return ""
+    return (f'<section class="panel step" style="flex-grow:{n_chips_of(p["groups"]) + 2}"><div class="panel-h"><h3 data-t="panel.{p["id"]}">{escape(tx[f"panel.{p["id"]}"])}</h3>'
+            f'<span class="icon">{icon(p["icon"])}</span></div><div class="groups">{"".join(group(g, tx) for g in p["groups"])}</div></section>')
+
+
+def lane(layers, name, tx):
+    mine = sorted((L for L in layers if L["lane"] == name), key=lambda L: L["n"])
+    steps = "".join(card(L, tx) + panel_step(L, tx) for L in mine)
+    return (f'<section class="lane" data-lane="{name}"><div class="lane-h"><span class="lane-l" aria-hidden="true">{LETTER[name]}</span>'
+            f'<h2 data-t="ui.lane.{name}">{escape(tx[f"ui.lane.{name}"])}</h2></div><div class="steps">{steps}</div></section>')
 
 
 SHARE_ICON = ('<svg class="ic" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><circle cx="12" cy="3.5" r="2" fill="currentColor"/><circle cx="4" cy="8" r="2" fill="currentColor"/>'
@@ -211,15 +234,13 @@ def render(embed=False):
     langs = load_langs()
     tx = langs[DEFAULT]
     layers = miniyaml.load(ROOT / "data" / "layers.yml")["layers"]
-    cols = {k: "".join(card(L, tx) for L in layers if L["column"] == k) for k in ("left", "center", "right")}
     all_groups = [g for L in layers for g in L["groups"] + (L.get("panel") or {}).get("groups", [])]
     reviewed = max(s["accessed"] for g in all_groups for c in g["chips"] for s in c["sources"])
     buttons = "".join(f'<button type="button" data-lang="{k}" aria-pressed="{str(k == DEFAULT).lower()}">{escape(v["lang.name"])}</button>' for k, v in langs.items())
     themes = "".join(f'<button type="button" data-theme-choice="{k}" aria-pressed="{str(k == "auto").lower()}" aria-label="{escape(tx["ui.theme." + k])}" data-al="ui.theme.{k}" '
                      f'title="{escape(tx["ui.theme." + k])}" data-tl="ui.theme.{k}">{THEME_ICONS[k]}</button>' for k in ("auto", "light", "dark"))
     board = (f'<div class="board" role="group" aria-label="{escape(tx["site.title"])}">'
-             f'<span class="tag-end" id="tag-model" data-t="label.model">{escape(tx["label.model"])}</span><span class="tag-end" id="tag-person" data-t="label.person">{escape(tx["label.person"])}</span>'
-             f'<div class="cols"><div class="col">{cols["left"]}</div><div class="col">{cols["center"]}</div><div class="col">{cols["right"]}</div></div></div>')
+             + lane(layers, "build", tx) + band(layers, "accel", tx) + lane(layers, "use", tx) + band(layers, "bridge", tx) + lane(layers, "agents", tx) + '</div>')
     fonts = "../fonts" if embed else "fonts"
     css = font_css(fonts) + (ROOT / "assets" / "style.css").read_text(encoding="utf-8")
     preload = f'<link rel="preload" href="{fonts}/{FONT_PRELOAD}" as="font" type="font/woff2" crossorigin>'

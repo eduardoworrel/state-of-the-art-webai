@@ -64,6 +64,9 @@ def group_lines(g, tx, lang="en"):
     return out
 
 
+LANE_LETTER = {"build": "A", "use": "B", "agents": "C"}   # a layer is named by its lane and its place in it: A1, A2, A3, B1, B2, C1, C2
+
+
 def render(lang, layers, tx):
     allsrc = [s for L in layers for g in L["groups"] + (L.get("panel") or {}).get("groups", []) for c in g["chips"] for s in sources(c)]
     reviewed = max(s["accessed"] for s in allsrc)
@@ -72,7 +75,7 @@ def render(lang, layers, tx):
             "pt": f"_{nchips} chips, {len(allsrc)} links de fonte. Última revisão: {reviewed}. Gerado a partir de `data/layers.yml`: não edite à mão._"}[lang]
     out = [head, ""]
     for L in layers:
-        out += [f"### {L['n']}. {tx['layer.' + L['id']]}", f"_{tx['decision.' + L['id']]}_", ""]
+        out += [f"### {LANE_LETTER[L['lane']]}{L['n']}. {tx['layer.' + L['id']]}", f"_{tx['decision.' + L['id']]}_", ""]
         for g in L["groups"]:
             out += group_lines(g, tx)
         if L.get("where"):

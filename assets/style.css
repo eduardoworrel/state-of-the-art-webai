@@ -55,29 +55,37 @@ html.export .top, html.export .foot { display: none; }
 html.export .page { padding: 20px; max-width: none; }
 html.export .board { --u: 14.4px; width: 1552px; margin: 0; }
 
-/* board: the cards sit in columns that app.js builds from the window's shape; the model line is one SVG path over them */
-.board { position: relative; display: flex; flex-direction: column; --u: 13px; --s: 9.8px; --gc: calc(var(--s) * 1.5); --lw: 2.5px; --lx: calc(var(--s) * 1.6); --r: calc(var(--s) * 1.5);
-  font-size: var(--u); padding: calc(var(--s) * 1.7) calc(var(--s) * 0.6) calc(var(--s) * 1.7) 0; max-width: 2400px; margin: 0 auto; }
-.cols { flex: 1; display: flex; flex-direction: column; gap: calc(var(--s) * 0.8); }          /* without script: one column */
-.col { display: contents; }
-.cols.js { display: grid; align-items: stretch; column-gap: var(--gc); }
-.cols.js .col { display: flex; flex-direction: column; gap: calc(var(--s) * 0.7); min-width: 0; }
-.tag-end { position: absolute; z-index: 2; font-weight: 700; color: var(--acc-tx); font-size: 0.85em; white-space: nowrap; }
+/* board: three lanes (rows), one per audience; each lane is a row of steps read left to right. Link bands sit between lanes. app.js picks the font (--u) so the whole board fits the window. */
+.board { position: relative; display: flex; flex-direction: column; --u: 13px; --s: 9.8px; --gc: calc(var(--s) * 2.1);
+  font-size: var(--u); padding: calc(var(--s) * 0.3) calc(var(--s) * 0.6) calc(var(--s) * 0.9) 0; max-width: 2400px; margin: 0 auto; gap: calc(var(--s) * 0.5); }
+.lane { display: grid; grid-template-columns: calc(var(--u) * 2.5) minmax(0, 1fr); gap: calc(var(--s) * 0.9); align-items: stretch; }
+.lane-h { display: flex; flex-direction: column; align-items: center; gap: calc(var(--s) * 0.8); padding: calc(var(--s) * 0.6) 0; border-radius: calc(var(--s) * 0.95); background: var(--ink); color: var(--bg); }
+.lane-h h2 { margin: 0; font-size: calc(var(--u) * 1.5); line-height: 1; letter-spacing: 0.14em; text-transform: uppercase; writing-mode: vertical-rl; transform: rotate(180deg); white-space: nowrap; }
+.lane-l { width: calc(var(--s) * 2); height: calc(var(--s) * 2); display: grid; place-items: center; border-radius: 50%; background: var(--bg); color: var(--ink); font-weight: 700; font-size: calc(var(--s) * 1.1); }
+.lane[data-lane="build"] .lane-l { border-radius: 50%; } .lane[data-lane="use"] .lane-l { border-radius: 20%; } .lane[data-lane="agents"] .lane-l { border-radius: 50% 50% 50% 8%; }
+.steps { display: flex; gap: var(--gc); min-width: 0; align-items: stretch; }
+.steps > * { position: relative; flex: 1 1 0; min-width: 0; }
+.steps > * + *::before { content: ""; position: absolute; z-index: 2; left: calc(var(--gc) * -0.92); top: calc(var(--s) * 1.6); width: 0; height: 0; border: calc(var(--s) * 0.55) solid transparent; border-left: calc(var(--s) * 0.8) solid var(--acc); border-right: 0; }
+.steps > .panel.step::before { display: none; }
+.band { position: relative; display: flex; align-items: center; gap: calc(var(--s) * 1.4); flex-wrap: wrap; margin-left: calc(var(--u) * 2.5 + var(--s) * 0.9); padding: calc(var(--s) * 0.5) calc(var(--s) * 1.1); background: var(--soft); border: 1.5px dashed var(--acc); border-radius: calc(var(--s) * 0.95); }
+.band .varrow { flex: none; width: calc(var(--s) * 1.5); height: calc(var(--s) * 2.4); color: var(--acc); }
+.band-h { min-width: 0; max-width: calc(var(--u) * 30); }
+.band-h h3 { margin: 0; font-size: calc(var(--u) * 0.9); letter-spacing: 0.1em; text-transform: uppercase; color: var(--acc-tx); }
+.band-note { margin: calc(var(--s) * 0.15) 0 0; font-size: calc(var(--u) * 0.85); color: var(--ink2); line-height: 1.3; }
+.band .groups { column-width: auto; column-count: 1; display: flex; flex-wrap: wrap; gap: 0 calc(var(--s) * 1.6); align-items: center; }
+.band .groups > .group { margin: 0; display: flex; align-items: center; gap: calc(var(--s) * 0.6); flex-wrap: wrap; }
+.band .group h3 { margin: 0; }
 
 /* cards */
-.card { position: relative; flex: 1 1 0; display: flex; flex-direction: column; background: var(--card); border: 1px solid var(--edge);
-  border-radius: calc(var(--s) * 0.95); padding: calc(var(--s) * 0.7) calc(var(--s) * 1.1) calc(var(--s) * 0.7) calc(var(--s) * 3.2);
+.card { position: relative; display: flex; flex-direction: column; background: var(--card); border: 1px solid var(--edge);
+  border-radius: calc(var(--s) * 0.95); padding: calc(var(--s) * 0.7) calc(var(--s) * 1.1);
   box-shadow: calc(var(--s) * 0.35) calc(var(--s) * 0.35) 0 var(--sh1), calc(var(--s) * 0.7) calc(var(--s) * 0.7) 0 var(--sh2); }
-.card::before, .card::after { content: ""; position: absolute; z-index: 3; width: calc(var(--s) * 1.5); height: calc(var(--s) * 0.8); border-radius: 50%;
-  background: var(--hole); left: calc(var(--lx) - var(--s) * 0.75); }
-.card::before { top: calc(var(--s) * -0.4); } .card::after { bottom: calc(var(--s) * -0.4); }
-.badge { position: absolute; z-index: 2; left: calc(var(--lx) - var(--s) * 1); top: calc(var(--s) * 0.8); width: calc(var(--s) * 2); height: calc(var(--s) * 2);
-  border-radius: 50%; background: var(--ink); color: var(--bg); display: grid; place-items: center; font-weight: 700; font-size: calc(var(--s) * 1.1); }
-.card-h { display: flex; align-items: center; justify-content: space-between; gap: var(--s); min-height: calc(var(--s) * 2); margin-bottom: calc(var(--s) * 0.35); }
-.card-h h2 { margin: 0; font-size: calc(var(--u) * 1.25); letter-spacing: -0.005em; }
+.badge { flex: none; width: calc(var(--s) * 2); height: calc(var(--s) * 2); border-radius: 50%; background: var(--ink); color: var(--bg); display: grid; place-items: center; font-weight: 700; font-size: calc(var(--s) * 1.1); }
+.card-h { display: flex; align-items: center; gap: calc(var(--s) * 0.8); min-height: calc(var(--s) * 2); margin-bottom: calc(var(--s) * 0.35); }
+.card-h h2 { margin: 0; flex: 1; min-width: 0; font-size: calc(var(--u) * 1.25); letter-spacing: -0.005em; }
 .card-h .icon { display: block; height: calc(var(--s) * 2.2); width: calc(var(--s) * 4.6); flex: none; }
 .card-h .icon svg { height: 100%; width: 100%; }
-.body { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: calc(var(--s) * 0.6); padding: calc(var(--s) * 0.15) 0; }
+.body { flex: 1; display: flex; flex-direction: column; justify-content: flex-start; gap: calc(var(--s) * 0.6); padding: calc(var(--s) * 0.15) 0; }
 .decision { margin-top: calc(var(--s) * 0.35); padding-top: calc(var(--s) * 0.5); border-top: 1px solid var(--edge); display: flex; align-items: center; gap: calc(var(--s) * 0.8);
   font-weight: 600; font-size: calc(var(--u) * 1.1); }
 .decision::before { content: ""; flex: none; width: calc(var(--s) * 0.6); height: calc(var(--s) * 0.6); background: var(--acc); transform: rotate(45deg); }
@@ -87,7 +95,7 @@ html.export .board { --u: 14.4px; width: 1552px; margin: 0; }
 .groups > .group { break-inside: avoid; margin: 0 0 calc(var(--s) * 0.6); }
 .panel .groups { column-width: calc(var(--u) * 13.5); }
 .group { min-width: 0; }
-.group h3 { margin: 0 0 calc(var(--s) * 0.3); font-size: calc(var(--u) * 0.78); letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
+.group h3 { margin: 0 0 calc(var(--s) * 0.3); font-size: calc(var(--u) * 0.82); letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink2); font-weight: 700; }
 .chips { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: calc(var(--s) * 0.3) calc(var(--s) * 0.35); }
 .chip { display: inline-flex; align-items: center; gap: 0.5em; padding: calc(var(--s) * 0.2) calc(var(--s) * 0.55); background: var(--paper); border: 1px solid var(--edge); max-width: 100%;
   border-radius: calc(var(--s) * 1.1); font-size: var(--u); line-height: 1.12; font-weight: 600; text-decoration: none; color: var(--ink); }
@@ -103,7 +111,7 @@ html.export .board { --u: 14.4px; width: 1552px; margin: 0; }
 .chip em { white-space: nowrap; font-style: normal; font-size: max(var(--ui-2xs), 0.62em); font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--acc-tx); }
 
 /* where it runs and limits */
-.where h3 { margin: 0 0 calc(var(--s) * 0.4); font-size: calc(var(--u) * 0.78); letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
+.where h3 { margin: 0 0 calc(var(--s) * 0.4); font-size: calc(var(--u) * 0.82); letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink2); font-weight: 700; }
 .where-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(calc(var(--u) * 7.2), 1fr)); gap: calc(var(--s) * 0.9); }
 .where-item .glyph { display: block; height: calc(var(--s) * 2); width: calc(var(--s) * 3.4); margin-bottom: calc(var(--s) * 0.3); }
 .where-item .glyph svg { height: 100%; width: auto; max-width: 100%; }
@@ -174,7 +182,8 @@ html.fitting, html.fitting body, html.fitted, html.fitted body { overflow: hidde
 html.fitted, html.fitted body { height: 100%; }
 html.fitted .page { height: 100%; display: flex; flex-direction: column; box-sizing: border-box; }
 html.fitted .top, html.fitted .foot { flex: none; }
-html.fitted .board { flex: 1 1 auto; min-height: 0; }
+html.fitted .lane { flex: 1 1 auto; }
+html.fitted .board { flex: 1 1 auto; min-height: 0; width: 100%; }   /* same width as when measured: an auto-margin flex item would shrink to its content */
 html.embed .page { --m: 8px; padding: 4px var(--m); }
 html.embed .top, html.embed .foot { display: none; }
 
@@ -227,11 +236,6 @@ html.embed .top, html.embed .foot { display: none; }
 .pop .m time { white-space: nowrap; }
 
 /* the model line (drawn by app.js as one SVG path) and the small motions. Motion is decoration only: nothing depends on it. */
-svg.flow { position: absolute; left: 0; top: 0; z-index: 1; pointer-events: none; overflow: visible; }
-.fl-path { fill: none; stroke: var(--acc); stroke-width: 2.5; stroke-dasharray: 9 7; }
-.fl-dot circle { fill: var(--acc); } .fl-dot .halo { opacity: 0.22; }
-html.flow .col::before, html.flow .board::before { display: none; }
-html.flow .turn { border-color: transparent !important; }
 .where-item:nth-child(2) { --i: 1; } .where-item:nth-child(3) { --i: 2; } .where-item:nth-child(4) { --i: 3; }
 @keyframes march { to { stroke-dashoffset: -16; } }
 @keyframes wi-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
@@ -239,15 +243,34 @@ html.flow .turn { border-color: transparent !important; }
 @keyframes glow { from { opacity: 0.78; } to { opacity: 1; } }
 @keyframes ring { 0% { opacity: 0.75; transform: scale(1); } 70%, 100% { opacity: 0; transform: scale(3.4); } }
 @keyframes led { 0% { opacity: 1; } 50% { opacity: 0.22; } }
-html.motion .fl-path { animation: march 1.8s linear infinite; }
-html.motion:not(.settled) .where-item { animation: wi-in 0.55s cubic-bezier(0.2, 0.7, 0.2, 1) both; animation-delay: calc(var(--i, 0) * 140ms + 200ms); }
+html.motion html.motion:not(.settled) .where-item { animation: wi-in 0.55s cubic-bezier(0.2, 0.7, 0.2, 1) both; animation-delay: calc(var(--i, 0) * 140ms + 200ms); }
 html.motion .where-item .m-cursor { animation: blink 1.1s steps(1) infinite; animation-delay: calc(var(--i, 0) * 0.3s); }
 html.motion .where-item .m-glow { animation: glow 3.2s ease-in-out infinite alternate; }
 html.motion .where-item .m-pulse { animation: glow 2.4s ease-in-out infinite alternate; }
 html.motion .where-item .m-ring { transform-box: fill-box; transform-origin: center; animation: ring 2.8s ease-out infinite; }
 html.motion .where-item .m-led1 { animation: led 1.6s steps(1) infinite; }
 html.motion .where-item .m-led2 { animation: led 1.6s steps(1) infinite 0.5s; }
-@media (prefers-reduced-motion: reduce) {
-  .fl-path, .where-item, .where-item * { animation: none !important; transition: none !important; }
-  .fl-dot { display: none; }
+.panel.step { align-self: stretch; display: flex; flex-direction: column; }
+.panel.step .groups { column-width: calc(var(--u) * 12); }
+@media (prefers-reduced-motion: reduce) { .where-item, .where-item * { animation: none !important; transition: none !important; } }
+/* phone: one column; every lane is a header over its steps, the steps stack, the arrows point down */
+@media (max-width: 700px) {
+  .lane { grid-template-columns: 1fr; }
+  .lane-h { flex-direction: row; align-items: center; padding: calc(var(--s) * 0.5) calc(var(--s) * 0.8); }
+  .lane-h h2 { writing-mode: horizontal-tb; transform: none; font-size: calc(var(--u) * 1.1); }
+  .steps { flex-direction: column; }
+  .steps > * + *::before { left: calc(var(--s) * 3); top: calc(var(--gc) * -0.92); border: calc(var(--s) * 0.55) solid transparent; border-top: calc(var(--s) * 0.8) solid var(--acc); border-bottom: 0; }
+  .band { margin-left: 0; }
 }
+.band .group h3 { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }   /* the band's own title says it; the group label stays for screen readers */
+
+/* soft separators: a thin dotted line, half transparent, between the groups of a card (horizontal), between its columns (vertical), and after a band's title.
+   They are drawn without taking space, so the height does not change; app.js marks the group that starts a column (.first) so no line shows above it. */
+:root { --sep: color-mix(in srgb, var(--ink) 30%, transparent); }
+.card .groups, .panel .groups { column-rule: 1px dotted var(--sep); }
+.card .group, .panel .group { position: relative; }
+.card .group:not(.first)::before, .panel .group:not(.first)::before { content: ""; position: absolute; left: 0; right: 0; top: calc(var(--s) * -0.3); border-top: 1px dotted var(--sep); pointer-events: none; }
+.group:first-child::before { display: none !important; }
+.body > .where { position: relative; }
+.body > .where::before { content: ""; position: absolute; left: 0; right: 0; top: calc(var(--s) * -0.3); border-top: 1px dotted var(--sep); }
+.band-h { padding-right: calc(var(--s) * 1.4); border-right: 1px dotted var(--sep); align-self: stretch; display: flex; flex-direction: column; justify-content: center; }
