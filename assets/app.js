@@ -59,7 +59,7 @@
     b.addEventListener("click", function () { store(false, "webai-theme", b.dataset.themeChoice); applyTheme(b.dataset.themeChoice); });
   });
 
-  /* The main page has three visual editions. Explicit legacy theme URLs and
+  /* The main page has two visual editions. Explicit legacy theme URLs and
      all embed/export entry points keep the original rendering. */
   var editionStyle = document.getElementById("editions-style"),
       editionButtons = Array.from(document.querySelectorAll("[data-select-edition]")),
@@ -68,7 +68,67 @@
       editionBoard = document.querySelector(".board"), editionLinks = null,
       editionPage = document.querySelector(".page"), editionSizeButton = document.querySelector("button[data-edition-size]"),
       editionReading = q.get("fit") === "0", sourceSlot = null,
-      originalBands = [];
+      originalBands = [], mobileOverview = null, mobileBack = null, mobileReturn = null,
+      mobileMedia = matchMedia("(max-width:700px)");
+  function showReading(reading) {
+    close(false);
+    editionReading = reading;
+    var url = new URL(location.href);
+    if (reading) url.searchParams.set("fit", "0"); else {
+      url.searchParams.delete("fit");
+      if (mobileMedia.matches) url.hash = "";
+    }
+    try { history.replaceState(null, "", url); } catch (_) {}
+    arrange();
+  }
+  function buildMobileMap() {
+    var map = document.createElement("nav");
+    map.className = "mobile-map edition-only";
+    map.dataset.al = "ui.edition.mobile.map";
+    var hint = document.createElement("p");
+    hint.className = "mobile-map-hint";
+    hint.dataset.t = "ui.edition.mobile.hint";
+    map.append(hint);
+    var sections = Array.from(editionBoard.querySelectorAll(":scope > .lane")).map(function (lane) {
+      return {key:lane.dataset.lane, title:lane.querySelector(".lane-h h2").dataset.t, items:Array.from(lane.querySelector(".steps").children)};
+    });
+    sections.push({key:"connections",title:"ui.edition.connections",items:originalBands.map(function (entry) { return entry.band; })});
+    sections.forEach(function (spec) {
+      var section = document.createElement("section"), heading = document.createElement("h2"), actions = document.createElement("div");
+      section.dataset.mobileLane = spec.key;
+      heading.dataset.t = spec.title;
+      actions.className = "mobile-map-actions";
+      spec.items.forEach(function (target) {
+        var label = target.querySelector(".card-h h2, .panel-h h3, .band-h h3");
+        var button = document.createElement("button");
+        button.type = "button";
+        button.dataset.mobileTarget = target.id || target.dataset.band || "limits";
+        button.dataset.t = label.dataset.t;
+        button.addEventListener("click", function () {
+          mobileReturn = button;
+          showReading(true);
+          label.tabIndex = -1; label.focus({preventScroll:true});
+          target.scrollIntoView({block:"start",behavior:"instant"});
+        });
+        actions.append(button);
+      });
+      section.append(heading, actions);
+      map.append(section);
+    });
+    editionBoard.before(map);
+    mobileBack = document.createElement("button");
+    mobileBack.type = "button";
+    mobileBack.className = "btn mobile-map-back edition-only";
+    mobileBack.dataset.t = "ui.edition.mobile.back";
+    mobileBack.addEventListener("click", function () {
+      showReading(false);
+      window.scrollTo(0,0);
+      (mobileReturn || editionSizeButton).focus({preventScroll:true});
+    });
+    editionBoard.after(mobileBack);
+    return map;
+  }
+
   function arrangeEditionBands() {
     if (!editionLinks) return;
     if (root.dataset.edition && editionMedia.matches) {
@@ -89,6 +149,13 @@
     root.dataset.editionSize = editionReading ? "read" : "fit";
     boardStyle.removeProperty("width"); boardStyle.removeProperty("zoom");
     editionPage.style.removeProperty("zoom");
+    var overview = mobileMedia.matches && !editionReading && mobileOverview;
+    if (overview) {
+      root.dataset.mobileMap = "overview";
+      return;
+    }
+    if (mobileMedia.matches && editionReading) root.dataset.mobileMap = "detail";
+    else delete root.dataset.mobileMap;
     if (editionReading) return;
 
     var page = getComputedStyle(editionPage);
@@ -134,6 +201,7 @@
       band.before(slot);
       return {band:band, slot:slot};
     });
+    mobileOverview = buildMobileMap();
     // Localized on every language change, including when the box is detached.
     editionMedia.addEventListener("change", function () { arrangeEditionBands(); connections.textContent = t("ui.edition.connections"); });
     var requestedEdition = q.get("edicao");
@@ -144,13 +212,8 @@
       setEdition(editionValues.has(storedEdition) ? storedEdition : "brutal");
     }
     editionSizeButton.addEventListener("click", function () {
-      close(false);
-      editionReading = !editionReading;
-      var u = new URL(location.href);
-      if (editionReading) u.searchParams.set("fit", "0"); else u.searchParams.delete("fit");
-      try { history.replaceState(null, "", u); } catch (_) {}
+      showReading(!editionReading);
       window.scrollTo(0, 0);
-      arrange();
     });
     editionButtons.forEach(function (b) {
       b.addEventListener("click", function () {
@@ -272,6 +335,7 @@
   function openChipFromHash() {
     var id = decodeURIComponent(location.hash.slice(1)), b = id && document.querySelector('button.chip[data-id="' + id.replace(/"/g, "") + '"]');
     if (!b) return;
+    if (root.dataset.mobileMap === "overview") showReading(true);
     b.scrollIntoView({ block: "center" });
     setTimeout(function () { open(b, false); }, 300);   // after the scroll settles (scrolling closes menus)
   }
