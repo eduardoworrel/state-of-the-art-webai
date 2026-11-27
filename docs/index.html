@@ -1068,6 +1068,62 @@ html[data-edition=deco] .board .chip[aria-expanded=true]{background:#413343;bord
  html[data-edition=construct] .lane-h{min-width:0;padding:5px 5px 7px}
  html[data-edition=deco] .lane-h{background:#27212d}
 }
+
+/* Let options wrap together when the available desktop height is limited. */
+@media (min-width:701px) {
+ html[data-diagram-density] .board :is(#layer-choose,#layer-evaluate) .groups .chips>li{flex:0 1 auto}
+ html[data-diagram-density] .board :is(.card,.panel){padding:6px 8px}
+ html[data-diagram-density] .board :is(.card,.panel) .groups>.group{padding:3px 5px}
+ html[data-diagram-density] .board .groups .chips{gap:3px 5px}
+ html[data-diagram-density] .board .groups .chips .chip{font-size:13px;min-height:18px;padding:1px 4px}
+ html[data-diagram-density=dense] .board .groups .chips .chip{font-size:12px;min-height:16px;padding:1px 3px}
+ html[data-diagram-density=dense] .board .groups .chips{gap:2px 4px}
+ html[data-diagram-density=dense] .board .card-h{margin-bottom:3px;padding-bottom:2px}
+}
+@media (min-width:701px) {
+ html[data-diagram-density=dense] .board .groups>.group>h3,
+ html[data-diagram-density=dense] .board .groups>.group>.chips{display:inline}
+ html[data-diagram-density=dense] .board .groups>.group>.chips>li{display:inline-block;vertical-align:middle;margin:1px 2px}
+ html[data-diagram-density=dense] .board .groups>.group>h3{margin-right:3px}
+ html[data-diagram-density=dense] .board .groups>.group{line-height:1.1}
+ html[data-diagram-density=dense] .board .groups{align-content:start;gap:3px}
+}
+@media (min-width:701px) {
+ html[data-diagram-density=dense] .board .steps .groups{display:block;line-height:1.45}
+ html[data-diagram-density=dense] .board .steps .groups>.group{display:inline;padding:2px 4px;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+ html[data-diagram-density=dense] .board :is(#layer-choose,#layer-evaluate) .groups .chip{min-height:16px}
+ html[data-diagram-density=dense] .top h1{font-size:30px}
+ html[data-diagram-density=dense] .board .where-item .glyph{float:left;margin:0 3px 0 0}
+ html[data-diagram-density=dense] .board .where-item p{clear:none}
+}
+@media (min-width:701px) {
+ html[data-diagram-density=dense] .board .steps .groups{line-height:1.12}
+ html[data-diagram-density=dense] .board .groups>.group>.chips>li{margin:1px}
+ html[data-diagram-density=dense] .board .lane-h h2{font-size:13px}
+ html[data-diagram-density=dense] .board{grid-template-columns:minmax(0,.7fr) minmax(0,1.3fr)}
+ html[data-diagram-density=dense] .board .landscape-connections{grid-template-columns:1fr 1.2fr;align-content:start}
+ html[data-diagram-density=dense] .board .landscape-caption{grid-column:1/-1}
+ html[data-diagram-density=dense] .board .landscape-connections .band{align-content:start}
+ html[data-diagram-density=dense] .board .where-grid .glyph{width:24px;height:14px}
+}
+@media(min-width:1100px){
+ html[data-diagram-density=dense] .top{grid-template-columns:minmax(0,1fr) auto}
+ html[data-diagram-density=dense] .top .intro{display:grid;grid-template-columns:auto minmax(0,1fr);column-gap:12px;align-items:center}
+ html[data-diagram-density=dense] .top .intro .eyebrow{grid-column:1/-1}
+ html[data-diagram-density=dense] .top .intro h1{font-size:25px;max-width:17ch}
+ html[data-diagram-density=dense] .top .intro p{font-size:11.5px;line-height:1.2}
+ html[data-diagram-density=dense] .top .bar{max-width:420px}
+ html[data-diagram-density=dense] .board .where-grid{display:flex;align-items:start}
+ html[data-diagram-density=dense] .board .where-item{flex:1;min-width:0;padding:2px}
+ html[data-diagram-density=dense] .board .where-item .glyph{float:left;width:14px;height:12px}
+}
+@media(min-width:701px){
+ html[data-diagram-density=dense] .board .steps>:is(.card,.panel){padding-block:4px}
+ html[data-diagram-density=dense] .board .decision{margin-top:2px;padding-block:2px}
+ html[data-diagram-density=dense] .board .groups>.group>.chips>li{margin-block:0}
+ html[data-diagram-density=dense] .board .card .body{gap:4px}
+ html[data-diagram-density=dense] .board{row-gap:5px}
+}
 </style>
 </head>
 <body>
@@ -1223,6 +1279,7 @@ html[data-edition=deco] .board .chip[aria-expanded=true]{background:#413343;bord
   }
   function fitEdition() {
     var style = editionBoard.style;
+    delete root.dataset.diagramDensity;
     var reading = mobileMedia.matches && editionReading;
     root.dataset.editionSize = reading ? "read" : "fit";
     style.removeProperty("width"); style.removeProperty("zoom"); style.removeProperty("min-height");
@@ -1236,6 +1293,11 @@ html[data-edition=deco] .board .chip[aria-expanded=true]{background:#413343;bord
     }
     delete root.dataset.mobileMap;
 
+    var available = geometry(editionBoard, false).avail;
+    if (editionBoard.offsetHeight > available) root.dataset.diagramDensity = "compact";
+    if (editionBoard.offsetHeight > available) root.dataset.diagramDensity = "dense";
+    available = geometry(editionBoard, false).avail;
+    if (editionBoard.offsetHeight <= available) style.minHeight = available + "px";
     if (openBtn) close(false);
   }
   function setEdition(choice) {

@@ -142,6 +142,7 @@
   }
   function fitEdition() {
     var style = editionBoard.style;
+    delete root.dataset.diagramDensity;
     var reading = mobileMedia.matches && editionReading;
     root.dataset.editionSize = reading ? "read" : "fit";
     style.removeProperty("width"); style.removeProperty("zoom"); style.removeProperty("min-height");
@@ -155,6 +156,11 @@
     }
     delete root.dataset.mobileMap;
 
+    var available = geometry(editionBoard, false).avail;
+    if (editionBoard.offsetHeight > available) root.dataset.diagramDensity = "compact";
+    if (editionBoard.offsetHeight > available) root.dataset.diagramDensity = "dense";
+    available = geometry(editionBoard, false).avail;
+    if (editionBoard.offsetHeight <= available) style.minHeight = available + "px";
     if (openBtn) close(false);
   }
   function setEdition(choice) {
