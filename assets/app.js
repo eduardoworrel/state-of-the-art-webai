@@ -66,6 +66,8 @@
       editionValues = new Set(editionButtons.map(function (b) { return b.dataset.selectEdition; })),
       editionMedia = matchMedia("(min-width:1080px) and (orientation:landscape)"),
       editionBoard = document.querySelector(".board"), editionLinks = null,
+      editionPage = document.querySelector(".page"), editionSizeButton = document.querySelector("button[data-edition-size]"),
+      editionReading = q.get("fit") === "0", sourceSlot = null,
       originalBands = [];
   function arrangeEditionBands() {
     if (!editionLinks) return;
@@ -76,6 +78,40 @@
     } else if (editionLinks.isConnected) {
       originalBands.forEach(function (entry) { entry.slot.after(entry.band); });
       editionLinks.remove();
+    }
+  }
+  function fitEdition() {
+    if (!editionSizeButton) return;
+    var boardStyle = editionBoard.style;
+    editionSizeButton.hidden = false;
+    editionSizeButton.textContent = t(editionReading ? "ui.edition.fit" : "ui.edition.read");
+    editionSizeButton.setAttribute("aria-pressed", String(editionReading));
+    root.dataset.editionSize = editionReading ? "read" : "fit";
+    boardStyle.removeProperty("width"); boardStyle.removeProperty("zoom");
+    editionPage.style.removeProperty("zoom");
+    if (editionReading) return;
+
+    var page = getComputedStyle(editionPage);
+    var width = editionPage.clientWidth - parseFloat(page.paddingLeft) - parseFloat(page.paddingRight);
+    var chrome = editionPage.offsetHeight - editionBoard.getBoundingClientRect().height;
+    var budget = Math.max(1, document.documentElement.clientHeight - chrome - 2);
+    function measure(scale) {
+      boardStyle.zoom = String(scale);
+      boardStyle.width = (Math.floor(width / scale * 10) / 10) + "px";
+      return editionBoard.getBoundingClientRect().height;
+    }
+    if (measure(1) <= budget) return;
+    if (openBtn) close(false);
+    var lo = 0, hi = 1;
+    for (var j = 0; j < 12; j++) {
+      var mid = (lo + hi) / 2;
+      if (measure(mid) <= budget) lo = mid;
+      else hi = mid;
+    }
+    measure(Math.max(lo, 0.01));
+    var overflow = editionPage.getBoundingClientRect().height;
+    if (overflow > document.documentElement.clientHeight) {
+      editionPage.style.zoom = String(Math.max(1, document.documentElement.clientHeight - 1) / overflow);
     }
   }
   function setEdition(choice) {
@@ -101,11 +137,21 @@
     // Localized on every language change, including when the box is detached.
     editionMedia.addEventListener("change", function () { arrangeEditionBands(); connections.textContent = t("ui.edition.connections"); });
     var requestedEdition = q.get("edicao");
+    if (requestedEdition === "rail") requestedEdition = "brutal"; // old shared links still open the map
     if (editionValues.has(requestedEdition)) setEdition(requestedEdition);
     else if (requestedEdition !== "classic" && !q.has("theme")) {
       var storedEdition = store(true, "webai-edition");
-      setEdition(editionValues.has(storedEdition) ? storedEdition : "rail");
+      setEdition(editionValues.has(storedEdition) ? storedEdition : "brutal");
     }
+    editionSizeButton.addEventListener("click", function () {
+      close(false);
+      editionReading = !editionReading;
+      var u = new URL(location.href);
+      if (editionReading) u.searchParams.set("fit", "0"); else u.searchParams.delete("fit");
+      try { history.replaceState(null, "", u); } catch (_) {}
+      window.scrollTo(0, 0);
+      arrange();
+    });
     editionButtons.forEach(function (b) {
       b.addEventListener("click", function () {
         close(false);
@@ -152,7 +198,9 @@
   function close(returnFocus) {
     if (!openBtn) return;
     var btn = openBtn; openBtn = null;
-    popOf(btn).hidden = true;
+    var pop = popOf(btn);
+    pop.hidden = true;
+    if (sourceSlot) { sourceSlot.replaceWith(pop); sourceSlot = null; }
     btn.setAttribute("aria-expanded", "false");
     if (returnFocus) btn.focus();
   }
@@ -160,6 +208,11 @@
     close(false);
     var pop = popOf(btn);
     refreshLinks(); fillSnippets();
+    // Keep source menus readable and positioned in unscaled viewport coordinates.
+    if (root.dataset.edition && editionBoard.contains(btn)) {
+      sourceSlot = document.createComment("source menu position");
+      pop.before(sourceSlot); document.body.append(pop);
+    }
     btn.setAttribute("aria-expanded", "true");
     place(pop, btn);
     openBtn = btn;
@@ -349,7 +402,7 @@
     });
   }
   function arrange(quick) {
-    if (root.dataset.edition) { arrangeEditionBands(); postHeight(); return; }
+    if (root.dataset.edition) { arrangeEditionBands(); fitEdition(); postHeight(); return; }
     arrange2(quick); markFirst();
   }
   function arrange2(quick) {
