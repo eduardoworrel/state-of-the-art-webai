@@ -59,6 +59,67 @@
     b.addEventListener("click", function () { store(false, "webai-theme", b.dataset.themeChoice); applyTheme(b.dataset.themeChoice); });
   });
 
+  /* The main page has three visual editions. Explicit legacy theme URLs and
+     all embed/export entry points keep the original rendering. */
+  var editionStyle = document.getElementById("editions-style"),
+      editionButtons = Array.from(document.querySelectorAll("[data-select-edition]")),
+      editionValues = new Set(editionButtons.map(function (b) { return b.dataset.selectEdition; })),
+      editionMedia = matchMedia("(min-width:1080px) and (orientation:landscape)"),
+      editionBoard = document.querySelector(".board"), editionLinks = null,
+      originalBands = [];
+  function arrangeEditionBands() {
+    if (!editionLinks) return;
+    if (root.dataset.edition && editionMedia.matches) {
+      if (editionLinks.isConnected) return;
+      editionBoard.append(editionLinks);
+      originalBands.forEach(function (entry) { editionLinks.append(entry.band); });
+    } else if (editionLinks.isConnected) {
+      originalBands.forEach(function (entry) { entry.slot.after(entry.band); });
+      editionLinks.remove();
+    }
+  }
+  function setEdition(choice) {
+    if (!editionStyle || !editionValues.has(choice)) return;
+    root.dataset.edition = choice;
+    root.dataset.theme = "light";  // edition palettes own their light/dark presentation
+    editionStyle.media = "all";
+    editionButtons.forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.selectEdition === choice)); });
+    arrangeEditionBands();
+  }
+  if (editionStyle && !q.has("export") && !q.has("xhtml")) {
+    editionLinks = document.createElement("div");
+    editionLinks.className = "landscape-connections";
+    var connections = document.createElement("h2");
+    connections.className = "landscape-caption";
+    connections.dataset.t = "ui.edition.connections";
+    editionLinks.append(connections);
+    originalBands = Array.from(editionBoard.querySelectorAll(":scope > .band")).map(function (band) {
+      var slot = document.createComment("original band position");
+      band.before(slot);
+      return {band:band, slot:slot};
+    });
+    // Localized on every language change, including when the box is detached.
+    editionMedia.addEventListener("change", function () { arrangeEditionBands(); connections.textContent = t("ui.edition.connections"); });
+    var requestedEdition = q.get("edicao");
+    if (editionValues.has(requestedEdition)) setEdition(requestedEdition);
+    else if (requestedEdition !== "classic" && !q.has("theme")) {
+      var storedEdition = store(true, "webai-edition");
+      setEdition(editionValues.has(storedEdition) ? storedEdition : "rail");
+    }
+    editionButtons.forEach(function (b) {
+      b.addEventListener("click", function () {
+        close(false);
+        var choice = b.dataset.selectEdition;
+        root.classList.remove("fitting", "fitted");
+        setEdition(choice); connections.textContent = t("ui.edition.connections");
+        store(false, "webai-edition", choice);
+        var u = new URL(location.href); u.searchParams.set("edicao", choice);
+        history.replaceState(null, "", u);
+        refreshLinks(); fillSnippets(); arrange();
+      });
+    });
+  }
+
   /* ---------- placing floating boxes ---------- */
   function place(el, anchor) {
     el.style.visibility = "hidden"; el.hidden = false; el.style.maxHeight = "";
@@ -117,7 +178,13 @@
       try { document.execCommand("copy"); done(); } catch (e) {} ta.remove();
     }
   }
-  function pageUrl() { return SITE.base + "?lang=" + lang; }
+  function pageUrl() {
+    var u = new URL(SITE.base); u.searchParams.set("lang", lang);
+    if (root.dataset.edition) u.searchParams.set("edicao", root.dataset.edition);
+    else if (q.has("theme")) u.searchParams.set("theme", q.get("theme"));
+    else if (q.get("edicao") === "classic") u.searchParams.set("edicao", "classic");
+    return u.toString();
+  }
   function enc(s) { return encodeURIComponent(s); }
   function issueUrl() { return "https://github.com/" + SITE.repo + "/issues/new?body=" + enc("Page: " + pageUrl() + "\n\n"); }
   function refreshLinks() {
@@ -282,6 +349,7 @@
     });
   }
   function arrange(quick) {
+    if (root.dataset.edition) { arrangeEditionBands(); postHeight(); return; }
     arrange2(quick); markFirst();
   }
   function arrange2(quick) {
@@ -342,7 +410,7 @@
   /* ---------- export helper (used by export.py): the static board as XHTML, for the SVG figure ---------- */
   function exportXhtml() {
     var board = document.querySelector(".board").cloneNode(true);
-    board.querySelectorAll(".pop, .fl-dot").forEach(function (e) { e.remove(); });
+    board.querySelectorAll(".pop, .fl-dot, .chapter-art, .chapter-name").forEach(function (e) { e.remove(); });
     board.querySelectorAll("[id]").forEach(function (e) { e.removeAttribute("id"); });
     var r = document.querySelector(".board").getBoundingClientRect(), x = new XMLSerializer().serializeToString(board);
     document.body.innerHTML = "<textarea id='xhtml' data-w='" + Math.round(r.width) + "' data-h='" + Math.round(r.height) + "'></textarea>";
