@@ -1124,6 +1124,19 @@ html[data-edition=deco] .board .chip[aria-expanded=true]{background:#413343;bord
  html[data-diagram-density=dense] .board .card .body{gap:4px}
  html[data-diagram-density=dense] .board{row-gap:5px}
 }
+
+/* Share the free height between chip rows inside each desktop layer. */
+@media (min-width:701px) {
+ html[data-edition] .steps .groups>.group{display:flex;flex-direction:column}
+ html[data-edition] .board .steps .group>.chips{flex:1;align-content:space-evenly;align-items:center}
+ html[data-diagram-density=dense] .board .steps :is(.card .body,.panel.step)>.groups{
+   display:flex;flex-flow:row wrap;align-content:space-evenly;align-items:center;gap:2px 4px;
+ }
+ html[data-diagram-density=dense] .board .steps .groups>.group,
+ html[data-diagram-density=dense] .board .steps .group>.chips{display:contents}
+ html[data-diagram-density=dense] .board .steps .groups>.group>h3,
+ html[data-diagram-density=dense] .board .steps .groups>.group>.chips>li{margin:0}
+}
 </style>
 </head>
 <body>
