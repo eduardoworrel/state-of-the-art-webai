@@ -53,10 +53,10 @@ def check(ws):
 
     size(1600, 1000)
     navigate(PAGE + "?lang=pt&motion=0")
-    assert js("document.documentElement.dataset.edition") == "rail"
+    assert js("document.documentElement.dataset.edition") == "brutal"
     baseline = inventory()
     assert len(baseline) > 350, len(baseline)
-    for key in ("sky", "comic", "rail"):
+    for key in ("sky", "comic", "brutal"):
         js(f"document.querySelector('[data-select-edition={key}]').click()")
         assert js("document.documentElement.dataset.edition") == key
         assert js("new URL(location.href).searchParams.get('edicao')") == key
@@ -83,7 +83,7 @@ def check(ws):
         size(1600, 1000)
     js("document.querySelector('[data-lang=en]').click()")
     assert js("document.querySelector('.landscape-caption').textContent") == "Cross-cutting layers"
-    assert js("decodeURIComponent(document.querySelector('[data-share=linkedin]').href).includes('edicao=rail')")
+    assert js("decodeURIComponent(document.querySelector('[data-share=linkedin]').href).includes('edicao=brutal')")
     js("document.querySelector('[data-menu-btn=share]').click()")
     assert js("!document.querySelector('#pop-share').hidden")
     size(390, 844)
@@ -92,6 +92,8 @@ def check(ws):
     assert inventory() == baseline
     size(1600, 1000)
     assert js("document.querySelectorAll('.landscape-connections > .band').length") == 2
+    navigate(PAGE + "?lang=pt&edicao=rail&motion=0")
+    assert js("document.documentElement.dataset.edition") == "brutal"
     navigate(PAGE + "?lang=pt&theme=dark&motion=0")
     assert js("!document.documentElement.hasAttribute('data-edition') && document.documentElement.dataset.theme==='dark'")
     assert inventory() == baseline

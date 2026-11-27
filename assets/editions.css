@@ -138,33 +138,6 @@ html[data-edition=comic]{
 [data-edition=comic] .where{margin-top:7px}
 @media(max-width:380px){[data-edition=comic] .lane-h{padding-right:103px}[data-edition=comic] .chapter-art{width:97px}}
 
-/* METRO: routes = lanes; interchanges = transverse bands; actual chips = local stops. */
-html[data-edition=rail]{
- --bg:#f5f2e9;--card:#fdfbf4;--paper:#fffefd;--ink:#162a3a;--ink2:#405361;--muted:#516572;--edge:#aab4b7;
- --soft:#e8ebdf;--acc:#00448e;--acc-tx:#173f73;--sep:#b5bcb7;--build:#074491;--use:#077252;--agents:#7a2a5f
-}
-[data-edition=rail] body{background:linear-gradient(#42576110 1px,transparent 1px),linear-gradient(90deg,#42576110 1px,transparent 1px),var(--bg);background-size:26px 26px}
-[data-edition=rail] .top{border-bottom:3px solid var(--ink)}
-[data-edition=rail] .lane-h{color:var(--route);margin-bottom:4px}
-[data-edition=rail] .steps{display:grid;gap:16px;position:relative}
-[data-edition=rail] .steps::before{content:'';position:absolute;border-radius:5px;left:0;right:0;top:18px;height:7px;background:var(--route)}
-[data-edition=rail] .card,[data-edition=rail] .panel{padding:13px 9px 9px;background:transparent;border:0;z-index:1}
-[data-edition=rail] .card-h{flex-wrap:wrap;gap:8px;margin:0 0 12px}
-[data-edition=rail] .card-h h2{flex:0 0 100%;margin:0;padding-left:4px;color:var(--route)}
-[data-edition=rail] .badge{font:780 10px/1 var(--ff-mono);width:20px;height:20px;padding:0;border:3px solid var(--route);border-radius:50%;background:var(--paper);color:var(--route)}
-[data-edition=rail] .card-h .icon{display:none}
-[data-edition=rail] .group{padding:6px 5px 6px 8px;background:#ffffff8c;border:1px solid #bfc7c480;border-radius:2px}
-[data-edition=rail] .group h3{font-size:14px;color:var(--route,var(--ink))}
-[data-edition=rail] .chips{gap:4px}
-[data-edition=rail] .chip{background:transparent;border-bottom:2px solid color-mix(in srgb,var(--route,var(--acc)),transparent 67%);border-radius:0;position:relative;padding-left:11px}
-[data-edition=rail] .chip::before{position:absolute;content:'';left:2px;bottom:-3px;width:5px;height:5px;border-radius:50%;background:var(--paper);border:1px solid var(--route,var(--acc))}
-[data-edition=rail] .chip:hover{background:var(--paper)}
-[data-edition=rail] .panel.step{border:1px dashed var(--route);background:var(--soft);margin-top:37px}
-[data-edition=rail] .band{border:2px dashed var(--edge);border-left:6px solid var(--acc);border-radius:2px}
-[data-edition=rail] .band-h h3::before{content:'◎ ';font-weight:800;color:var(--acc)}
-[data-edition=rail] .decision{color:var(--route)}
-@media(max-width:950px){[data-edition=rail] .steps::before{display:none}[data-edition=rail] .steps>*{border-top:5px solid var(--route)}}
-@media(max-width:700px){[data-edition=rail] .panel.step{margin-top:0}}
 .chapter-art,.chapter-name{display:none}
 [data-edition=comic] .chapter-name{display:block}
 
@@ -186,9 +159,6 @@ html[data-edition=rail]{
 [data-edition=comic] .chapter-art{width:222px;height:134px;right:18px}
 [data-edition=comic] .chapter-name{font:830 15px/1.16 var(--ff-ui);letter-spacing:.075em;color:var(--route)}
 [data-edition=comic] .lane-h h2{font-size:32px;color:var(--ink)}
-[data-edition=rail] .group{align-self:start}
-[data-edition=rail] .group h3{margin-bottom:5px}
-[data-edition=rail] .card .groups{border-left:2px dotted color-mix(in srgb,var(--route),transparent 65%);padding-left:5px}
 @media(max-width:700px){
  [data-edition=comic] .lane-h{min-height:96px;padding-right:112px;padding-left:10px}
  [data-edition=comic] .chapter-art{width:108px;height:92px;right:2px}
@@ -206,17 +176,15 @@ html[data-edition=rail]{
 [data-edition=sky] .card .groups>.group:only-child{max-width:100%}
 [data-edition=sky] [data-lane=use] .steps{grid-template-columns:1.35fr .72fr 1fr}
 [data-edition=sky] [data-lane=build] .steps{grid-template-columns:1fr 1.55fr .8fr}
-[data-edition=rail] [data-lane=use] .steps{grid-template-columns:1.25fr .8fr 1fr}
-[data-edition=rail] [data-lane=build] .steps{grid-template-columns:.95fr 1.45fr .75fr}
 [data-edition=comic] [data-lane=use] .steps{grid-template-columns:1.3fr .78fr 1fr}
 [data-edition=comic] [data-lane=build] .steps{grid-template-columns:1fr 1.4fr .8fr}
 [data-edition=comic] .varrow{color:var(--ink)}
 @media(max-width:950px){
- [data-edition=sky] .lane[data-lane] .steps,[data-edition=rail] .lane[data-lane] .steps,[data-edition=comic] .lane[data-lane] .steps{grid-template-columns:repeat(2,minmax(0,1fr))}
+ [data-edition=sky] .lane[data-lane] .steps,[data-edition=comic] .lane[data-lane] .steps{grid-template-columns:repeat(2,minmax(0,1fr))}
  [data-edition=sky] .lane .steps::before{display:none}
 }
 @media(max-width:700px){
- [data-edition=sky] .lane[data-lane] .steps,[data-edition=rail] .lane[data-lane] .steps,[data-edition=comic] .lane[data-lane] .steps{grid-template-columns:minmax(0,1fr)}
+ [data-edition=sky] .lane[data-lane] .steps,[data-edition=comic] .lane[data-lane] .steps{grid-template-columns:minmax(0,1fr)}
 }
 
 @media(min-width:1080px) and (orientation:landscape) {
@@ -283,13 +251,6 @@ html[data-edition=comic] .lane-h h2{color:var(--route)}
 html[data-edition=comic] .badge{width:22px;height:19px;font-size:11px}
 html[data-edition=comic] .decision{padding:4px 6px;margin-top:7px}
 html[data-edition=comic] .card,html[data-edition=comic] .panel,html[data-edition=comic] .band{box-shadow:2px 2px 0 var(--ink)}
-html[data-edition=rail] .lane-h{background:var(--card)}
-html[data-edition=rail] .steps::before{top:10px;height:5px}
-html[data-edition=rail] .badge{width:16px;height:16px;border-width:2px;font-size:8px}
-html[data-edition=rail] .card-h{gap:4px}
-html[data-edition=rail] .chip{padding-left:8px}
-html[data-edition=rail] .chip::before{left:0;bottom:-2px;width:4px;height:4px}
-html[data-edition=rail] .panel.step{margin-top:24px}
 }
 
 @media(min-width:1080px) and (orientation:landscape) {
@@ -323,8 +284,6 @@ html[data-edition=sky] .badge::after{font-size:18px}
 html[data-edition=sky] .lane .steps::before{top:13px}
 html[data-edition=comic] .chapter-art{width:31px;height:26px;right:2px}
 html[data-edition=comic] .decision{padding:3px 5px;margin-top:4px}
-html[data-edition=rail] .steps::before{top:9px;height:4px}
-html[data-edition=rail] .panel.step{margin-top:19px}
 }
 
 /* On a wide screen the connections run beside Agents, not as two extra rows. */
@@ -374,7 +333,6 @@ html[data-edition] #layer-evaluate .groups .chips>li{flex:0 0 100%}
 html[data-edition] #layer-choose .groups .chip,
 html[data-edition] #layer-evaluate .groups .chip{min-height:20px}
 html[data-edition] .landscape-connections .band .chips {gap:4px 7px}
-html[data-edition=rail] .board .chip{padding-left:8px}
 }
 @media(min-width:1080px) and (orientation:landscape) {
 html[data-edition] .board .chip,
@@ -387,11 +345,6 @@ html[data-edition] #layer-convert .groups{grid-template-columns:1.09fr 1.24fr 1f
 html[data-edition] .board .panel.step .chip{padding-inline:3px}
 }
 @media(min-width:1080px) and (orientation:landscape) {
-html[data-edition=rail] .board .chip{padding-left:5px}
-html[data-edition=rail] .board .chips{column-gap:8px}
-html[data-edition=rail] .board .panel.step .chips{column-gap:6px}
-html[data-edition=rail] .card .groups{padding-left:0}
-html[data-edition=rail] .card-h{padding-bottom:0}
 }
 
 /* Dedicated option type: regular-weight, readable at a glance, with a larger hit area. */
@@ -460,3 +413,38 @@ html[data-edition] .board .chip em{font-size:9px;line-height:1.08}
  html[data-edition][data-edition-size=fit] .edition-switch button{padding:4px 6px;font-size:11px}
  html[data-edition][data-edition-size=fit] .foot{margin-top:8px;padding-top:5px;gap:3px 8px;font-size:10px;line-height:1.15}
 }
+
+/* BRUTALIST: heavy typography, straight rules and high-contrast signposting. */
+html[data-edition=brutal]{
+ --bg:#edece4;--card:#fbfaf3;--paper:#fffef8;--ink:#171812;--ink2:#272820;
+ --muted:#414239;--edge:#25261c;--sep:#aaa995;--soft:#deddd3;
+ --acc:#161612;--acc-tx:#222519;--build:#171812;--use:#171812;--agents:#171812;
+ --acid:#cced35;--mute-panel:#efeee5;
+}
+html[data-edition=brutal] body{background:var(--bg)}
+[data-edition=brutal] .eyebrow{width:max-content;padding:4px 8px;background:var(--acid);color:var(--ink);font-weight:800}
+[data-edition=brutal] .top{border-bottom:4px solid var(--ink);padding-bottom:7px}
+[data-edition=brutal] .top h1{font-family:"Arial Black","Helvetica Neue",Arial,sans-serif;font-weight:900;text-transform:uppercase;letter-spacing:-.045em}
+[data-edition=brutal] .top .intro p{color:var(--ink2)}
+[data-edition=brutal] .top .btn,[data-edition=brutal] .seg,[data-edition=brutal] .edition-switch button{border:1px solid var(--ink);border-radius:0;background:var(--paper);color:var(--ink)}
+[data-edition=brutal] .edition-switch button[aria-pressed=true],[data-edition=brutal] .top .seg button[aria-pressed=true]{background:var(--ink);color:var(--acid)}
+[data-edition=brutal] .lane-h{background:var(--ink);border-radius:0;color:var(--acid);padding-inline:7px}
+[data-edition=brutal] .lane-h h2{color:var(--acid);text-transform:uppercase;font-weight:800}
+[data-edition=brutal] .lane-l{background:var(--acid);color:var(--ink);border-radius:0!important}
+[data-edition=brutal] .card,[data-edition=brutal] .panel,[data-edition=brutal] .band{border:1.6px solid var(--ink);border-radius:0;box-shadow:2px 2px 0 var(--ink)}
+[data-edition=brutal] .card-h{border-bottom:2px solid var(--ink);padding-bottom:4px!important}
+[data-edition=brutal] .card-h h2{text-transform:uppercase;font-weight:820;letter-spacing:-.025em}
+[data-edition=brutal] .badge{background:var(--acid);color:var(--ink);padding:3px 4px}
+[data-edition=brutal] .card .groups>.group,[data-edition=brutal] .panel .groups>.group{background:var(--mute-panel);border-top:1px solid var(--ink)}
+[data-edition=brutal] .group h3,[data-edition=brutal] .where h3{font-family:var(--ff-mono);text-transform:uppercase;letter-spacing:0;font-weight:770}
+[data-edition=brutal] .board .chip{border:1px solid #908e7f;border-radius:0;background:var(--paper)}
+[data-edition=brutal] .board .chip:hover,[data-edition=brutal] .board .chip[aria-expanded=true]{background:var(--acid);border-color:var(--ink)}
+[data-edition=brutal] .board .chip em{background:var(--acid);padding-inline:3px;border-radius:0}
+[data-edition=brutal] .board .chip[data-alert]{border-color:var(--al-warn-bd)}
+[data-edition=brutal] .decision{font-family:var(--ff-mono);font-weight:700}
+[data-edition=brutal] .decision::before{background:var(--ink);transform:none}
+[data-edition=brutal] .panel.step{background:var(--acid)}
+[data-edition=brutal] .panel.step .group{background:#f4f5cf}
+[data-edition=brutal] .landscape-caption{background:var(--ink);color:var(--acid);width:max-content;padding:3px 5px}
+[data-edition=brutal] .band-h h3{text-transform:uppercase}
+[data-edition=brutal] .foot{border-top:3px solid var(--ink);color:var(--ink)}
