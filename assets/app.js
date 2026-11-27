@@ -137,7 +137,7 @@
     // Localized on every language change, including when the box is detached.
     editionMedia.addEventListener("change", function () { arrangeEditionBands(); connections.textContent = t("ui.edition.connections"); });
     var requestedEdition = q.get("edicao");
-    if (requestedEdition === "rail") requestedEdition = "brutal"; // old shared links still open the map
+    if (requestedEdition === "rail" || requestedEdition === "sky") requestedEdition = "brutal"; // old shared links still open the map
     if (editionValues.has(requestedEdition)) setEdition(requestedEdition);
     else if (requestedEdition !== "classic" && !q.has("theme")) {
       var storedEdition = store(true, "webai-edition");

@@ -77,38 +77,6 @@ body{background:var(--bg);color:var(--ink);overflow-x:clip}
  .foot{flex-wrap:wrap}
 }
 
-/* CONSTELLATIONS: star -> stage; clusters -> groups; every tool stays on the sky chart. */
-html[data-edition=sky]{
- color-scheme:dark;
- --bg:#131d30;--card:#18283f;--paper:#23344f;--edge:#3c506d;--ink:#fff5de;--ink2:#c8d5eb;--muted:#b0c6e6;
- --soft:#192c43;--acc:#f9d38c;--acc-tx:#f9d38c;--sep:#3e5674;--build:#f9d38c;--use:#a2e9d1;--agents:#d1bcff;
- --al-warn:#ffce81;--al-warn-tx:#ffdb9c;--al-warn-bg:#332a2a;--al-warn-bd:#c58c50;--al-info:#bdd6ff;--al-info-tx:#d9e8ff;--al-info-bg:#1c2f49;--al-info-bd:#759bd5;
- --al-crit:#ffadab;--al-crit-tx:#ffc8c1;--al-crit-bg:#422626;--al-crit-bd:#d16264;
-}
-html[data-edition=sky] body{
- background:radial-gradient(circle at 17% 29%, #b5d9f080 0 1px, transparent 1.5px) 0 0/93px 79px,
- radial-gradient(circle at 87% 72%, #fff0a560 0 .8px, transparent 1.4px) 0 0/131px 97px,
- radial-gradient(ellipse at 65% 12%, #314367, transparent 51%),var(--bg);
-}
-[data-edition=sky] .top h1{font:500 clamp(38px,6vw,77px)/1.05 Georgia,serif;letter-spacing:-.05em}
-[data-edition=sky] .lane{padding-top:3px;position:relative}
-[data-edition=sky] .lane-h{border-bottom:1px solid color-mix(in srgb,var(--route),transparent 67%);padding-bottom:10px}
-[data-edition=sky] .lane-l{background:transparent;color:var(--route);border:1px solid var(--route)}
-[data-edition=sky] .steps{gap:0;border-bottom:1px solid var(--edge)}
-[data-edition=sky] .card,[data-edition=sky] .panel{background:transparent;border:0;border-radius:0;border-right:1px dashed var(--edge);padding:14px 17px}
-[data-edition=sky] .steps>:last-child{border-right:0}
-[data-edition=sky] .card-h h2{color:var(--ink)}
-[data-edition=sky] .card-h .icon{display:none}
-[data-edition=sky] .badge{font-size:0;padding:0;color:var(--route)}
-[data-edition=sky] .badge::after{content:'✦';font-size:28px;text-shadow:0 0 14px color-mix(in srgb,var(--route),transparent 50%)}
-[data-edition=sky] .groups>.group{border-top:1px solid var(--edge);padding:7px 6px 4px 11px;position:relative;background:#111d30a0}
-[data-edition=sky] .groups>.group::after{content:'';position:absolute;top:-3px;left:9px;width:5px;height:5px;border-radius:50%;background:var(--route,var(--acc))}
-[data-edition=sky] .card .chips,[data-edition=sky] .panel .chips{gap:2px 6px}
-[data-edition=sky] .chip::before{content:'';width:4px;height:4px;background:var(--route,var(--acc));border-radius:50%;flex:none}
-[data-edition=sky] .band{border-style:dashed;box-shadow:inset 0 0 0 4px #172339}
-[data-edition=sky] .panel.step{background:#fff1b00b;border-top:1px dashed #e6c67abb}
-@media(max-width:700px){[data-edition=sky] .steps>.card,[data-edition=sky] .steps>.panel{border-right:0;border-bottom:1px dashed var(--edge)}}
-
 /* CARTOON: the scene carries the actual stages, like a comic. Group = scene/caption. */
 html[data-edition=comic]{
  --bg:#fff5d9;--card:#fff9e7;--paper:#fffdf4;--ink:#1c3135;--ink2:#2f464b;--muted:#4b5e60;
@@ -152,9 +120,6 @@ html[data-edition=comic]{
 .chip[data-kind=tree] .caret{order:1}
 .band .groups{max-width:100%}
 .band .chips{gap:5px 7px}
-[data-edition=sky] .groups>.group{border-radius:1px 12px 3px 2px}
-[data-edition=sky] [data-lane=build] .steps>article:nth-child(2) .groups{grid-template-columns:repeat(2,minmax(0,1fr))}
-[data-edition=sky] .panel.step .chips{gap:3px}
 [data-edition=comic] .lane-h{min-height:125px;padding-right:245px}
 [data-edition=comic] .chapter-art{width:222px;height:134px;right:18px}
 [data-edition=comic] .chapter-name{font:830 15px/1.16 var(--ff-ui);letter-spacing:.075em;color:var(--route)}
@@ -164,34 +129,22 @@ html[data-edition=comic]{
  [data-edition=comic] .chapter-art{width:108px;height:92px;right:2px}
  [data-edition=comic] .lane-h h2{font-size:25px}
  [data-edition=comic] .chapter-name{font-size:12px}
- [data-edition=sky] [data-lane=build] .steps>article:nth-child(2) .groups{grid-template-columns:minmax(0,1fr)}
 }
 
-[data-edition=sky] .lane .steps{position:relative}
-[data-edition=sky] .lane .steps::before{content:'';position:absolute;top:28px;left:25px;right:20px;border-top:1px dashed color-mix(in srgb,var(--route),transparent 47%);pointer-events:none}
-[data-edition=sky] .card-h{position:relative}
-[data-edition=sky] .card-h h2{flex:none;max-width:calc(100% - 38px);background:var(--bg);padding:0 7px 0 3px}
-[data-edition=sky] .panel-h{position:relative;background:var(--bg)}
-[data-edition=sky] .card .groups{grid-auto-flow:dense}
-[data-edition=sky] .card .groups>.group:only-child{max-width:100%}
-[data-edition=sky] [data-lane=use] .steps{grid-template-columns:1.35fr .72fr 1fr}
-[data-edition=sky] [data-lane=build] .steps{grid-template-columns:1fr 1.55fr .8fr}
 [data-edition=comic] [data-lane=use] .steps{grid-template-columns:1.3fr .78fr 1fr}
 [data-edition=comic] [data-lane=build] .steps{grid-template-columns:1fr 1.4fr .8fr}
 [data-edition=comic] .varrow{color:var(--ink)}
 @media(max-width:950px){
- [data-edition=sky] .lane[data-lane] .steps,[data-edition=comic] .lane[data-lane] .steps{grid-template-columns:repeat(2,minmax(0,1fr))}
- [data-edition=sky] .lane .steps::before{display:none}
+ [data-edition=comic] .lane[data-lane] .steps{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 @media(max-width:700px){
- [data-edition=sky] .lane[data-lane] .steps,[data-edition=comic] .lane[data-lane] .steps{grid-template-columns:minmax(0,1fr)}
+ [data-edition=comic] .lane[data-lane] .steps{grid-template-columns:minmax(0,1fr)}
 }
 
 @media(min-width:1080px) and (orientation:landscape) {
 html[data-edition] .page{max-width:2000px;padding:16px 24px 11px}
 html[data-edition] .top{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);align-items:end;gap:12px;padding:0 0 10px;margin:0 0 10px}
 html[data-edition] .top h1{font:800 clamp(35px,3.3vw,56px)/.99 var(--ff-ui);margin:4px 0 5px;letter-spacing:-.045em}
-html[data-edition=sky] .top h1{font-family:Georgia,serif;font-weight:500}
 html[data-edition] .top .intro p{max-width:88ch;font-size:12.5px;line-height:1.25}
 html[data-edition] .top .bar{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:7px;margin:0 0 3px}
 .edition-switch button{padding:5px 8px;font-size:12px}
@@ -239,11 +192,6 @@ html[data-edition] .band-h p{font-size:11px;line-height:1.15;margin:2px 0 0}
 html[data-edition] .band .groups{flex:1 1 auto}
 html[data-edition] .band .groups>.group{padding:2px 4px}
 html[data-edition] .foot{display:flex;justify-content:space-between;gap:4px 14px;font-size:10.5px;margin:8px 0 0;padding:5px 0 0}
-html[data-edition=sky] .steps::before{top:16px}
-html[data-edition=sky] .badge::after{font-size:21px}
-html[data-edition=sky] .lane .steps{gap:7px}
-html[data-edition=sky] .group::after{left:5px}
-html[data-edition=sky] .card-h h2{max-width:calc(100% - 18px)}
 html[data-edition=comic] .lane-h{overflow:visible;box-shadow:2px 2px 0 var(--ink)}
 html[data-edition=comic] .lane-h .chapter-name{display:none}
 html[data-edition=comic] .chapter-art{width:39px;height:33px;right:1px;bottom:3px;opacity:1}
@@ -280,8 +228,6 @@ html[data-edition] .where-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
 html[data-edition] .where-item .glyph{float:left;width:20px;height:13px;margin:2px 2px 0 0}
 html[data-edition] .where-item p{clear:both;margin:0}
 html[data-edition] .foot{margin-top:5px;font-size:10px}
-html[data-edition=sky] .badge::after{font-size:18px}
-html[data-edition=sky] .lane .steps::before{top:13px}
 html[data-edition=comic] .chapter-art{width:31px;height:26px;right:2px}
 html[data-edition=comic] .decision{padding:3px 5px;margin-top:4px}
 }
