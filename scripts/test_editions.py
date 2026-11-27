@@ -57,6 +57,26 @@ def check(ws):
     assert js("Array.from(document.querySelectorAll('[data-select-edition]')).map(b=>b.dataset.selectEdition)") == ["brutal", "comic", "construct", "deco"]
     baseline = inventory()
     assert len(baseline) > 350, len(baseline)
+    # Exercise cold entry before any click or resize. An old narrow-screen
+    # rule spanned the last articles across every column, and a portrait
+    # desktop lost the reading rails and the adjoining connection column.
+    for key in ("brutal", "comic", "construct", "deco"):
+        for w, h in ((950, 740), (1024, 1100)):
+            size(w, h)
+            navigate(PAGE + f"?lang=pt&edicao={key}&motion=0")
+            layout = js("""(() => {
+              const g = getComputedStyle, board = document.querySelector('.board');
+              return {
+                rail: g(board.querySelector('.lane-h h2')).writingMode,
+                spans: ['build','use'].map(l => g(board.querySelector('[data-lane='+l+'] .steps > article:last-child')).gridColumn),
+                connections: board.querySelectorAll('.landscape-connections > .band').length,
+                fits: document.scrollingElement.scrollWidth <= innerWidth && document.scrollingElement.scrollHeight <= innerHeight,
+              };
+            })()""")
+            rail = "horizontal-tb" if key == "construct" else "vertical-rl"
+            assert layout == {"rail": rail, "spans": ["auto", "auto"], "connections": 2, "fits": True}, (key, w, h, layout)
+            assert inventory() == baseline
+    size(1600, 1000)
     for key in ("brutal", "comic", "construct", "deco"):
         js(f"document.querySelector('[data-select-edition={key}]').click()")
         assert js("document.documentElement.dataset.edition") == key

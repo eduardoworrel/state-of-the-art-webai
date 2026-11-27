@@ -65,7 +65,7 @@
   var editionStyle = document.getElementById("editions-style"),
       editionButtons = Array.from(document.querySelectorAll("[data-select-edition]")),
       editionValues = new Set(editionButtons.map(function (b) { return b.dataset.selectEdition; })),
-      editionMedia = matchMedia("(min-width:701px) and (orientation:landscape)"),
+      editionMedia = matchMedia("(min-width:701px)"),
       editionBoard = document.querySelector(".board"), editionLinks = null,
       editionPage = document.querySelector(".page"),
       editionReading = q.get("fit") === "0", sourceSlot = null,
