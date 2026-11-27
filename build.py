@@ -181,11 +181,15 @@ def panel_step(L, tx):
             f'<span class="icon">{icon(p["icon"])}</span></div><div class="groups">{"".join(group(g, tx) for g in p["groups"])}</div></section>')
 
 
-def lane(layers, name, tx):
+def lane(layers, name, tx, editions=False):
     mine = sorted((L for L in layers if L["lane"] == name), key=lambda L: L["n"])
     steps = "".join(card(L, tx) + panel_step(L, tx) for L in mine)
+    label = f'<h2 data-t="ui.lane.{name}">{escape(tx[f"ui.lane.{name}"])}</h2>'
+    if editions:
+        art = (ROOT / "assets" / f"edition-{name}.svg").read_text(encoding="utf-8").strip()
+        label = f'<div><p class="chapter-name" data-t="ui.edition.chapter.{name}">{escape(tx[f"ui.edition.chapter.{name}"])}</p>{label}</div>{art}'
     return (f'<section class="lane" data-lane="{name}"><div class="lane-h"><span class="lane-l" aria-hidden="true">{LETTER[name]}</span>'
-            f'<h2 data-t="ui.lane.{name}">{escape(tx[f"ui.lane.{name}"])}</h2></div><div class="steps">{steps}</div></section>')
+            f'{label}</div><div class="steps">{steps}</div></section>')
 
 
 SHARE_ICON = ('<svg class="ic" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><circle cx="12" cy="3.5" r="2" fill="currentColor"/><circle cx="4" cy="8" r="2" fill="currentColor"/>'
@@ -215,7 +219,7 @@ def menus(tx, reviewed):
             f'<section class="sh-sec"><h3 data-t="ui.embed">{t_("ui.embed")}</h3>'
             f'<p class="emb-help"><span data-t="ui.embed.help">{t_("ui.embed.help")}</span> <a href="https://github.com/{SITE["repo"]}#the-page" target="_blank" rel="noopener noreferrer" data-how><span data-t="ui.embed.how">{t_("ui.embed.how")}</span></a></p>'
             + row("iframe") + row("component") + row("image") + row("badge") + '</section>'
-            f'<section class="sh-sec"><h3 data-t="ui.download">{t_("ui.download")}</h3><div class="sh-links">'
+            f'<section class="sh-sec"><h3 data-t="ui.edition.original">{t_("ui.edition.original")}</h3><div class="sh-links">'
             f'<a class="btn sm" data-dl="png" href="#" download>PNG</a><a class="btn sm" data-dl="svg" href="#" download>SVG</a></div></section>'
             f'<div class="sh-foot"><a data-suggest href="#" target="_blank" rel="noopener noreferrer"><span data-t="ui.suggest">{t_("ui.suggest")}</span></a>'
             f'<span class="reviewed"><span data-t="ui.reviewed.short">{t_("ui.reviewed.short")}</span> <time datetime="{reviewed}">{reviewed}</time></span></div>'
@@ -240,9 +244,11 @@ def render(embed=False):
     themes = "".join(f'<button type="button" data-theme-choice="{k}" aria-pressed="{str(k == "auto").lower()}" aria-label="{escape(tx["ui.theme." + k])}" data-al="ui.theme.{k}" '
                      f'title="{escape(tx["ui.theme." + k])}" data-tl="ui.theme.{k}">{THEME_ICONS[k]}</button>' for k in ("auto", "light", "dark"))
     board = (f'<div class="board" role="group" aria-label="{escape(tx["site.title"])}">'
-             + lane(layers, "build", tx) + band(layers, "accel", tx) + lane(layers, "use", tx) + band(layers, "bridge", tx) + lane(layers, "agents", tx) + '</div>')
+             + lane(layers, "build", tx, not embed) + band(layers, "accel", tx) + lane(layers, "use", tx, not embed) + band(layers, "bridge", tx) + lane(layers, "agents", tx, not embed) + '</div>')
     fonts = "../fonts" if embed else "fonts"
     css = font_css(fonts) + (ROOT / "assets" / "style.css").read_text(encoding="utf-8")
+    editions_css = "" if embed else (ROOT / "assets" / "editions.css").read_text(encoding="utf-8")
+    editions_style = f'<style id="editions-style" media="not all">\n{editions_css}</style>' if editions_css else ""
     preload = f'<link rel="preload" href="{fonts}/{FONT_PRELOAD}" as="font" type="font/woff2" crossorigin>'
     site = {"base": BASE, "repo": SITE["repo"], "branch": SITE.get("branch", "main"), "reviewed": reviewed}
     alt = "".join(f'<link rel="alternate" hreflang="{k}" href="{BASE}?lang={k}">' for k in langs)
@@ -254,8 +260,13 @@ def render(embed=False):
         html_attr = ""
         head_extra = (f'<link rel="canonical" href="{BASE}">{alt}<meta property="og:type" content="website"><meta property="og:title" content="{escape(tx["site.title"])}">'
                       f'<meta property="og:description" content="{escape(tx["site.tagline"])}"><meta property="og:url" content="{BASE}"><meta property="og:image" content="{BASE}figure-en.png">')
-        header = (f'<header class="top"><div class="intro"><h1 data-t="site.title">{escape(tx["site.title"])}</h1><p data-t="site.tagline">{escape(tx["site.tagline"])}</p></div>'
-                  f'<div class="bar"><div class="seg langs" role="group" aria-label="{escape(tx["ui.language"])}" data-al="ui.language">{buttons}</div>'
+        edition_buttons = "".join(
+            f'<button type="button" data-select-edition="{key}" aria-pressed="false" data-t="ui.edition.{key}">{escape(tx[f"ui.edition.{key}"])}</button>'
+            for key in ("sky", "comic", "rail")
+        )
+        edition_switch = f'<div class="edition-switch" role="group" data-al="ui.edition.label" aria-label="{escape(tx["ui.edition.label"])}">{edition_buttons}</div>'
+        header = (f'<header class="top"><div class="intro"><div class="eyebrow edition-only" data-t="ui.edition.eyebrow">{escape(tx["ui.edition.eyebrow"])}</div><h1 data-t="site.title">{escape(tx["site.title"])}</h1><p data-t="site.tagline">{escape(tx["site.tagline"])}</p></div>'
+                  f'<div class="bar">{edition_switch}<div class="seg langs" role="group" aria-label="{escape(tx["ui.language"])}" data-al="ui.language">{buttons}</div>'
                   f'<div class="seg themes" role="group" aria-label="{escape(tx["ui.theme"])}" data-al="ui.theme">{themes}</div>{share_button(tx)}</div>'
                   f'<span class="small-window" role="status" hidden data-t="ui.small">{escape(tx["ui.small"])}</span>'
                   f'<p class="contrib-note" role="status" hidden data-t="ui.contrib">{escape(tx["ui.contrib"])}</p></header>')
@@ -278,6 +289,7 @@ def render(embed=False):
 <style>
 {css}
 </style>
+{editions_style}
 </head>
 <body>
 <div class="page">

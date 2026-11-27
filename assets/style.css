@@ -274,3 +274,6 @@ html.motion .where-item .m-led2 { animation: led 1.6s steps(1) infinite 0.5s; }
 .body > .where { position: relative; }
 .body > .where::before { content: ""; position: absolute; left: 0; right: 0; top: calc(var(--s) * -0.3); border-top: 1px dotted var(--sep); }
 .band-h { padding-right: calc(var(--s) * 1.4); border-right: 1px dotted var(--sep); align-self: stretch; display: flex; flex-direction: column; justify-content: center; }
+
+/* Edition-only artwork and labels must not appear in classic rendering. */
+html:not([data-edition]) .edition-only, html:not([data-edition]) .chapter-art, html:not([data-edition]) .chapter-name, html.export .edition-switch { display:none; }
