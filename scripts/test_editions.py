@@ -54,14 +54,15 @@ def check(ws):
     size(1600, 1000)
     navigate(PAGE + "?lang=pt&motion=0")
     assert js("document.documentElement.dataset.edition") == "brutal"
-    assert js("Array.from(document.querySelectorAll('[data-select-edition]')).map(b=>b.dataset.selectEdition)") == ["comic", "brutal"]
+    assert js("Array.from(document.querySelectorAll('[data-select-edition]')).map(b=>b.dataset.selectEdition)") == ["brutal", "comic", "construct", "destijl", "deco"]
     baseline = inventory()
     assert len(baseline) > 350, len(baseline)
-    for key in ("comic", "brutal"):
+    for key in ("brutal", "comic", "construct", "destijl", "deco"):
         js(f"document.querySelector('[data-select-edition={key}]').click()")
         assert js("document.documentElement.dataset.edition") == key
         assert js("new URL(location.href).searchParams.get('edicao')") == key
-        assert js("getComputedStyle(document.querySelector('.chip')).fontSize") == "15px"
+        assert js("!document.querySelector('button[data-edition-size]')")
+        assert js(f"[...document.querySelectorAll('[data-dl]')].every(a=>a.href.includes('figure-{key}-pt.'))")
         assert js("document.scrollingElement.scrollHeight<=innerHeight && document.scrollingElement.scrollWidth<=innerWidth")
         assert js("document.querySelectorAll('.landscape-connections > .band').length") == 2
         assert inventory() == baseline
@@ -84,13 +85,10 @@ def check(ws):
         assert_source_menu("webmcp")
         js("document.querySelector('.mobile-map-back').click()")
         assert js("document.documentElement.dataset.editionSize==='fit' && scrollY===0")
-        js("document.querySelector('button[data-edition-size]').click()")
-        read_mode = js("[document.documentElement.dataset.editionSize,document.scrollingElement.scrollHeight,innerHeight,location.href]")
-        assert read_mode[0] == "read" and read_mode[1] > read_mode[2], read_mode
-        js("document.querySelector('button[data-edition-size]').click()")
-        assert js("document.documentElement.dataset.editionSize==='fit' && document.scrollingElement.scrollHeight<=innerHeight")
         size(1600, 1000)
+    js("document.querySelector('[data-select-edition=brutal]').click()")
     js("document.querySelector('[data-lang=en]').click()")
+    assert js("[...document.querySelectorAll('[data-dl]')].every(a=>a.href.includes('figure-brutal-en.'))")
     assert js("document.querySelector('.landscape-caption').textContent") == "Cross-cutting layers"
     assert js("decodeURIComponent(document.querySelector('[data-share=linkedin]').href).includes('edicao=brutal')")
     js("document.querySelector('[data-menu-btn=share]').click()")
@@ -142,4 +140,4 @@ with tempfile.TemporaryDirectory() as profile:
     finally:
         proc.terminate()
         proc.wait(timeout=10)
-print("PASS: 2 editions, sources, languages, share, narrow layout, classic, export and embed")
+print("PASS: 5 editions and matching downloads, sources, languages, share, narrow layout, classic, export and embed")
