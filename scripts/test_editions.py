@@ -54,9 +54,10 @@ def check(ws):
     size(1600, 1000)
     navigate(PAGE + "?lang=pt&motion=0")
     assert js("document.documentElement.dataset.edition") == "brutal"
+    assert js("Array.from(document.querySelectorAll('[data-select-edition]')).map(b=>b.dataset.selectEdition)") == ["comic", "brutal"]
     baseline = inventory()
     assert len(baseline) > 350, len(baseline)
-    for key in ("sky", "comic", "brutal"):
+    for key in ("comic", "brutal"):
         js(f"document.querySelector('[data-select-edition={key}]').click()")
         assert js("document.documentElement.dataset.edition") == key
         assert js("new URL(location.href).searchParams.get('edicao')") == key
@@ -92,8 +93,10 @@ def check(ws):
     assert inventory() == baseline
     size(1600, 1000)
     assert js("document.querySelectorAll('.landscape-connections > .band').length") == 2
-    navigate(PAGE + "?lang=pt&edicao=rail&motion=0")
-    assert js("document.documentElement.dataset.edition") == "brutal"
+    for former in ("rail", "sky"):
+        navigate(PAGE + f"?lang=pt&edicao={former}&motion=0")
+        assert js("document.documentElement.dataset.edition") == "brutal"
+        assert inventory() == baseline
     navigate(PAGE + "?lang=pt&theme=dark&motion=0")
     assert js("!document.documentElement.hasAttribute('data-edition') && document.documentElement.dataset.theme==='dark'")
     assert inventory() == baseline
@@ -131,4 +134,4 @@ with tempfile.TemporaryDirectory() as profile:
     finally:
         proc.terminate()
         proc.wait(timeout=10)
-print("PASS: 3 editions, sources, languages, share, narrow layout, classic, export and embed")
+print("PASS: 2 editions, sources, languages, share, narrow layout, classic, export and embed")
