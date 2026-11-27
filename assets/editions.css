@@ -394,3 +394,46 @@ html[data-edition=brutal] body{background:var(--bg)}
 [data-edition=brutal] .landscape-caption{background:var(--ink);color:var(--acid);width:max-content;padding:3px 5px}
 [data-edition=brutal] .band-h h3{text-transform:uppercase}
 [data-edition=brutal] .foot{border-top:3px solid var(--ink);color:var(--ink)}
+
+/* On phones, show a readable index instead of scaling the detailed board down.
+   A section opens the complete map at its original, legible reading size. */
+.mobile-map,.mobile-map-back.btn{display:none}
+@media(max-width:700px){
+ html[data-edition][data-mobile-map=overview] .board{display:none}
+ html[data-edition][data-mobile-map=overview] .mobile-map{display:grid;gap:6px}
+ .mobile-map section{padding:5px 6px 6px;border:1px solid var(--edge);background:var(--card)}
+ .mobile-map h2{font:800 12px/1.1 var(--ff-mono);letter-spacing:.035em;text-transform:uppercase;margin:0 0 5px;color:var(--ink)}
+ .mobile-map-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px}
+ .mobile-map [data-mobile-lane=build] .mobile-map-actions{grid-template-columns:repeat(3,minmax(0,1fr))}
+ .mobile-map button{appearance:none;text-align:left;word-break:normal;overflow-wrap:break-word;min-height:38px;padding:4px 5px;border:1px solid var(--edge);color:var(--ink);background:var(--paper);font:720 14px/1.12 var(--ff-ui);cursor:pointer}
+ .mobile-map button:focus-visible,.mobile-map-back:focus-visible{outline:2px solid var(--ink);outline-offset:1px}
+ .mobile-map [data-mobile-lane=connections] button{background:var(--soft)}
+ html[data-edition=brutal] .mobile-map h2{width:max-content;background:var(--acid);padding:2px 4px}
+ html[data-edition=comic] .mobile-map section{border-radius:6px}
+ html[data-edition=comic] [data-mobile-lane=build]{background:#f0c8ad}
+ html[data-edition=comic] [data-mobile-lane=use]{background:#c9e4bd}
+ html[data-edition=comic] [data-mobile-lane=agents]{background:#e3d0ef}
+ html[data-edition][data-mobile-map=overview] .top .intro p{font-size:11px}
+ html[data-edition][data-mobile-map=overview] .top .bar{gap:4px}
+ html[data-edition][data-mobile-map=overview] .top .seg,
+ html[data-edition][data-mobile-map=overview] .top .btn{height:28px;font-size:11px;padding-block:3px}
+ html[data-edition][data-mobile-map=detail] .page{padding-bottom:76px}
+ html[data-edition][data-mobile-map=detail] .board :is(.card,.panel.step,.band){scroll-margin-top:10px}
+ html[data-edition][data-mobile-map=detail] .mobile-map-back.btn{
+   position:fixed;display:inline-flex;z-index:30;right:12px;bottom:max(12px,env(safe-area-inset-bottom));
+   min-height:40px;background:var(--ink);color:var(--paper);box-shadow:0 2px 6px #0004
+ }
+}
+@media(max-width:700px) and (max-height:700px){
+ html[data-edition][data-mobile-map=overview] .top :is(.eyebrow,.intro p),
+ html[data-edition][data-mobile-map=overview] .foot p:first-child{display:none}
+ html[data-edition][data-mobile-map=overview] .top h1{font-size:clamp(23px,6vw,30px)}
+}
+@media(max-width:700px){
+ .mobile-map-hint{margin:0 0 1px;font:600 12px/1.25 var(--ff-ui);color:var(--ink2)}
+ .mobile-map [data-mobile-lane=use] button:last-child{grid-column:1/-1}
+}
+@media(max-width:700px) and (max-height:700px){
+ html[data-edition][data-mobile-map=overview] .mobile-map{gap:4px}
+ html[data-edition][data-mobile-map=overview] .mobile-map section{padding-block:3px}
+}

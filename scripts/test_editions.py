@@ -71,11 +71,19 @@ def check(ws):
             size(w, h)
             result = js("""(() => {
               const se=document.scrollingElement, board=document.querySelector('.board').getBoundingClientRect();
-              return {w:innerWidth,h:innerHeight,scroll:[se.scrollWidth,se.scrollHeight],right:board.right,bottom:board.bottom};
+              return {w:innerWidth,h:innerHeight,scroll:[se.scrollWidth,se.scrollHeight],right:board.right,bottom:board.bottom,parts:[...document.querySelectorAll(".page,.top,.mobile-map,.mobile-map section,.foot")].map(x=>[x.className||x.dataset.mobileLane,x.getBoundingClientRect().height])};
             })()""")
             assert result["scroll"][0] <= w and result["scroll"][1] <= h, (key, result)
             assert result["right"] <= w + 1 and result["bottom"] <= h + 1, (key, result)
+        assert js("""document.querySelectorAll('.mobile-map button[data-mobile-target]').length===10
+          && getComputedStyle(document.querySelector('.mobile-map')).display!=='none'
+          && parseFloat(getComputedStyle(document.querySelector('.mobile-map button')).fontSize)>=13
+          && getComputedStyle(document.querySelector('.board')).display==='none'""")
+        js("document.querySelector('[data-mobile-target=layer-expose]').click()")
+        assert js("document.documentElement.dataset.editionSize==='read' && getComputedStyle(document.querySelector('.board')).display!=='none'")
         assert_source_menu("webmcp")
+        js("document.querySelector('.mobile-map-back').click()")
+        assert js("document.documentElement.dataset.editionSize==='fit' && scrollY===0")
         js("document.querySelector('button[data-edition-size]').click()")
         read_mode = js("[document.documentElement.dataset.editionSize,document.scrollingElement.scrollHeight,innerHeight,location.href]")
         assert read_mode[0] == "read" and read_mode[1] > read_mode[2], read_mode
