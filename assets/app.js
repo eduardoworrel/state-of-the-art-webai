@@ -142,6 +142,8 @@
   }
   function fitEdition() {
     var style = editionBoard.style;
+    var lanes = editionBoard.querySelectorAll(".lane[data-lane=build] .steps,.lane[data-lane=use] .steps");
+    lanes.forEach(function (lane) { lane.style.removeProperty("grid-template-columns"); });
     delete root.dataset.diagramDensity;
     var reading = mobileMedia.matches && editionReading;
     root.dataset.editionSize = reading ? "read" : "fit";
@@ -159,6 +161,18 @@
     var available = geometry(editionBoard, false).avail;
     if (editionBoard.offsetHeight > available) root.dataset.diagramDensity = "compact";
     if (editionBoard.offsetHeight > available) root.dataset.diagramDensity = "dense";
+    if (root.dataset.diagramDensity === "dense" && editionBoard.offsetHeight > geometry(editionBoard, false).avail) {
+      lanes.forEach(function (lane, i) {
+        var layouts = i === 0 ? ["1fr 3fr 1fr", "1fr 4fr 1fr", "1fr 5fr 1fr"] :
+          ["39fr 25fr 36fr", "44fr 23fr 33fr", "43fr 29fr 28fr", "36fr 30fr 34fr"];
+        var best = "", height = lane.offsetHeight;
+        layouts.forEach(function (layout) {
+          lane.style.gridTemplateColumns = layout;
+          if (lane.offsetHeight < height) { best = layout; height = lane.offsetHeight; }
+        });
+        lane.style.gridTemplateColumns = best;
+      });
+    }
     available = geometry(editionBoard, false).avail;
     if (editionBoard.offsetHeight <= available) style.minHeight = available + "px";
     if (openBtn) close(false);
