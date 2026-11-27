@@ -5,7 +5,7 @@ from pathlib import Path
 from scripts.test_resize import WS, find_chrome
 ROOT=Path(__file__).resolve().parent
 DOCS=ROOT/'docs'
-KINDS=('brutal','comic','construct','destijl','deco')
+KINDS=('brutal','comic','construct','deco')
 W,H=1600,1000
 def start():
  with socket.socket() as s:
@@ -60,7 +60,7 @@ try:
    st=page_state();assert st['sy']==H and st['sx']==W and st['items']==101 and st['refs']==261 and st['controls']==0,st
    write_figure(kind,lang)
   nav((DOCS/'index.html').as_uri()+f'?edicao={kind}&lang=pt&motion=0',f'document.documentElement.dataset.edition==="{kind}"')
-  for w,h in ((1280,720),(1366,768),(1440,900),(1536,730),(1600,1000),(1920,1080)):
+  for w,h in ((1024,768),(1280,720),(1366,768),(1440,900),(1536,730),(1600,1000),(1920,1080)):
    resize(w,h); st=page_state()
    assert st['width']==w and st['height']==h and st['sx']==w and st['sy']==h and st['controls']==0,st
    assert 0<=h-st['footer']<=20,(kind,st)

@@ -54,10 +54,10 @@ def check(ws):
     size(1600, 1000)
     navigate(PAGE + "?lang=pt&motion=0")
     assert js("document.documentElement.dataset.edition") == "brutal"
-    assert js("Array.from(document.querySelectorAll('[data-select-edition]')).map(b=>b.dataset.selectEdition)") == ["brutal", "comic", "construct", "destijl", "deco"]
+    assert js("Array.from(document.querySelectorAll('[data-select-edition]')).map(b=>b.dataset.selectEdition)") == ["brutal", "comic", "construct", "deco"]
     baseline = inventory()
     assert len(baseline) > 350, len(baseline)
-    for key in ("brutal", "comic", "construct", "destijl", "deco"):
+    for key in ("brutal", "comic", "construct", "deco"):
         js(f"document.querySelector('[data-select-edition={key}]').click()")
         assert js("document.documentElement.dataset.edition") == key
         assert js("new URL(location.href).searchParams.get('edicao')") == key
@@ -68,7 +68,7 @@ def check(ws):
         assert inventory() == baseline
         assert_source_menu()
         for w, h in ((1920, 1080), (1440, 900), (1440, 820), (1366, 768), (1280, 720),
-                     (1536, 730), (1000, 600), (820, 1180), (390, 844), (320, 568)):
+                     (1536, 730), (1024, 768), (1000, 600), (820, 1180), (390, 844), (320, 568)):
             size(w, h)
             result = js("""(() => {
               const se=document.scrollingElement, board=document.querySelector('.board').getBoundingClientRect();
@@ -76,6 +76,9 @@ def check(ws):
             })()""")
             assert result["scroll"][0] <= w and result["scroll"][1] <= h, (key, result)
             assert result["right"] <= w + 1 and result["bottom"] <= h + 1, (key, result)
+            if w == 1024:
+                assert js("parseFloat(document.querySelector('.board').style.zoom) >= .5 && document.querySelectorAll('.landscape-connections > .band').length===2")
+                assert js("""(() => {const c=getComputedStyle(document.querySelector('.chip'));return c.paddingLeft==='6px' && c.backgroundColor!=='rgba(0, 0, 0, 0)' && c.borderColor!=='rgba(0, 0, 0, 0)';})()""")
         assert js("""document.querySelectorAll('.mobile-map button[data-mobile-target]').length===10
           && getComputedStyle(document.querySelector('.mobile-map')).display!=='none'
           && parseFloat(getComputedStyle(document.querySelector('.mobile-map button')).fontSize)>=13
@@ -99,7 +102,7 @@ def check(ws):
     assert inventory() == baseline
     size(1600, 1000)
     assert js("document.querySelectorAll('.landscape-connections > .band').length") == 2
-    for former in ("rail", "sky"):
+    for former in ("rail", "sky", "destijl"):
         navigate(PAGE + f"?lang=pt&edicao={former}&motion=0")
         assert js("document.documentElement.dataset.edition") == "brutal"
         assert inventory() == baseline
@@ -140,4 +143,4 @@ with tempfile.TemporaryDirectory() as profile:
     finally:
         proc.terminate()
         proc.wait(timeout=10)
-print("PASS: 5 editions and matching downloads, sources, languages, share, narrow layout, classic, export and embed")
+print("PASS: 4 editions and matching downloads, sources, languages, share, narrow layout, classic, export and embed")

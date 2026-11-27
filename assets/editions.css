@@ -141,7 +141,7 @@ html[data-edition=comic]{
  [data-edition=comic] .lane[data-lane] .steps{grid-template-columns:minmax(0,1fr)}
 }
 
-@media(min-width:1080px) and (orientation:landscape) {
+@media(min-width:701px) and (orientation:landscape) {
 html[data-edition] .page{max-width:2000px;padding:16px 24px 11px}
 html[data-edition] .top{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);align-items:end;gap:12px;padding:0 0 10px;margin:0 0 10px}
 html[data-edition] .top h1{font:800 clamp(35px,3.3vw,56px)/.99 var(--ff-ui);margin:4px 0 5px;letter-spacing:-.045em}
@@ -201,7 +201,7 @@ html[data-edition=comic] .decision{padding:4px 6px;margin-top:7px}
 html[data-edition=comic] .card,html[data-edition=comic] .panel,html[data-edition=comic] .band{box-shadow:2px 2px 0 var(--ink)}
 }
 
-@media(min-width:1080px) and (orientation:landscape) {
+@media(min-width:701px) and (orientation:landscape) {
 html[data-edition] .page{padding:12px 20px 9px}
 html[data-edition] .top{padding-bottom:7px;margin-bottom:7px}
 html[data-edition] .top h1{font-size:clamp(33px,2.85vw,50px)}
@@ -234,7 +234,7 @@ html[data-edition=comic] .decision{padding:3px 5px;margin-top:4px}
 
 /* On a wide screen the connections run beside Agents, not as two extra rows. */
 .landscape-connections{display:contents}
-@media(min-width:1080px) and (orientation:landscape){
+@media(min-width:701px) and (orientation:landscape){
 html[data-edition] .board{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);align-items:start;gap:7px 10px}
 html[data-edition] .lane:not([data-lane=agents]){grid-column:1/-1}
 html[data-edition] .landscape-connections{display:grid;gap:6px;align-content:start;grid-column:2;min-width:0}
@@ -246,13 +246,13 @@ html[data-edition] .landscape-connections .band .varrow{transform:rotate(-90deg)
 html[data-edition] [data-lane=agents] .card-h h2{font-size:17px}
 }
 .landscape-caption{margin:0;font:730 10px/1 var(--ff-mono);color:var(--ink2);text-transform:uppercase;letter-spacing:.08em}
-@media(min-width:1080px) and (orientation:landscape){
+@media(min-width:701px) and (orientation:landscape){
  html[data-edition=comic] [data-lane=agents] .chapter-art{width:24px;height:19px;right:5px;bottom:2px}
  html[data-edition=comic] [data-lane=agents] .lane-h{gap:3px}
 }
 
 /* The three themes keep their composition; spacing belongs to an option, not its icon. */
-@media(min-width:1080px) and (orientation:landscape) {
+@media(min-width:701px) and (orientation:landscape) {
 html[data-edition] .board .chips { gap:4px 9px; align-items:center; }
 html[data-edition] .board .chip,
 html[data-edition] .board .panel .chip {
@@ -280,7 +280,7 @@ html[data-edition] #layer-choose .groups .chip,
 html[data-edition] #layer-evaluate .groups .chip{min-height:20px}
 html[data-edition] .landscape-connections .band .chips {gap:4px 7px}
 }
-@media(min-width:1080px) and (orientation:landscape) {
+@media(min-width:701px) and (orientation:landscape) {
 html[data-edition] .board .chip,
 html[data-edition] .board .panel .chip{min-height:15px;padding-block:0}
 html[data-edition] .board #layer-choose .groups .chip,
@@ -290,7 +290,7 @@ html[data-edition] [data-lane=build] .steps{grid-template-columns:15fr 70fr 15fr
 html[data-edition] #layer-convert .groups{grid-template-columns:1.09fr 1.24fr 1fr}
 html[data-edition] .board .panel.step .chip{padding-inline:3px}
 }
-@media(min-width:1080px) and (orientation:landscape) {
+@media(min-width:701px) and (orientation:landscape) {
 }
 
 /* Dedicated option type: regular-weight, readable at a glance, with a larger hit area. */
@@ -304,7 +304,7 @@ html[data-edition] .board .panel .chip{
   line-height:1.18;
 }
 html[data-edition] .board .chip em{font-size:9px;line-height:1.08}
-@media(min-width:1080px) and (orientation:landscape){
+@media(min-width:701px) and (orientation:landscape){
  html[data-edition] .board .chip,
  html[data-edition] .board .panel .chip{font-size:14px;min-height:20px;padding-block:1px}
  html[data-edition] .board #layer-choose .groups .chip,
@@ -322,7 +322,7 @@ html[data-edition] .board .chip em{font-size:9px;line-height:1.08}
 }
 
 /* Fill each layer's existing grid, without changing the chip metrics. */
-@media(min-width:1080px) and (orientation:landscape){
+@media(min-width:701px) and (orientation:landscape){
  html[data-edition] .board .card .body>.groups,
  html[data-edition] .board .panel.step>.groups{
    flex:1 0 auto;
@@ -541,7 +541,7 @@ html[data-edition=construct] .landscape-caption{
   padding:3px 14px 3px 5px;clip-path:polygon(0 0,100% 0,calc(100% - 8px) 100%,0 100%);
 }
 html[data-edition=construct] .foot{border-top:2px solid var(--ink)}
-@media(min-width:1080px) and (orientation:landscape){
+@media(min-width:701px) and (orientation:landscape){
   html[data-edition=construct] .top{padding:6px 12px 7px 13px;gap:8px}
   html[data-edition=construct] .lane{grid-template-columns:clamp(64px,5.65vw,106px) minmax(0,1fr)}
   html[data-edition=construct] .lane-h{display:flex;align-items:flex-start;gap:4px;padding:5px 8px 7px 6px}
@@ -563,200 +563,8 @@ html[data-edition=construct] .foot{border-top:2px solid var(--ink)}
   html[data-edition=construct] .top::before{background:linear-gradient(128deg,transparent calc(100% - 29px),var(--print-gold) calc(100% - 29px) calc(100% - 25px),var(--print-black) calc(100% - 25px))}
   html[data-edition=construct] .lane-l{font-size:28px}
 }
-@media(min-width:1080px) and (orientation:landscape){
+@media(min-width:701px) and (orientation:landscape){
  html[data-edition=construct] .lane-h h2{white-space:nowrap;overflow-wrap:normal;font-size:clamp(8px,.66vw,11px)}
-}
-
-/* DE STIJL — an orthogonal composition over the actual map, not a background print. */
-html[data-edition=destijl] {
-  --bg:#f3f0e7;
-  --card:#fffcf5;
-  --paper:#fffdf7;
-  --ink:#171612;
-  --ink2:#292620;
-  --muted:#514c43;
-  --edge:#171612;
-  --sep:#b9b4a7;
-  --soft:#f5f1e7;
-  --red:#ba251f;
-  --blue:#20489b;
-  --yellow:#f4cb30;
-  --acc:var(--blue);
-  --acc-tx:#173a7e;
-  --build:var(--red);
-  --use:#7c5600;
-  --agents:var(--blue);
-  --light-plane:#f8f4eb;
-  --blue-plane:#edf1f9;
-  --yellow-plane:#fff5ca;
-}
-html[data-edition=destijl] body{background:var(--bg)}
-html[data-edition=destijl] .top{
-  position:relative;border-bottom:4px solid var(--ink);padding-bottom:8px;
-}
-html[data-edition=destijl] .top h1{
-  font-family:"Helvetica Neue",Arial,sans-serif;
-  color:var(--ink);font-weight:830;letter-spacing:-.061em;
-}
-html[data-edition=destijl] .eyebrow {
-  display:inline-flex;align-items:center;gap:7px;
-  color:var(--ink);letter-spacing:.12em;
-}
-html[data-edition=destijl] .eyebrow::before {
-  content:"";width:9px;height:9px;flex:none;background:var(--red);
-  box-shadow:0 0 0 1px var(--ink);
-}
-html[data-edition=destijl] :is(.top .btn,.top .seg,.edition-switch button){
-  border:1px solid var(--ink);border-radius:0;background:var(--paper);color:var(--ink);
-}
-html[data-edition=destijl] :is(.edition-switch,.top .seg) button[aria-pressed=true] {
-  color:#fff;background:var(--blue);border-color:var(--blue);
-}
-html[data-edition=destijl] .foot{border-top:2px solid var(--ink)}
-html[data-edition=destijl] .lane[data-lane=build]{--rail:var(--red);--rail-text:#fff}
-html[data-edition=destijl] .lane[data-lane=use]{--rail:var(--yellow);--rail-text:var(--ink)}
-html[data-edition=destijl] .lane[data-lane=agents]{--rail:var(--blue);--rail-text:#fff}
-html[data-edition=destijl] .lane-h{
-  background:var(--rail);color:var(--rail-text);
-  border:2px solid var(--ink);border-radius:0;
-  margin:0 0 4px;padding:5px 8px;box-shadow:none;
-}
-html[data-edition=destijl] .lane-h h2{
-  color:var(--rail-text);font-weight:780;letter-spacing:.08em;text-transform:uppercase;
-}
-html[data-edition=destijl] .lane-l{
-  width:25px;height:25px;border:1px solid var(--ink);border-radius:0!important;
-  background:var(--paper);color:var(--ink);
-}
-html[data-edition=destijl] .lane .steps{gap:4px}
-html[data-edition=destijl] :is(.card,.panel){
-  --in-x:13px;--in-y:11px;
-  --heading:var(--paper);--heading-text:var(--ink);
-  background:var(--card);border:2px solid var(--ink);border-radius:0;
-  padding:var(--in-y) var(--in-x);box-shadow:none;
-}
-html[data-edition=destijl] :is(.card-h,.panel-h){
-  background:var(--heading);color:var(--heading-text);
-  margin:calc(-1 * var(--in-y)) calc(-1 * var(--in-x)) 4px;
-  padding:5px var(--in-x);border-bottom:2px solid var(--ink);
-}
-html[data-edition=destijl] :is(.card-h h2,.panel-h h3){
-  color:var(--heading-text);letter-spacing:-.023em;
-}
-html[data-edition=destijl] .card-h .icon{
-  display:grid;place-items:center;background:var(--paper);border:1px solid var(--ink);
-  padding-inline:2px;color:var(--ink);
-}
-html[data-edition=destijl] .badge{
-  background:var(--paper);color:var(--ink);
-  padding:3px 4px;border:1px solid var(--ink);border-radius:0;
-  font-weight:800;
-}
-/* A red lintel across the broad upper bay, a yellow center, a blue right end. */
-html[data-edition=destijl] #layer-convert{--heading:var(--red);--heading-text:#fff}
-html[data-edition=destijl] .panel.step{--heading:var(--yellow)}
-html[data-edition=destijl] #layer-integrate{--heading:var(--blue);--heading-text:#fff}
-html[data-edition=destijl] #layer-evaluate{--heading:var(--yellow)}
-html[data-edition=destijl] .card .groups>.group,
-html[data-edition=destijl] .panel .groups>.group{
-  align-self:stretch;border-radius:0;
-  box-shadow:inset 0 0 0 1px #928a79;
-  background:var(--light-plane);padding:5px 6px;
-}
-html[data-edition=destijl] #layer-convert .groups>.group:nth-child(3),
-html[data-edition=destijl] #layer-run .groups>.group:first-child,
-html[data-edition=destijl] .panel.step .groups>.group:last-child{
-  background:var(--yellow-plane);
-}
-html[data-edition=destijl] #layer-convert .groups>.group:nth-child(4),
-html[data-edition=destijl] #layer-integrate .groups>.group:nth-child(2),
-html[data-edition=destijl] [data-lane=agents] .card:last-child .groups>.group{
-  background:var(--blue-plane);
-}
-html[data-edition=destijl] :is(.group h3,.where h3){
-  color:var(--ink);font-weight:780;
-}
-html[data-edition=destijl] .board .chip{
-  color:var(--ink);border-radius:0;
-}
-html[data-edition=destijl] .board .chip:hover,
-html[data-edition=destijl] .board .chip[aria-expanded=true]{
-  background:var(--paper);border-color:var(--blue);
-}
-html[data-edition=destijl] .board .chip em{color:var(--ink2);border-radius:0}
-html[data-edition=destijl] .where{border-top:1px solid var(--ink)}
-html[data-edition=destijl] .where-item + .where-item{border-left:1px solid var(--sep);padding-left:4px}
-html[data-edition=destijl] .decision{
-  border-color:var(--ink);font-weight:720;
-}
-html[data-edition=destijl] .decision::before{
-  border:1px solid var(--ink);transform:none;background:var(--rail,var(--blue));
-}
-html[data-edition=destijl] .landscape-caption{
-  color:var(--ink);border-left:12px solid var(--red);padding:3px 5px;
-}
-html[data-edition=destijl] .band{
-  border:2px solid var(--ink);border-radius:0;box-shadow:none;
-  background:var(--card);border-inline-start:8px solid var(--blue);
-}
-html[data-edition=destijl] .band[data-band=bridge]{border-inline-start-color:var(--yellow)}
-html[data-edition=destijl] .band .varrow{color:var(--ink)}
-html[data-edition=destijl] .band-h h3{font-weight:800}
-
-@media(min-width:1080px) and (orientation:landscape){
-  html[data-edition=destijl] .top{
-    grid-template-columns:minmax(0,1.13fr) minmax(0,1fr);
-    align-items:stretch;gap:16px;
-  }
-  html[data-edition=destijl] .top .bar{
-    align-self:end;margin-bottom:0;justify-content:flex-end;
-  }
-  html[data-edition=destijl] .top::after {
-    position:absolute;content:"";height:18px;width:25%;top:1px;right:0;pointer-events:none;
-    border:2px solid var(--ink);
-    background:linear-gradient(90deg,
-      var(--blue) 0 21%,var(--ink) 21% 22%,
-      var(--paper) 22% 64%,var(--ink) 64% 65%,
-      var(--yellow) 65% 76%,var(--ink) 76% 77%,var(--red) 77% 100%);
-  }
-  html[data-edition=destijl] .board{
-    grid-template-columns:minmax(0,1.24fr) minmax(0,1fr);
-    column-gap:7px;row-gap:6px;
-  }
-  html[data-edition=destijl] .lane{
-    grid-template-columns:37px minmax(0,1fr);
-    gap:3px;
-  }
-  html[data-edition=destijl] .lane-h{
-    margin:0;padding:6px 0;gap:7px;
-  }
-  html[data-edition=destijl] .lane-h h2{font-size:14px}
-  html[data-edition=destijl] .lane-l{width:22px;height:22px}
-  html[data-edition=destijl] .lane .steps{
-    gap:0;border:2px solid var(--ink);background:var(--ink);
-  }
-  html[data-edition=destijl] [data-lane=use] .steps{
-    grid-template-columns:minmax(0,39fr) minmax(0,23fr) minmax(0,38fr);
-  }
-  html[data-edition=destijl] [data-lane=agents] .steps{
-    grid-template-columns:minmax(0,44fr) minmax(0,56fr);
-  }
-  html[data-edition=destijl] .steps > :is(.card,.panel){
-    --in-x:6px;--in-y:4px;
-    border:0;
-  }
-  html[data-edition=destijl] .steps > :is(.card,.panel) + :is(.card,.panel){
-    border-inline-start:3px solid var(--ink);
-  }
-  html[data-edition=destijl] :is(.card-h,.panel-h){padding-block:3px}
-  html[data-edition=destijl] .card .groups>.group,
-  html[data-edition=destijl] .panel .groups>.group{padding:3px 4px}
-  html[data-edition=destijl] .landscape-connections .band{
-    border-inline-start-width:14px;
-  }
-}
-@media(min-width:1080px) and (max-width:1250px) and (orientation:landscape){
-  html[data-edition=destijl] .top::after{height:11px}
 }
 
 /* ART DÉCO · the map as an engraved directory in a midnight lobby. */
@@ -880,7 +688,7 @@ html[data-edition=deco] .landscape-caption::after {
 html[data-edition=deco] .pop,
 html[data-edition=deco] .pop a,
 html[data-edition=deco] .pop-alert {border-radius:0}
-@media (min-width:1080px) and (orientation:landscape) {
+@media (min-width:701px) and (orientation:landscape) {
   html[data-edition=deco] .top .intro::before {width:61px;height:36px;top:2px}
   html[data-edition=deco] .top h1,html[data-edition=deco] .eyebrow {margin-left:69px}
   html[data-edition=deco] .lane-h {padding:7px 0 13px}
@@ -906,12 +714,12 @@ html[data-edition=deco] .pop-alert {border-radius:0}
   html[data-edition=deco][data-edition-size=fit] .top h1 {margin-left:46px}
 }
 /* The compact third rail needs all its height for the vertical route label. */
-@media (min-width:1080px) and (orientation:landscape) {
+@media (min-width:701px) and (orientation:landscape) {
   html[data-edition=deco] .lane[data-lane=agents] .lane-h {padding-bottom:7px}
   html[data-edition=deco] .lane[data-lane=agents] .lane-h::after {display:none}
 }
 
-@media(min-width:1080px) and (orientation:landscape){
+@media(min-width:701px) and (orientation:landscape){
  html[data-edition] .board{align-items:stretch;align-content:stretch;grid-template-rows:auto auto auto}
  html[data-edition] .board>.lane{align-items:stretch}
 }
@@ -930,4 +738,26 @@ html.edition-figure .top .bar{display:none}
  html[data-edition][data-mobile-map=overview] .top .bar{margin-top:4px;gap:3px}
  html[data-edition][data-mobile-map=overview] .mobile-map{gap:3px}
  html[data-edition][data-mobile-map=overview] .mobile-map h2{margin-bottom:3px}
+}
+
+/* Keep chip edges, insets and the reading rail present in the live edition. */
+html[data-edition] .board .chip,html[data-edition] .board .panel .chip{
+  min-height:22px;padding:2px 6px;
+}
+html[data-edition=construct] .board .chip{
+  background:#fff7e7;border:1px solid #a68160;
+}
+html[data-edition=construct] .board .chip:hover,
+html[data-edition=construct] .board .chip:focus-visible,
+html[data-edition=construct] .board .chip[aria-expanded=true]{border-color:#9b241b;background:#f7e4c0}
+html[data-edition=deco] .board .chip{
+  background:#2a2531;border:1px solid #9a7951;
+}
+html[data-edition=deco] .board .chip:hover,
+html[data-edition=deco] .board .chip:focus-visible,
+html[data-edition=deco] .board .chip[aria-expanded=true]{background:#413343;border-color:#efcf91}
+@media(min-width:701px) and (orientation:landscape){
+ html[data-edition] .lane-h{padding-block:8px}
+ html[data-edition=construct] .lane-h{min-width:0;padding:5px 5px 7px}
+ html[data-edition=deco] .lane-h{background:#27212d}
 }
