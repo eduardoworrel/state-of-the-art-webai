@@ -7,6 +7,7 @@
   var root = document.documentElement;
   var lang = DEFAULT, SITE = window.__SITE__ || { base: location.href.split("?")[0], repo: "", branch: "main" };
   if (q.get("export")) root.classList.add("export");
+  if (q.get("figure")) root.classList.add("edition-figure");
 
   function store(get, key, value) {
     try { return get ? localStorage.getItem(key) : localStorage.setItem(key, value); } catch (e) { return null; }
@@ -66,7 +67,7 @@
       editionValues = new Set(editionButtons.map(function (b) { return b.dataset.selectEdition; })),
       editionMedia = matchMedia("(min-width:1080px) and (orientation:landscape)"),
       editionBoard = document.querySelector(".board"), editionLinks = null,
-      editionPage = document.querySelector(".page"), editionSizeButton = document.querySelector("button[data-edition-size]"),
+      editionPage = document.querySelector(".page"),
       editionReading = q.get("fit") === "0", sourceSlot = null,
       originalBands = [], mobileOverview = null, mobileBack = null, mobileReturn = null,
       mobileMedia = matchMedia("(max-width:700px)");
@@ -123,7 +124,7 @@
     mobileBack.addEventListener("click", function () {
       showReading(false);
       window.scrollTo(0,0);
-      (mobileReturn || editionSizeButton).focus({preventScroll:true});
+      (mobileReturn || mobileOverview.querySelector("button")).focus({preventScroll:true});
     });
     editionBoard.after(mobileBack);
     return map;
@@ -141,45 +142,39 @@
     }
   }
   function fitEdition() {
-    if (!editionSizeButton) return;
-    var boardStyle = editionBoard.style;
-    editionSizeButton.hidden = false;
-    editionSizeButton.textContent = t(editionReading ? "ui.edition.fit" : "ui.edition.read");
-    editionSizeButton.setAttribute("aria-pressed", String(editionReading));
-    root.dataset.editionSize = editionReading ? "read" : "fit";
-    boardStyle.removeProperty("width"); boardStyle.removeProperty("zoom");
+    var style = editionBoard.style;
+    var reading = mobileMedia.matches && editionReading;
+    root.dataset.editionSize = reading ? "read" : "fit";
+    style.removeProperty("width"); style.removeProperty("zoom"); style.removeProperty("min-height");
     editionPage.style.removeProperty("zoom");
-    var overview = mobileMedia.matches && !editionReading && mobileOverview;
-    if (overview) {
+    if (mobileMedia.matches && !reading) {
       root.dataset.mobileMap = "overview";
       return;
     }
-    if (mobileMedia.matches && editionReading) root.dataset.mobileMap = "detail";
-    else delete root.dataset.mobileMap;
-    if (editionReading) return;
+    if (reading) {
+      root.dataset.mobileMap = "detail";
+      return;
+    }
+    delete root.dataset.mobileMap;
 
     var page = getComputedStyle(editionPage);
     var width = editionPage.clientWidth - parseFloat(page.paddingLeft) - parseFloat(page.paddingRight);
-    var chrome = editionPage.offsetHeight - editionBoard.getBoundingClientRect().height;
-    var budget = Math.max(1, document.documentElement.clientHeight - chrome - 2);
+    var budget = Math.max(1, document.documentElement.clientHeight - (editionPage.offsetHeight - editionBoard.getBoundingClientRect().height) - 2);
     function measure(scale) {
-      boardStyle.zoom = String(scale);
-      boardStyle.width = (Math.floor(width / scale * 10) / 10) + "px";
+      style.zoom = String(scale);
+      style.width = (Math.floor(width / scale * 10) / 10) + "px";
       return editionBoard.getBoundingClientRect().height;
     }
-    if (measure(1) <= budget) return;
     if (openBtn) close(false);
-    var lo = 0, hi = 1;
-    for (var j = 0; j < 12; j++) {
+    var lo = 0, hi = 2;
+    for (var j = 0; j < 13; j++) {
       var mid = (lo + hi) / 2;
       if (measure(mid) <= budget) lo = mid;
       else hi = mid;
     }
-    measure(Math.max(lo, 0.01));
-    var overflow = editionPage.getBoundingClientRect().height;
-    if (overflow > document.documentElement.clientHeight) {
-      editionPage.style.zoom = String(Math.max(1, document.documentElement.clientHeight - 1) / overflow);
-    }
+    var scale = Math.max(lo, .01);
+    measure(scale);
+    if (editionMedia.matches) style.minHeight = Math.floor(budget / scale * 10) / 10 + "px";
   }
   function setEdition(choice) {
     if (!editionStyle || !editionValues.has(choice)) return;
@@ -211,10 +206,6 @@
       var storedEdition = store(true, "webai-edition");
       setEdition(editionValues.has(storedEdition) ? storedEdition : "brutal");
     }
-    editionSizeButton.addEventListener("click", function () {
-      showReading(!editionReading);
-      window.scrollTo(0, 0);
-    });
     editionButtons.forEach(function (b) {
       b.addEventListener("click", function () {
         close(false);
@@ -311,7 +302,12 @@
         : k === "x" ? "https://x.com/intent/post?text=" + enc(title) + "&url=" + enc(url)
         : "mailto:?subject=" + enc(title) + "&body=" + enc(t("site.tagline") + "\n\n" + url);
     });
-    set("[data-dl]", function (a) { var ext = a.getAttribute("data-dl"), th = curTheme(); a.href = SITE.base + "figure-" + lang + (th === "dark" ? "-dark" : "") + "." + ext; a.setAttribute("download", "state-of-the-art-webai-" + lang + "-" + th + "." + ext); });
+    set("[data-dl]", function (a) {
+      var ext = a.dataset.dl, th = curTheme(), edition = root.dataset.edition;
+      var stem = edition ? "figure-" + edition + "-" + lang : "figure-" + lang + (th === "dark" ? "-dark" : "");
+      a.href = "./" + stem + "." + ext;
+      a.download = "state-of-the-art-webai-" + (edition || th) + "-" + lang + "." + ext;
+    });
     set("[data-suggest]", function (a) { a.href = issueUrl(); });
     var nat = document.querySelector('[data-act="native"]'); if (nat) nat.hidden = !navigator.share;
   }

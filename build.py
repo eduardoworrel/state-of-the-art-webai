@@ -219,7 +219,7 @@ def menus(tx, reviewed):
             f'<section class="sh-sec"><h3 data-t="ui.embed">{t_("ui.embed")}</h3>'
             f'<p class="emb-help"><span data-t="ui.embed.help">{t_("ui.embed.help")}</span> <a href="https://github.com/{SITE["repo"]}#the-page" target="_blank" rel="noopener noreferrer" data-how><span data-t="ui.embed.how">{t_("ui.embed.how")}</span></a></p>'
             + row("iframe") + row("component") + row("image") + row("badge") + '</section>'
-            f'<section class="sh-sec"><h3 data-t="ui.edition.original">{t_("ui.edition.original")}</h3><div class="sh-links">'
+            f'<section class="sh-sec"><h3 data-t="ui.download">{t_("ui.download")}</h3><div class="sh-links">'
             f'<a class="btn sm" data-dl="png" href="#" download>PNG</a><a class="btn sm" data-dl="svg" href="#" download>SVG</a></div></section>'
             f'<div class="sh-foot"><a data-suggest href="#" target="_blank" rel="noopener noreferrer"><span data-t="ui.suggest">{t_("ui.suggest")}</span></a>'
             f'<span class="reviewed"><span data-t="ui.reviewed.short">{t_("ui.reviewed.short")}</span> <time datetime="{reviewed}">{reviewed}</time></span></div>'
@@ -262,11 +262,11 @@ def render(embed=False):
                       f'<meta property="og:description" content="{escape(tx["site.tagline"])}"><meta property="og:url" content="{BASE}"><meta property="og:image" content="{BASE}figure-en.png">')
         edition_buttons = "".join(
             f'<button type="button" data-select-edition="{key}" aria-pressed="false" data-t="ui.edition.{key}">{escape(tx[f"ui.edition.{key}"])}</button>'
-            for key in ("comic", "brutal")
+            for key in ("brutal", "comic", "construct", "destijl", "deco")
         )
         edition_switch = f'<div class="edition-switch" role="group" data-al="ui.edition.label" aria-label="{escape(tx["ui.edition.label"])}">{edition_buttons}</div>'
         header = (f'<header class="top"><div class="intro"><div class="eyebrow edition-only" data-t="ui.edition.eyebrow">{escape(tx["ui.edition.eyebrow"])}</div><h1 data-t="site.title">{escape(tx["site.title"])}</h1><p data-t="site.tagline">{escape(tx["site.tagline"])}</p></div>'
-                  f'<div class="bar">{edition_switch}<button type="button" class="btn edition-size" data-edition-size aria-pressed="false" hidden>{escape(tx["ui.edition.read"])}</button><div class="seg langs" role="group" aria-label="{escape(tx["ui.language"])}" data-al="ui.language">{buttons}</div>'
+                  f'<div class="bar">{edition_switch}<div class="seg langs" role="group" aria-label="{escape(tx["ui.language"])}" data-al="ui.language">{buttons}</div>'
                   f'<div class="seg themes" role="group" aria-label="{escape(tx["ui.theme"])}" data-al="ui.theme">{themes}</div>{share_button(tx)}</div>'
                   f'<span class="small-window" role="status" hidden data-t="ui.small">{escape(tx["ui.small"])}</span>'
                   f'<p class="contrib-note" role="status" hidden data-t="ui.contrib">{escape(tx["ui.contrib"])}</p></header>')
