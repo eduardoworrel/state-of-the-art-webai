@@ -517,13 +517,13 @@ html[data-edition] .board{gap:6px}
 html[data-edition] .lane{grid-template-columns:37px minmax(0,1fr);gap:7px}
 html[data-edition] .band{margin-left:44px}
 html[data-edition] [data-lane=build] .steps{grid-template-columns:16fr 67fr 17fr}
-html[data-edition] .card,html[data-edition] .panel{padding:5px 7px}
+html[data-edition] .card,html[data-edition] .panel{padding:10px 12px}
 html[data-edition] .card-h{margin-bottom:4px;padding-bottom:2px}
 html[data-edition] .card-h h2{font-size:clamp(16px,1.24vw,20px)}
-html[data-edition] .card .groups>.group{padding:3px 4px}
-html[data-edition] .panel .groups>.group{padding:3px}
+html[data-edition] .card .groups>.group{padding:6px 8px}
+html[data-edition] .panel .groups>.group{padding:6px 8px}
 html[data-edition] .group h3,html[data-edition] .where h3{font-size:11.5px;margin-bottom:2px}
-html[data-edition] .chips{gap:1px 3px}
+html[data-edition] .chips{gap:4px 6px}
 html[data-edition] .chip,html[data-edition] .panel .chip{font-size:13px;min-height:15px;padding:0 3px;line-height:1.06}
 html[data-edition] .chip em{font-size:8px;padding:1px 2px}
 html[data-edition] .decision{font-size:12px;padding-top:3px;margin-top:4px}
@@ -1148,7 +1148,6 @@ html[data-edition=deco] .board .chip[aria-expanded=true]{background:#413343;bord
       editionValues = new Set(editionButtons.map(function (b) { return b.dataset.selectEdition; })),
       editionMedia = matchMedia("(min-width:701px)"),
       editionBoard = document.querySelector(".board"), editionLinks = null,
-      editionPage = document.querySelector(".page"),
       editionReading = q.get("fit") === "0", sourceSlot = null,
       originalBands = [], mobileOverview = null, mobileBack = null, mobileReturn = null,
       mobileMedia = matchMedia("(max-width:700px)");
@@ -1227,7 +1226,6 @@ html[data-edition=deco] .board .chip[aria-expanded=true]{background:#413343;bord
     var reading = mobileMedia.matches && editionReading;
     root.dataset.editionSize = reading ? "read" : "fit";
     style.removeProperty("width"); style.removeProperty("zoom"); style.removeProperty("min-height");
-    editionPage.style.removeProperty("zoom");
     if (mobileMedia.matches && !reading) {
       root.dataset.mobileMap = "overview";
       return;
@@ -1238,24 +1236,7 @@ html[data-edition=deco] .board .chip[aria-expanded=true]{background:#413343;bord
     }
     delete root.dataset.mobileMap;
 
-    var page = getComputedStyle(editionPage);
-    var width = editionPage.clientWidth - parseFloat(page.paddingLeft) - parseFloat(page.paddingRight);
-    var budget = Math.max(1, document.documentElement.clientHeight - (editionPage.offsetHeight - editionBoard.getBoundingClientRect().height) - 2);
-    function measure(scale) {
-      style.zoom = String(scale);
-      style.width = (Math.floor(width / scale * 10) / 10) + "px";
-      return editionBoard.getBoundingClientRect().height;
-    }
     if (openBtn) close(false);
-    var lo = 0, hi = 2;
-    for (var j = 0; j < 13; j++) {
-      var mid = (lo + hi) / 2;
-      if (measure(mid) <= budget) lo = mid;
-      else hi = mid;
-    }
-    var scale = Math.max(lo, .01);
-    measure(scale);
-    if (editionMedia.matches) style.minHeight = Math.floor(budget / scale * 10) / 10 + "px";
   }
   function setEdition(choice) {
     if (!editionStyle || !editionValues.has(choice)) return;

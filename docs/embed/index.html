@@ -381,7 +381,6 @@ html:not([data-edition]) .edition-only, html:not([data-edition]) .chapter-art, h
       editionValues = new Set(editionButtons.map(function (b) { return b.dataset.selectEdition; })),
       editionMedia = matchMedia("(min-width:701px)"),
       editionBoard = document.querySelector(".board"), editionLinks = null,
-      editionPage = document.querySelector(".page"),
       editionReading = q.get("fit") === "0", sourceSlot = null,
       originalBands = [], mobileOverview = null, mobileBack = null, mobileReturn = null,
       mobileMedia = matchMedia("(max-width:700px)");
@@ -460,7 +459,6 @@ html:not([data-edition]) .edition-only, html:not([data-edition]) .chapter-art, h
     var reading = mobileMedia.matches && editionReading;
     root.dataset.editionSize = reading ? "read" : "fit";
     style.removeProperty("width"); style.removeProperty("zoom"); style.removeProperty("min-height");
-    editionPage.style.removeProperty("zoom");
     if (mobileMedia.matches && !reading) {
       root.dataset.mobileMap = "overview";
       return;
@@ -471,24 +469,7 @@ html:not([data-edition]) .edition-only, html:not([data-edition]) .chapter-art, h
     }
     delete root.dataset.mobileMap;
 
-    var page = getComputedStyle(editionPage);
-    var width = editionPage.clientWidth - parseFloat(page.paddingLeft) - parseFloat(page.paddingRight);
-    var budget = Math.max(1, document.documentElement.clientHeight - (editionPage.offsetHeight - editionBoard.getBoundingClientRect().height) - 2);
-    function measure(scale) {
-      style.zoom = String(scale);
-      style.width = (Math.floor(width / scale * 10) / 10) + "px";
-      return editionBoard.getBoundingClientRect().height;
-    }
     if (openBtn) close(false);
-    var lo = 0, hi = 2;
-    for (var j = 0; j < 13; j++) {
-      var mid = (lo + hi) / 2;
-      if (measure(mid) <= budget) lo = mid;
-      else hi = mid;
-    }
-    var scale = Math.max(lo, .01);
-    measure(scale);
-    if (editionMedia.matches) style.minHeight = Math.floor(budget / scale * 10) / 10 + "px";
   }
   function setEdition(choice) {
     if (!editionStyle || !editionValues.has(choice)) return;
