@@ -37,16 +37,19 @@ def check(ws):
         return js("""Array.from(document.querySelectorAll('.board .chip,[role=menuitem][href]')).map(
         e=>[e.dataset.id||'',e.dataset.status||'',e.dataset.alert||'',e.getAttribute('href')||''].join('|')).sort()""")
 
-    def assert_source_menu():
-        assert js("""(() => {
-          const button=document.querySelector('.board [data-id="open-weights"]');
+    def assert_source_menu(chip="open-weights"):
+        result = js("""(() => {
+          const button=document.querySelector('.board [data-id="__CHIP__"]');
           button.scrollIntoView({block:'nearest'});
           button.click();
-          const pop=document.getElementById('pop-open-weights');
-          const open=!pop.hidden && button.getAttribute('aria-expanded')==='true' && pop.querySelectorAll('[role=menuitem]').length>=2;
+          const pop=document.getElementById('pop-__CHIP__');
+          const rect=pop.getBoundingClientRect(), font=parseFloat(getComputedStyle(pop).fontSize);
+          const open=!pop.hidden && button.getAttribute('aria-expanded')==='true' && pop.querySelectorAll('[role=menuitem]').length>=2
+            && (!document.documentElement.dataset.edition || pop.parentElement===document.body) && font>=13 && rect.left>=0 && rect.right<=innerWidth && rect.top>=0 && rect.bottom<=innerHeight;
           button.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));
-          return open && pop.hidden && button.getAttribute('aria-expanded')==='false';
-        })()""")
+          return {open,closed:pop.hidden && button.getAttribute('aria-expanded')==='false',rect:rect.toJSON(),font,w:innerWidth,h:innerHeight};
+        })()""".replace("__CHIP__", chip))
+        assert result["open"] and result["closed"], (chip, result)
 
     size(1600, 1000)
     navigate(PAGE + "?lang=pt&motion=0")
@@ -62,6 +65,22 @@ def check(ws):
         assert js("document.querySelectorAll('.landscape-connections > .band').length") == 2
         assert inventory() == baseline
         assert_source_menu()
+        for w, h in ((1920, 1080), (1440, 900), (1440, 820), (1366, 768), (1280, 720),
+                     (1536, 730), (1000, 600), (820, 1180), (390, 844), (320, 568)):
+            size(w, h)
+            result = js("""(() => {
+              const se=document.scrollingElement, board=document.querySelector('.board').getBoundingClientRect();
+              return {w:innerWidth,h:innerHeight,scroll:[se.scrollWidth,se.scrollHeight],right:board.right,bottom:board.bottom};
+            })()""")
+            assert result["scroll"][0] <= w and result["scroll"][1] <= h, (key, result)
+            assert result["right"] <= w + 1 and result["bottom"] <= h + 1, (key, result)
+        assert_source_menu("webmcp")
+        js("document.querySelector('button[data-edition-size]').click()")
+        read_mode = js("[document.documentElement.dataset.editionSize,document.scrollingElement.scrollHeight,innerHeight,location.href]")
+        assert read_mode[0] == "read" and read_mode[1] > read_mode[2], read_mode
+        js("document.querySelector('button[data-edition-size]').click()")
+        assert js("document.documentElement.dataset.editionSize==='fit' && document.scrollingElement.scrollHeight<=innerHeight")
+        size(1600, 1000)
     js("document.querySelector('[data-lang=en]').click()")
     assert js("document.querySelector('.landscape-caption').textContent") == "Cross-cutting layers"
     assert js("decodeURIComponent(document.querySelector('[data-share=linkedin]').href).includes('edicao=rail')")

@@ -446,3 +446,17 @@ html[data-edition] .board .chip em{font-size:9px;line-height:1.08}
    grid-column:1/-1;
  }
 }
+
+/* The readable UI is not scaled with the fitted map. On narrow windows, avoid
+   spending most of the view on the introductory and footer chrome. */
+.edition-size{font-family:var(--ff-ui);font-size:12px}
+@media(max-width:1079px){
+ html[data-edition][data-edition-size=fit] .page{padding:12px 14px 9px}
+ html[data-edition][data-edition-size=fit] .top{margin-bottom:9px;padding-bottom:8px}
+ html[data-edition][data-edition-size=fit] .top h1{font-size:clamp(28px,4.6vw,48px);margin:4px 0 6px}
+ html[data-edition][data-edition-size=fit] .top .intro p{font-size:12px;line-height:1.2}
+ html[data-edition][data-edition-size=fit] .top .bar{margin-top:7px;gap:5px}
+ html[data-edition][data-edition-size=fit] .edition-switch{gap:4px}
+ html[data-edition][data-edition-size=fit] .edition-switch button{padding:4px 6px;font-size:11px}
+ html[data-edition][data-edition-size=fit] .foot{margin-top:8px;padding-top:5px;gap:3px 8px;font-size:10px;line-height:1.15}
+}

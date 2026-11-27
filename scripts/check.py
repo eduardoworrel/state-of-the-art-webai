@@ -25,7 +25,7 @@ STATIC_KEYS = (["lang.name", "site.title", "site.tagline", "ui.source", "ui.acce
                 "ui.sources.one", "ui.sources.other", "ui.menu", "ui.opens", "ui.alert", "ui.alert.observed", "ui.alert.evidence", "ui.also", "ui.small", "ui.contrib",
                 "ui.lane.build", "ui.lane.use", "ui.lane.agents", "ui.band.accel", "ui.band.bridge", "ui.band.bridge.note",
                 "ui.share", "ui.share.native", "ui.share.copy", "ui.share.copied", "ui.share.linkedin", "ui.share.x", "ui.share.email", "ui.embed", "ui.embed.help", "ui.embed.how", "ui.embed.t.iframe", "ui.embed.d.iframe", "ui.embed.t.component", "ui.embed.d.component", "ui.embed.t.image", "ui.embed.d.image", "ui.embed.t.badge", "ui.embed.d.badge", "ui.embed.copy", "ui.embed.copied", "ui.embed.close", "ui.embed.credit", "ui.download", "ui.suggest"]
-               + [f"ui.edition.{x}" for x in ("label", "eyebrow", "sky", "comic", "rail", "chapter.build", "chapter.use", "chapter.agents", "connections", "original")]
+               + [f"ui.edition.{x}" for x in ("label", "eyebrow", "sky", "comic", "rail", "chapter.build", "chapter.use", "chapter.agents", "connections", "original", "fit", "read")]
                + [f"ui.alert.level.{x}" for x in ("critical", "warning", "info")]
                + [f"ui.alert.kind.{x}" for x in ("broken-link", "removed", "deprecated", "superseded", "moved")]
                + [f"ui.level.{x}" for x in ("primary", "trusted", "calculation")]

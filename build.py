@@ -266,7 +266,7 @@ def render(embed=False):
         )
         edition_switch = f'<div class="edition-switch" role="group" data-al="ui.edition.label" aria-label="{escape(tx["ui.edition.label"])}">{edition_buttons}</div>'
         header = (f'<header class="top"><div class="intro"><div class="eyebrow edition-only" data-t="ui.edition.eyebrow">{escape(tx["ui.edition.eyebrow"])}</div><h1 data-t="site.title">{escape(tx["site.title"])}</h1><p data-t="site.tagline">{escape(tx["site.tagline"])}</p></div>'
-                  f'<div class="bar">{edition_switch}<div class="seg langs" role="group" aria-label="{escape(tx["ui.language"])}" data-al="ui.language">{buttons}</div>'
+                  f'<div class="bar">{edition_switch}<button type="button" class="btn edition-size" data-edition-size aria-pressed="false" hidden>{escape(tx["ui.edition.read"])}</button><div class="seg langs" role="group" aria-label="{escape(tx["ui.language"])}" data-al="ui.language">{buttons}</div>'
                   f'<div class="seg themes" role="group" aria-label="{escape(tx["ui.theme"])}" data-al="ui.theme">{themes}</div>{share_button(tx)}</div>'
                   f'<span class="small-window" role="status" hidden data-t="ui.small">{escape(tx["ui.small"])}</span>'
                   f'<p class="contrib-note" role="status" hidden data-t="ui.contrib">{escape(tx["ui.contrib"])}</p></header>')
